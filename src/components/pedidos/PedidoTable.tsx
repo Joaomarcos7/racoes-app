@@ -4,35 +4,38 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import type { PedidoDTO } from "@/types/api"
-import { Eye } from "lucide-react"
+import { Plus, Printer, Trash2 } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
 const entregaConfig: Record<string, { label: string; className: string }> = {
   AGUARDANDO: { label: "Aguardando", className: "bg-gray-100 text-gray-700" },
   EM_ROTA: { label: "Em Rota", className: "bg-blue-100 text-blue-700" },
-  ENTREGUE: { label: "Entregue", className: "bg-green-100 text-green-700" },
+  ENTREGUE: { label: "Entregue", className: "bg-blue-100 text-blue-700" },
 }
 
 const pagConfig: Record<string, { label: string; className: string }> = {
   PENDENTE: { label: "Pendente", className: "bg-yellow-100 text-yellow-700" },
-  PAGO: { label: "Pago", className: "bg-green-100 text-green-700" },
+  PAGO: { label: "Pago", className: "bg-blue-100 text-blue-700" },
   FIADO: { label: "Fiado", className: "bg-orange-100 text-orange-700" },
 }
 
-interface PedidoTableProps { pedidos: PedidoDTO[] }
+interface PedidoTableProps { pedidos: PedidoDTO[]; onDelete: (id: string) => void }
 
-export function PedidoTable({ pedidos }: PedidoTableProps) {
+export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
   if (pedidos.length === 0) return <p className="text-sm text-gray-500 py-4">Nenhum pedido encontrado.</p>
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="rounded-md border overflow-hidden overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="bg-[#0C5E3A] text-white">
+        <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th className="px-4 py-3 text-left font-medium">Data</th>
-            <th className="px-4 py-3 text-left font-medium">Cliente</th>
-            <th className="px-4 py-3 text-left font-medium">Cidade</th>
-            <th className="px-4 py-3 text-right font-medium">Total</th>
-            <th className="px-4 py-3 text-center font-medium">Entrega</th>
-            <th className="px-4 py-3 text-center font-medium">Pagamento</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Data</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cliente</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cidade</th>
+            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Entrega</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Pagamento</th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>
@@ -42,19 +45,55 @@ export function PedidoTable({ pedidos }: PedidoTableProps) {
             return (
               <tr key={p.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <td className="px-4 py-3">{formatDate(p.dataPedido)}</td>
-                <td className="px-4 py-3 font-medium">{p.cliente.nome}</td>
-                <td className="px-4 py-3 text-gray-600">{p.cliente.cidade}</td>
+                <td className="px-4 py-3">
+                  <Badge className={p.tipoPedido === "ENTREGA" ? "bg-blue-100 text-blue-700" : "bg-blue-100 text-blue-700"}>
+                    {p.tipoPedido === "ENTREGA" ? "Entrega" : "Balcão"}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3 font-medium">{p.cliente?.nome ?? <span className="text-gray-400 italic">—</span>}</td>
+                <td className="px-4 py-3 text-gray-600">{p.cliente?.cidade ?? "—"}</td>
                 <td className="px-4 py-3 text-right">{formatCurrency(total)}</td>
                 <td className="px-4 py-3 text-center">
-                  <Badge className={entregaConfig[p.statusEntrega].className}>{entregaConfig[p.statusEntrega].label}</Badge>
+                  {p.statusEntrega
+                    ? <Badge className={entregaConfig[p.statusEntrega].className}>{entregaConfig[p.statusEntrega].label}</Badge>
+                    : <span className="text-gray-400 text-xs">—</span>}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <Badge className={pagConfig[p.statusPagamento].className}>{pagConfig[p.statusPagamento].label}</Badge>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Button size="icon" variant="ghost" asChild>
-                    <Link href={`/pedidos/${p.id}`}><Eye size={14} /></Link>
-                  </Button>
+                  <div className="flex gap-1 justify-end">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            aria-label="Imprimir cupom"
+                            onClick={() => window.open(`/pedidos/${p.id}/print`, "_blank")}
+                          >
+                            <Printer size={14} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Imprimir cupom</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="ghost" asChild>
+                            <Link href={`/pedidos/${p.id}`}><Plus size={14} /></Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Ver detalhes</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <ConfirmDeleteDialog onConfirm={() => onDelete(p.id)}>
+                      <Button size="icon" variant="ghost" className="text-red-500 hover:text-red-700">
+                        <Trash2 size={14} />
+                      </Button>
+                    </ConfirmDeleteDialog>
+                  </div>
                 </td>
               </tr>
             )
