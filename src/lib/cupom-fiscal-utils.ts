@@ -1,3 +1,5 @@
+export const LINHA_WIDTH = 42
+
 export function padEnd(str: string, width: number): string {
   if (str.length >= width) return str.slice(0, width)
   return str + " ".repeat(width - str.length)
@@ -17,7 +19,7 @@ export function formatarLinhaProduto(
   const qtdStr = String(quantidade)
   const pesoStr = `${pesoKg}kg`
   const rightSide = ` ${padEnd(pesoStr, 5)} ${padEnd(qtdStr, 3)} ${totalStr}`
-  const nomeWidth = 42 - rightSide.length
+  const nomeWidth = LINHA_WIDTH - rightSide.length
   return padEnd(truncate(nome, nomeWidth), nomeWidth) + rightSide
 }
 

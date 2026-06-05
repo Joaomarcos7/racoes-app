@@ -6,6 +6,7 @@ import {
   calcularSubtotal,
   calcularTotal,
   formatarDataEmissao,
+  LINHA_WIDTH,
 } from "@/lib/cupom-fiscal-utils"
 
 describe("padEnd", () => {
@@ -35,7 +36,7 @@ describe("truncate", () => {
 describe("formatarLinhaProduto", () => {
   it("formats product line within 42 chars", () => {
     const linha = formatarLinhaProduto("Ração Premium", 25, 2, 180)
-    expect(linha.length).toBeLessThanOrEqual(42)
+    expect(linha.length).toBeLessThanOrEqual(LINHA_WIDTH)
   })
 
   it("includes product name, weight, quantity and total", () => {
@@ -47,7 +48,7 @@ describe("formatarLinhaProduto", () => {
 
   it("truncates long product names to fit in 42 chars", () => {
     const linha = formatarLinhaProduto("Nome Muito Longo De Produto Especial Super", 10, 1, 50)
-    expect(linha.length).toBeLessThanOrEqual(42)
+    expect(linha.length).toBeLessThanOrEqual(LINHA_WIDTH)
   })
 })
 
