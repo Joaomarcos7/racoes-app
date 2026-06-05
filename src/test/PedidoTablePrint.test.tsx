@@ -5,6 +5,7 @@ import { PedidoTable } from "@/components/pedidos/PedidoTable"
 const makePedido = (id: string) => ({
   id,
   tipoPedido: "BALCAO" as const,
+  clienteId: null,
   cliente: null,
   dataPedido: "2026-06-05",
   statusEntrega: null,
