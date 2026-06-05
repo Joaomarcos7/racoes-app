@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import {
+  LINHA_WIDTH,
   calcularSubtotal,
   calcularTotal,
   formatarLinhaProduto,
@@ -23,8 +24,8 @@ const STATUS_PAG_LABELS: Record<string, string> = {
   FIADO: "FIADO",
 }
 
-const SEP = "─".repeat(42)
-const SEP_DOUBLE = "═".repeat(42)
+const SEP = "─".repeat(LINHA_WIDTH)
+const SEP_DOUBLE = "═".repeat(LINHA_WIDTH)
 
 export default async function CupomFiscalPrintPage({
   params,
@@ -113,13 +114,9 @@ export default async function CupomFiscalPrintPage({
     "PRODUTO             KG    QTD  TOTAL",
     ...linhasItens,
     SEP,
-    `Subtotal:${" ".repeat(42 - 9 - formatBRL(subtotal).length)}${formatBRL(subtotal)}`,
-    ...(desconto > 0
-      ? [
-          `Desconto:${" ".repeat(42 - 9 - formatBRL(desconto).length - 1)}-${formatBRL(desconto)}`,
-        ]
-      : []),
-    `TOTAL:   ${" ".repeat(42 - 9 - formatBRL(total).length)}${formatBRL(total)}`,
+    rightAlign("Subtotal:", formatBRL(subtotal)),
+    ...(desconto > 0 ? [rightAlign("Desconto:", `-${formatBRL(desconto)}`)] : []),
+    rightAlign("TOTAL:   ", formatBRL(total)),
     SEP,
     `Pagamento: ${pagamentoLine}`,
     ...(pedido.observacoes ? [SEP, `Obs: ${pedido.observacoes}`] : []),
@@ -150,4 +147,9 @@ export default async function CupomFiscalPrintPage({
 
 function formatBRL(value: number): string {
   return `R$${value.toFixed(2).replace(".", ",")}`
+}
+
+function rightAlign(label: string, value: string, width: number = LINHA_WIDTH): string {
+  const padding = Math.max(0, width - label.length - value.length)
+  return `${label}${" ".repeat(padding)}${value}`
 }

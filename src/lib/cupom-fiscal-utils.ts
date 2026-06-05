@@ -34,10 +34,14 @@ export function calcularTotal(subtotal: number, desconto: number): number {
 }
 
 export function formatarDataEmissao(date: Date): string {
-  const day = String(date.getDate()).padStart(2, "0")
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const year = date.getFullYear()
-  const hours = String(date.getHours()).padStart(2, "0")
-  const minutes = String(date.getMinutes()).padStart(2, "0")
-  return `${day}/${month}/${year} ${hours}:${minutes}`
+  const opts: Intl.DateTimeFormatOptions = {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }
+  return date.toLocaleString("pt-BR", opts).replace(",", "")
 }
