@@ -11,12 +11,21 @@ import { formatCurrency, formatDate } from "@/lib/utils"
 const entregaConfig: Record<string, { label: string; className: string }> = {
   AGUARDANDO: { label: "Aguardando", className: "bg-gray-100 text-gray-700" },
   EM_ROTA: { label: "Em Rota", className: "bg-blue-100 text-blue-700" },
-  ENTREGUE: { label: "Entregue", className: "bg-green-100 text-green-700" },
+  ENTREGUE: { label: "Entregue", className: "bg-blue-100 text-blue-700" },
+}
+
+const METODO_LABELS: Record<string, string> = {
+  DINHEIRO: "Dinheiro",
+  PIX: "Pix",
+  BOLETO: "Boleto",
+  CHEQUE: "Cheque",
+  CARTAO_CREDITO: "Cartão de Crédito",
+  CARTAO_DEBITO: "Cartão de Débito",
 }
 
 const pagConfig: Record<string, { label: string; className: string }> = {
   PENDENTE: { label: "Pendente", className: "bg-yellow-100 text-yellow-700" },
-  PAGO: { label: "Pago", className: "bg-green-100 text-green-700" },
+  PAGO: { label: "Pago", className: "bg-blue-100 text-blue-700" },
   FIADO: { label: "Fiado", className: "bg-orange-100 text-orange-700" },
 }
 
@@ -31,20 +40,28 @@ export default function PedidoDetailPage() {
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!pedido) return <p className="text-sm text-red-500">Pedido não encontrado.</p>
 
-  const total = pedido.itens.reduce((acc, item) => acc + item.quantidade * item.valorUnit, 0)
+  const subtotal = pedido.itens.reduce((acc, item) => acc + item.quantidade * item.valorUnit, 0)
+  const desconto = pedido.desconto ?? 0
+  const total = Math.max(0, subtotal - desconto)
   const pesoTotal = pedido.itens.reduce((acc, item) => acc + item.quantidade * item.pesoUnit, 0)
+  const isEntrega = pedido.tipoPedido === "ENTREGA"
 
   return (
     <div className="max-w-2xl space-y-4">
       <PageHeader
-        title={`Pedido — ${pedido.cliente.nome}`}
-        description={`${formatDate(pedido.dataPedido)} · ${pedido.cliente.cidade}`}
+        title={pedido.cliente ? `Pedido — ${pedido.cliente.nome}` : "Venda Balcão"}
+        description={`${formatDate(pedido.dataPedido)}${pedido.cliente ? ` · ${pedido.cliente.cidade}` : ""}`}
       />
       <div className="bg-white rounded-lg border p-6">
-        <div className="flex gap-3 mb-4">
-          <Badge className={entregaConfig[pedido.statusEntrega].className}>{entregaConfig[pedido.statusEntrega].label}</Badge>
+        <div className="flex gap-3 mb-4 flex-wrap">
+          <Badge className={pedido.tipoPedido === "ENTREGA" ? "bg-blue-100 text-blue-700" : "bg-blue-100 text-blue-700"}>
+            {pedido.tipoPedido === "ENTREGA" ? "Entrega" : "Balcão"}
+          </Badge>
+          {pedido.statusEntrega && (
+            <Badge className={entregaConfig[pedido.statusEntrega].className}>{entregaConfig[pedido.statusEntrega].label}</Badge>
+          )}
           <Badge className={pagConfig[pedido.statusPagamento].className}>{pagConfig[pedido.statusPagamento].label}</Badge>
-          {pedido.metodoPagamento && <Badge variant="outline">{pedido.metodoPagamento}</Badge>}
+          {pedido.metodoPagamento && <Badge variant="outline">{METODO_LABELS[pedido.metodoPagamento] ?? pedido.metodoPagamento}</Badge>}
         </div>
         <table className="w-full text-sm mb-4">
           <thead>
@@ -68,26 +85,67 @@ export default function PedidoDetailPage() {
             ))}
           </tbody>
         </table>
-        <div className="flex justify-between text-sm font-medium pt-2 border-t">
-          <span className="text-gray-600">Peso total: {pesoTotal.toFixed(1)} kg</span>
-          <span className="text-lg">Total: {formatCurrency(total)}</span>
+        <div className="pt-2 border-t space-y-1">
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Peso total: {pesoTotal.toFixed(1)} kg</span>
+            <span>Subtotal: {formatCurrency(subtotal)}</span>
+          </div>
+          {desconto > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-red-600 font-medium">Desconto</span>
+              <span className="text-red-600 font-medium">− {formatCurrency(desconto)}</span>
+            </div>
+          )}
+          <div className="flex justify-end">
+            <span className="text-lg font-semibold">Total: {formatCurrency(total)}</span>
+          </div>
         </div>
         {pedido.observacoes && <p className="text-sm text-gray-500 mt-3">Obs: {pedido.observacoes}</p>}
       </div>
+      {pedido.historicoStatus && pedido.historicoStatus.length > 0 && (
+        <div className="bg-white rounded-lg border p-6">
+          <h3 className="font-semibold mb-3 text-gray-700">Histórico de Status</h3>
+          <ol className="relative border-l border-slate-200 space-y-4 ml-2">
+            {pedido.historicoStatus.map((h) => (
+              <li key={h.id} className="ml-4">
+                <span className="absolute -left-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-white" />
+                <div className="flex items-center gap-2 flex-wrap">
+                  {h.statusAnterior ? (
+                    <Badge className={entregaConfig[h.statusAnterior]?.className ?? "bg-gray-100 text-gray-700"}>
+                      {entregaConfig[h.statusAnterior]?.label ?? h.statusAnterior}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                  )}
+                  <span className="text-xs text-gray-400">→</span>
+                  <Badge className={entregaConfig[h.statusNovo]?.className ?? "bg-gray-100 text-gray-700"}>
+                    {entregaConfig[h.statusNovo]?.label ?? h.statusNovo}
+                  </Badge>
+                  <span className="text-xs text-gray-400 ml-auto">
+                    {new Date(h.criadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       <div className="bg-white rounded-lg border p-6">
         <h3 className="font-semibold mb-3 text-gray-700">Atualizar Status</h3>
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <div className="space-y-1">
-            <label className="text-xs text-gray-500">Entrega</label>
-            <Select value={statusEntrega} onValueChange={setStatusEntrega}>
-              <SelectTrigger><SelectValue placeholder={entregaConfig[pedido.statusEntrega].label} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
-                <SelectItem value="EM_ROTA">Em Rota</SelectItem>
-                <SelectItem value="ENTREGUE">Entregue</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className={`grid gap-3 mb-3 ${isEntrega ? "grid-cols-3" : "grid-cols-2"}`}>
+          {isEntrega && (
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500">Entrega</label>
+              <Select value={statusEntrega} onValueChange={setStatusEntrega}>
+                <SelectTrigger><SelectValue placeholder={pedido.statusEntrega ? entregaConfig[pedido.statusEntrega].label : "—"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
+                  <SelectItem value="EM_ROTA">Em Rota</SelectItem>
+                  <SelectItem value="ENTREGUE">Entregue</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-1">
             <label className="text-xs text-gray-500">Pagamento</label>
             <Select value={statusPagamento} onValueChange={setStatusPagamento}>
@@ -104,13 +162,13 @@ export default function PedidoDetailPage() {
             <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
               <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
               <SelectContent>
-                {["DINHEIRO","PIX","BOLETO","CHEQUE","FIADO"].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                {Object.entries(METODO_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         </div>
         <Button
-          className="bg-green-800 hover:bg-green-700"
+          className="bg-blue-700 hover:bg-blue-600"
           disabled={updateMutation.isPending || (!statusEntrega && !statusPagamento && !metodoPagamento)}
           onClick={() => updateMutation.mutate({ id, statusEntrega: statusEntrega || undefined, statusPagamento: statusPagamento || undefined, metodoPagamento: metodoPagamento || undefined })}
         >

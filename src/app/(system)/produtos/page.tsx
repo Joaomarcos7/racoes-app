@@ -7,27 +7,23 @@ import { useProdutos, useCreateProduto, useUpdateProduto, useDeleteProduto } fro
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Pagination } from "@/components/ui/Pagination"
 import type { ProdutoDTO } from "@/types/api"
 
 export default function ProdutosPage() {
   const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(15)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<ProdutoDTO | null>(null)
 
-  const { data: produtos = [], isLoading } = useProdutos(search)
+  const { data: result, isLoading } = useProdutos(search, page, limit)
   const createMutation = useCreateProduto()
   const updateMutation = useUpdateProduto()
   const deleteMutation = useDeleteProduto()
 
-  function openCreate() {
-    setEditing(null)
-    setOpen(true)
-  }
-
-  function openEdit(p: ProdutoDTO) {
-    setEditing(p)
-    setOpen(true)
-  }
+  function openCreate() { setEditing(null); setOpen(true) }
+  function openEdit(p: ProdutoDTO) { setEditing(p); setOpen(true) }
 
   function handleSubmit(data: { nome: string; peso: number; valorUnitario: number }) {
     if (editing) {
@@ -43,7 +39,7 @@ export default function ProdutosPage() {
         title="Produtos"
         description="Catálogo de produtos da loja"
         action={
-          <Button className="bg-green-800 hover:bg-green-700" onClick={openCreate}>
+          <Button className="bg-blue-700 hover:bg-blue-600" onClick={openCreate}>
             + Novo Produto
           </Button>
         }
@@ -52,18 +48,30 @@ export default function ProdutosPage() {
         <Input
           placeholder="Buscar produto..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           className="max-w-sm"
         />
       </div>
       {isLoading ? (
         <p className="text-gray-500 text-sm">Carregando...</p>
       ) : (
-        <ProdutoTable
-          produtos={produtos}
-          onEdit={openEdit}
-          onDelete={(id) => deleteMutation.mutate(id)}
-        />
+        <>
+          <ProdutoTable
+            produtos={result?.data ?? []}
+            onEdit={openEdit}
+            onDelete={(id) => deleteMutation.mutate(id)}
+          />
+          {result && (
+            <Pagination
+              page={result.page}
+              totalPages={result.totalPages}
+              total={result.total}
+              limit={limit}
+              onPageChange={setPage}
+              onLimitChange={setLimit}
+            />
+          )}
+        </>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

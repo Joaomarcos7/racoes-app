@@ -1,34 +1,35 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const search = req.nextUrl.searchParams.get("search") ?? ""
+  const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
 
-  const clientes = await prisma.cliente.findMany({
-    where: {
-      ativo: true,
-      nome: search ? { contains: search } : undefined,
-    },
-    orderBy: { nome: "asc" },
-    include: {
-      pedidos: {
-        where: { statusPagamento: "FIADO" },
-        select: { id: true },
+  const where = {
+    ativo: true,
+    nome: search ? { contains: search } : undefined,
+  }
+
+  const [total, clientes] = await Promise.all([
+    prisma.cliente.count({ where }),
+    prisma.cliente.findMany({
+      where,
+      orderBy: { nome: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        pedidos: { where: { statusPagamento: "FIADO" }, select: { id: true } },
       },
-    },
-  })
+    }),
+  ])
 
-  const result = clientes.map((c) => ({
-    ...c,
-    pedidos: undefined,
-    temFiado: c.pedidos.length > 0,
-  }))
-
-  return NextResponse.json(result)
+  const data = clientes.map((c) => ({ ...c, pedidos: undefined, temFiado: c.pedidos.length > 0 }))
+  return NextResponse.json({ data, ...buildPaginationMeta({ total, page, limit }) })
 }
 
 export async function POST(req: NextRequest) {

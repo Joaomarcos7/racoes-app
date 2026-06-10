@@ -52,7 +52,7 @@ export function VeiculoForm({ initial, onSubmit, onCancel, loading }: VeiculoFor
       </div>
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" className="bg-green-800 hover:bg-green-700" disabled={loading}>
+        <Button type="submit" className="bg-blue-700 hover:bg-blue-600" disabled={loading}>
           {loading ? "Salvando..." : "Salvar"}
         </Button>
       </div>

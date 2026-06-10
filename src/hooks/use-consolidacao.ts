@@ -2,13 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { ConsolidacaoRotaDTO } from "@/types/api"
 import { toast } from "sonner"
 
-export function useConsolidacoes() {
+interface PagedResult<T> { data: T[]; total: number; page: number; totalPages: number; hasNext: boolean; hasPrev: boolean }
+
+export function useConsolidacoes(page = 1, limit = 15) {
   return useQuery({
-    queryKey: ["consolidacoes"],
-    queryFn: async () => {
-      const res = await fetch("/api/consolidacao")
+    queryKey: ["consolidacoes", page, limit],
+    queryFn: async (): Promise<PagedResult<unknown>> => {
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+      const res = await fetch(`/api/consolidacao?${params}`)
       if (!res.ok) throw new Error("Erro ao buscar rotas")
-      return res.json() as Promise<unknown[]>
+      return res.json()
     },
   })
 }
@@ -70,6 +73,23 @@ export function useDesalocarPedido(rotaId: string) {
       if (!res.ok) throw new Error("Erro ao desalocar pedido")
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["consolidacoes", rotaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useReabrirRota(rotaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/consolidacao/${rotaId}/reabrir`, { method: "POST" })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Erro ao reabrir rota") }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["consolidacoes"] })
+      qc.invalidateQueries({ queryKey: ["consolidacoes", rotaId] })
+      qc.invalidateQueries({ queryKey: ["pedidos"] })
+      toast.success("Rota reaberta. Pedidos voltaram para Aguardando.")
+    },
     onError: (e: Error) => toast.error(e.message),
   })
 }

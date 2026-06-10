@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { groupByMetodoPagamento, getTopClientes } from "@/lib/dashboard-utils"
 
 function getPeriodoDates(periodo: string): { start: Date; end: Date } {
   const now = new Date()
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
   const { start, end } = getPeriodoDates(periodo)
 
   const pedidos = await prisma.pedido.findMany({
-    where: { dataPedido: { gte: start, lte: end } },
+    where: { ativo: true, dataPedido: { gte: start, lte: end } },
     include: { cliente: true, itens: true },
     orderBy: { dataPedido: "desc" },
   })
@@ -61,7 +62,15 @@ export async function GET(req: NextRequest) {
   }))
 
   const totalFiado = clientesFiado.reduce((acc, c) => acc + c.totalFiado, 0)
-  const vendasTotal = pedidos.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
+  const pedidosEntrega = pedidos.filter((p) => p.tipoPedido === "ENTREGA")
+  const pedidosBalcao = pedidos.filter((p) => p.tipoPedido === "BALCAO")
+  const entregasRealizadas = pedidosEntrega.filter((p) => p.statusEntrega === "ENTREGUE").length
+  const metodosPagamento = groupByMetodoPagamento(pedidos)
+  const topClientes = getTopClientes(pedidos, 5)
+
+  const vendasEntrega = pedidosEntrega.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
+  const vendasBalcao = pedidosBalcao.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
+  const vendasTotal = vendasEntrega + vendasBalcao
   const numeroPedidos = pedidos.length
   const ticketMedio = numeroPedidos > 0 ? vendasTotal / numeroPedidos : 0
 
@@ -78,5 +87,5 @@ export async function GET(req: NextRequest) {
     total: p.itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0),
   }))
 
-  return NextResponse.json({ vendasTotal, numeroPedidos, ticketMedio, totalFiado, clientesComFiado: clientesFiado.length, totalClientes, novosClientes, grafico, ultimosPedidos, clientesFiado })
+  return NextResponse.json({ vendasTotal, numeroPedidos, ticketMedio, totalFiado, clientesComFiado: clientesFiado.length, totalClientes, novosClientes, pedidosEntrega: pedidosEntrega.length, pedidosBalcao: pedidosBalcao.length, vendasEntrega, vendasBalcao, entregasRealizadas, metodosPagamento, topClientes, grafico, ultimosPedidos, clientesFiado })
 }

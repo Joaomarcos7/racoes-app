@@ -35,7 +35,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-center text-green-800">🌿 RaçõesPro</CardTitle>
+          <CardTitle className="text-center text-blue-800">Comercial Ouriques</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,7 +61,7 @@ export default function LoginPage() {
               />
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
-            <Button type="submit" className="w-full bg-green-800 hover:bg-green-700" disabled={loading}>
+            <Button type="submit" className="w-full bg-blue-700 hover:bg-blue-600" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>

@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
 interface ClienteFiado { id: string; nome: string; cidade: string; totalFiado: number }
@@ -5,8 +6,14 @@ interface ClienteFiado { id: string; nome: string; cidade: string; totalFiado: n
 export function PainelFiado({ clientes, totalFiado }: { clientes: ClienteFiado[]; totalFiado: number }) {
   return (
     <div className="bg-white rounded-lg border p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-semibold text-sm text-gray-700">⚠️ Fiado em Aberto</h3>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={16} className="text-orange-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-sm text-gray-700">Fiado em Aberto</h3>
+            <p className="text-xs text-gray-400">{clientes.length} clientes</p>
+          </div>
+        </div>
         <span className="text-sm font-bold text-orange-600">{formatCurrency(totalFiado)}</span>
       </div>
       {clientes.length === 0 ? (

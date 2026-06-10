@@ -18,7 +18,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   const body = await req.json()
+
+  const atual = await prisma.produto.findUnique({ where: { id } })
+  if (!atual) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
+
   const produto = await prisma.produto.update({ where: { id }, data: body })
+
+  if (body.valorUnitario !== undefined && body.valorUnitario !== atual.valorUnitario) {
+    await prisma.historicoProduto.create({
+      data: { produtoId: id, precoAnterior: atual.valorUnitario, precoNovo: body.valorUnitario },
+    })
+  }
+
   return NextResponse.json(produto)
 }
 

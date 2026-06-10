@@ -18,10 +18,10 @@ export function PedidoCard({ pedido, variant, onAlocar, onDesalocar, loading }: 
   return (
     <div className="border rounded-md p-3 bg-white text-sm space-y-1">
       <div className="flex justify-between items-start">
-        <span className="font-medium">{pedido.cliente.nome}</span>
-        <span className="text-green-700 font-semibold">{peso.toFixed(1)} kg</span>
+        <span className="font-medium">{pedido.cliente?.nome ?? "—"}</span>
+        <span className="text-blue-700 font-semibold">{peso.toFixed(1)} kg</span>
       </div>
-      <div className="text-gray-500 text-xs">{pedido.cliente.cidade} · {formatCurrency(total)}</div>
+      <div className="text-gray-500 text-xs">{pedido.cliente?.cidade ?? "—"} · {formatCurrency(total)}</div>
       <div className="pt-1">
         {variant === "disponivel" && onAlocar && (
           <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={onAlocar} disabled={loading}>

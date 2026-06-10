@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { shouldRegistrarHistoricoStatus } from "@/lib/pedido-status-utils"
 
 const pedidoInclude = {
   cliente: true,
   itens: { include: { produto: true } },
+  historicoStatus: { orderBy: { criadoEm: "asc" as const } },
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +31,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Método de pagamento obrigatório ao marcar como PAGO" }, { status: 400 })
   }
 
+  const pedidoAtual = await prisma.pedido.findUnique({ where: { id }, select: { statusEntrega: true } })
+  if (!pedidoAtual) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
+
   const pedido = await prisma.pedido.update({
     where: { id },
     data: {
@@ -39,6 +44,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     },
     include: pedidoInclude,
   })
+
+  if (shouldRegistrarHistoricoStatus(pedidoAtual.statusEntrega, statusEntrega)) {
+    await prisma.historicoStatusPedido.create({
+      data: {
+        pedidoId: id,
+        statusAnterior: pedidoAtual.statusEntrega ?? null,
+        statusNovo: statusEntrega,
+      },
+    })
+  }
+
   return NextResponse.json(pedido)
 }
 
@@ -47,6 +63,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const { id } = await params
-  await prisma.pedido.delete({ where: { id } })
-  return NextResponse.json({ ok: true })
+  const pedido = await prisma.pedido.update({ where: { id }, data: { ativo: false } })
+  return NextResponse.json(pedido)
 }

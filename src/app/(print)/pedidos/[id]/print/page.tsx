@@ -7,6 +7,7 @@ import {
   calcularTotal,
   formatarLinhaProduto,
   formatarDataEmissao,
+  gerarScriptImpressao,
 } from "@/lib/cupom-fiscal-utils"
 
 const METODO_LABELS: Record<string, string> = {
@@ -27,6 +28,32 @@ const STATUS_PAG_LABELS: Record<string, string> = {
 const SEP = "─".repeat(LINHA_WIDTH)
 const SEP_DOUBLE = "═".repeat(LINHA_WIDTH)
 
+const printStyles = `
+  @page { size: 80mm auto; margin: 4mm; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    width: 72mm;
+    margin: 0;
+    padding: 0;
+    color: #000;
+    background: white;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  [data-sonner-toaster], header, nav, aside { display: none !important; }
+  @media print {
+    body { margin: 0; }
+    [data-sonner-toaster], header, nav, aside { display: none !important; }
+  }
+`
+
 export default async function CupomFiscalPrintPage({
   params,
 }: {
@@ -43,54 +70,29 @@ export default async function CupomFiscalPrintPage({
 
   if (!pedido) {
     return (
-      <html>
-        <body style={{ fontFamily: "Courier New, monospace", fontSize: "11px" }}>
-          <p>Pedido não encontrado.</p>
-        </body>
-      </html>
+      <>
+        <style dangerouslySetInnerHTML={{ __html: printStyles }} />
+        <p>Pedido não encontrado.</p>
+      </>
     )
   }
 
   const subtotal = calcularSubtotal(pedido.itens)
   const desconto = pedido.desconto ?? 0
   const total = calcularTotal(subtotal, desconto)
-  const agora = new Date()
-  const dataEmissao = formatarDataEmissao(agora)
+  const dataEmissao = formatarDataEmissao(new Date())
 
   const isEntrega = pedido.tipoPedido === "ENTREGA"
   const clienteInfo =
     isEntrega && pedido.cliente
       ? `ENTREGA | ${pedido.cliente.nome}`
       : "VENDA BALCAO"
-  const cidadeInfo =
-    isEntrega && pedido.cliente ? pedido.cliente.cidade : null
+  const cidadeInfo = isEntrega && pedido.cliente ? pedido.cliente.cidade : null
 
   const metodoLabel = pedido.metodoPagamento
     ? ` | ${METODO_LABELS[pedido.metodoPagamento] ?? pedido.metodoPagamento}`
     : ""
   const pagamentoLine = `${STATUS_PAG_LABELS[pedido.statusPagamento] ?? pedido.statusPagamento}${metodoLabel}`
-
-  const styles = `
-    @page { size: 80mm auto; margin: 4mm; }
-    body {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 11px;
-      width: 72mm;
-      margin: 0;
-      padding: 0;
-      color: #000;
-    }
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin: 0;
-      font-family: inherit;
-      font-size: inherit;
-    }
-    @media print {
-      body { margin: 0; }
-    }
-  `
 
   const linhasItens = pedido.itens.map((item) =>
     formatarLinhaProduto(
@@ -124,24 +126,11 @@ export default async function CupomFiscalPrintPage({
   ]
 
   return (
-    <html lang="pt-BR">
-      <head>
-        <meta charSet="utf-8" />
-        <title>
-          Cupom -{" "}
-          {isEntrega && pedido.cliente ? pedido.cliente.nome : "Balcao"}
-        </title>
-        <style dangerouslySetInnerHTML={{ __html: styles }} />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "window.onload = function() { window.print(); }",
-          }}
-        />
-      </head>
-      <body>
-        <pre>{cupomLines.join("\n")}</pre>
-      </body>
-    </html>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: printStyles }} />
+      <script dangerouslySetInnerHTML={{ __html: gerarScriptImpressao("/pedidos") }} />
+      <pre>{cupomLines.join("\n")}</pre>
+    </>
   )
 }
 

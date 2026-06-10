@@ -1,26 +1,28 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import type { VeiculoDTO } from "@/types/api"
-import { Pencil } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
 interface VeiculoTableProps {
   veiculos: VeiculoDTO[]
   onEdit: (v: VeiculoDTO) => void
+  onDelete: (id: string) => void
 }
 
-export function VeiculoTable({ veiculos, onEdit }: VeiculoTableProps) {
+export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) {
   if (veiculos.length === 0) {
     return <p className="text-sm text-gray-500 py-4">Nenhum veículo cadastrado.</p>
   }
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="rounded-md border overflow-hidden overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="bg-[#0C5E3A] text-white">
+        <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th className="px-4 py-3 text-left font-medium">Placa</th>
-            <th className="px-4 py-3 text-left font-medium">Modelo</th>
-            <th className="px-4 py-3 text-right font-medium">Peso Máx. (kg)</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Placa</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Modelo</th>
+            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peso Máx. (kg)</th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>
@@ -31,9 +33,16 @@ export function VeiculoTable({ veiculos, onEdit }: VeiculoTableProps) {
               <td className="px-4 py-3">{v.modelo}</td>
               <td className="px-4 py-3 text-right">{v.pesoMaximo} kg</td>
               <td className="px-4 py-3 text-right">
-                <Button size="icon" variant="ghost" onClick={() => onEdit(v)}>
-                  <Pencil size={14} />
-                </Button>
+                <div className="flex gap-1 justify-end">
+                  <Button size="icon" variant="ghost" onClick={() => onEdit(v)}>
+                    <Pencil size={14} />
+                  </Button>
+                  <ConfirmDeleteDialog onConfirm={() => onDelete(v.id)}>
+                    <Button size="icon" variant="ghost" className="text-red-500 hover:text-red-700">
+                      <Trash2 size={14} />
+                    </Button>
+                  </ConfirmDeleteDialog>
+                </div>
               </td>
             </tr>
           ))}

@@ -4,7 +4,7 @@ import type { PedidoDTO } from "@/types/api"
 
 function groupByCidade(pedidos: PedidoDTO[]): Record<string, PedidoDTO[]> {
   return pedidos.reduce((acc, p) => {
-    const c = p.cliente.cidade
+    const c = p.cliente?.cidade ?? "Sem cidade"
     if (!acc[c]) acc[c] = []
     acc[c].push(p)
     return acc
@@ -30,8 +30,8 @@ export function PainelPedidos({ pedidos, onAlocar, loadingId }: PainelPedidosPro
       ) : (
         cidades.map((cidade) => (
           <div key={cidade} className="mb-4">
-            <div className="text-xs font-semibold text-green-800 uppercase mb-2 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-600 inline-block" />
+            <div className="text-xs font-semibold text-blue-800 uppercase mb-2 flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
               {cidade}
             </div>
             <div className="space-y-2">

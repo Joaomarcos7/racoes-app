@@ -3,26 +3,29 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { ClienteDTO } from "@/types/api"
-import { Eye } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
 interface ClienteTableProps {
   clientes: ClienteDTO[]
+  onDelete: (id: string) => void
 }
 
-export function ClienteTable({ clientes }: ClienteTableProps) {
+export function ClienteTable({ clientes, onDelete }: ClienteTableProps) {
   if (clientes.length === 0) {
     return <p className="text-sm text-gray-500 py-4">Nenhum cliente cadastrado.</p>
   }
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="rounded-md border overflow-hidden overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="bg-[#0C5E3A] text-white">
+        <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th className="px-4 py-3 text-left font-medium">Nome</th>
-            <th className="px-4 py-3 text-left font-medium">Cidade</th>
-            <th className="px-4 py-3 text-left font-medium">Telefone</th>
-            <th className="px-4 py-3 text-center font-medium">Fiado</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cidade</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Telefone</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Fiado</th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>
@@ -40,11 +43,25 @@ export function ClienteTable({ clientes }: ClienteTableProps) {
                 )}
               </td>
               <td className="px-4 py-3 text-right">
-                <Button size="icon" variant="ghost" asChild>
-                  <Link href={`/clientes/${c.id}`}>
-                    <Eye size={14} />
-                  </Link>
-                </Button>
+                <div className="flex gap-1 justify-end">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button size="icon" variant="ghost" asChild>
+                          <Link href={`/clientes/${c.id}`}>
+                            <Plus size={14} />
+                          </Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Ver detalhes</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <ConfirmDeleteDialog onConfirm={() => onDelete(c.id)}>
+                    <Button size="icon" variant="ghost" className="text-red-500 hover:text-red-700">
+                      <Trash2 size={14} />
+                    </Button>
+                  </ConfirmDeleteDialog>
+                </div>
               </td>
             </tr>
           ))}

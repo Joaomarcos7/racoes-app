@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -8,16 +9,19 @@ export async function GET(req: NextRequest) {
 
   const search = req.nextUrl.searchParams.get("search") ?? ""
   const ativo = req.nextUrl.searchParams.get("ativo")
+  const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
 
-  const produtos = await prisma.produto.findMany({
-    where: {
-      ativo: ativo === "false" ? false : true,
-      nome: search ? { contains: search } : undefined,
-    },
-    orderBy: { nome: "asc" },
-  })
+  const where = {
+    ativo: ativo === "false" ? false : true,
+    nome: search ? { contains: search } : undefined,
+  }
 
-  return NextResponse.json(produtos)
+  const [total, data] = await Promise.all([
+    prisma.produto.count({ where }),
+    prisma.produto.findMany({ where, orderBy: { nome: "asc" }, skip: (page - 1) * limit, take: limit }),
+  ])
+
+  return NextResponse.json({ data, ...buildPaginationMeta({ total, page, limit }) })
 }
 
 export async function POST(req: NextRequest) {

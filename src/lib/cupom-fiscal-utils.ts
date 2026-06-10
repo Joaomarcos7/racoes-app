@@ -33,6 +33,10 @@ export function calcularTotal(subtotal: number, desconto: number): number {
   return Math.max(0, subtotal - desconto)
 }
 
+export function gerarScriptImpressao(redirectUrl: string): string {
+  return `window.onload = function() { window.print(); window.addEventListener('afterprint', function() { window.location.href = '${redirectUrl}'; }); };`
+}
+
 export function formatarDataEmissao(date: Date): string {
   const opts: Intl.DateTimeFormatOptions = {
     timeZone: "America/Sao_Paulo",

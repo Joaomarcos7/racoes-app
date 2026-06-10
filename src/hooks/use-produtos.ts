@@ -1,19 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { ProdutoDTO } from "@/types/api"
+import type { ProdutoDTO, HistoricoProdutoDTO, ProdutoStatsDTO } from "@/types/api"
 import { toast } from "sonner"
 
-async function fetchProdutos(search?: string): Promise<ProdutoDTO[]> {
+interface PagedResult<T> { data: T[]; total: number; page: number; totalPages: number; hasNext: boolean; hasPrev: boolean }
+
+async function fetchProdutos(search?: string, page = 1, limit = 15): Promise<PagedResult<ProdutoDTO>> {
   const params = new URLSearchParams()
   if (search) params.set("search", search)
+  params.set("page", String(page))
+  params.set("limit", String(limit))
   const res = await fetch(`/api/produtos?${params}`)
   if (!res.ok) throw new Error("Erro ao buscar produtos")
   return res.json()
 }
 
-export function useProdutos(search?: string) {
+export function useProdutos(search?: string, page = 1, limit = 15) {
   return useQuery({
-    queryKey: ["produtos", search],
-    queryFn: () => fetchProdutos(search),
+    queryKey: ["produtos", search, page, limit],
+    queryFn: () => fetchProdutos(search, page, limit),
   })
 }
 
@@ -55,11 +59,37 @@ export function useUpdateProduto() {
       }
       return res.json() as Promise<ProdutoDTO>
     },
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["produtos"] })
+      qc.invalidateQueries({ queryKey: ["produto-historico", vars.id] })
+      qc.invalidateQueries({ queryKey: ["produto-stats", vars.id] })
       toast.success("Produto atualizado")
     },
     onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useProdutoHistorico(produtoId: string | null) {
+  return useQuery({
+    queryKey: ["produto-historico", produtoId],
+    queryFn: async () => {
+      const res = await fetch(`/api/produtos/${produtoId}/historico`)
+      if (!res.ok) throw new Error("Erro ao buscar histórico")
+      return res.json() as Promise<HistoricoProdutoDTO[]>
+    },
+    enabled: !!produtoId,
+  })
+}
+
+export function useProdutoStats(produtoId: string | null, periodo: string) {
+  return useQuery({
+    queryKey: ["produto-stats", produtoId, periodo],
+    queryFn: async () => {
+      const res = await fetch(`/api/produtos/${produtoId}/stats?periodo=${periodo}`)
+      if (!res.ok) throw new Error("Erro ao buscar stats")
+      return res.json() as Promise<ProdutoStatsDTO>
+    },
+    enabled: !!produtoId,
   })
 }
 

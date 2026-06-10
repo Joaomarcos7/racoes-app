@@ -15,13 +15,23 @@ model User {
 }
 
 model Produto {
-  id            String       @id @default(cuid())
+  id            String             @id @default(cuid())
   nome          String
   peso          Float
   valorUnitario Float
-  ativo         Boolean      @default(true)
-  createdAt     DateTime     @default(now())
+  ativo         Boolean            @default(true)
+  createdAt     DateTime           @default(now())
   itens         ItemPedido[]
+  historico     HistoricoProduto[]
+}
+
+model HistoricoProduto {
+  id            String   @id @default(cuid())
+  produtoId     String
+  produto       Produto  @relation(fields: [produtoId], references: [id])
+  precoAnterior Float
+  precoNovo     Float
+  criadoEm      DateTime @default(now())
 }
 
 model Cliente {
@@ -45,18 +55,32 @@ model Veiculo {
 }
 
 model Pedido {
-  id              String             @id @default(cuid())
-  clienteId       String
-  cliente         Cliente            @relation(fields: [clienteId], references: [id])
-  dataPedido      DateTime           @default(now())
-  statusEntrega   StatusEntrega      @default(AGUARDANDO)
-  statusPagamento StatusPagamento    @default(PENDENTE)
-  metodoPagamento MetodoPagamento?
-  observacoes     String?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  itens           ItemPedido[]
-  consolidacoes   ConsolidacaoItem[]
+  id                   String             @id @default(cuid())
+  tipoPedido           TipoPedido         @default(ENTREGA)
+  clienteId            String?
+  cliente              Cliente?           @relation(fields: [clienteId], references: [id])
+  dataPedido           DateTime           @default(now())
+  statusEntrega        StatusEntrega?
+  statusPagamento      StatusPagamento    @default(PENDENTE)
+  metodoPagamento      MetodoPagamento?
+  observacoes          String?
+  dataVencimentoFiado  DateTime?
+  desconto             Float              @default(0)
+  ativo                Boolean            @default(true)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  itens                ItemPedido[]
+  consolidacoes        ConsolidacaoItem[]
+  historicoStatus      HistoricoStatusPedido[]
+}
+
+model HistoricoStatusPedido {
+  id              String        @id @default(cuid())
+  pedidoId        String
+  pedido          Pedido        @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  statusAnterior  StatusEntrega?
+  statusNovo      StatusEntrega
+  criadoEm        DateTime      @default(now())
 }
 
 model ItemPedido {
@@ -105,10 +129,30 @@ enum MetodoPagamento {
   PIX
   BOLETO
   CHEQUE
-  FIADO
+  CARTAO_CREDITO
+  CARTAO_DEBITO
 }
 
 enum StatusRota {
   ABERTA
   FECHADA
+}
+
+model Notificacao {
+  id        String          @id @default(cuid())
+  tipo      TipoNotificacao
+  texto     String
+  lida      Boolean         @default(false)
+  criadoEm  DateTime        @default(now())
+  pedidoId  String?
+}
+
+enum TipoNotificacao {
+  FIADO_VENCIDO
+  PEDIDO_ENTREGUE
+}
+
+enum TipoPedido {
+  ENTREGA
+  BALCAO
 }

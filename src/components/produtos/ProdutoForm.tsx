@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { formatMoneyInput, parseMaskedMoney, formatDecimalInput, parseMaskedDecimal } from "@/lib/money-mask"
 import type { ProdutoDTO } from "@/types/api"
 
 interface ProdutoFormProps {
@@ -12,14 +13,32 @@ interface ProdutoFormProps {
   loading?: boolean
 }
 
+function toMoneyMasked(value: number | undefined): string {
+  if (!value) return "0,00"
+  return formatMoneyInput(Math.round(value * 100).toString())
+}
+
+function toKgMasked(value: number | undefined): string {
+  if (!value) return "0,000"
+  return formatDecimalInput(Math.round(value * 1000).toString(), 3)
+}
+
 export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFormProps) {
   const [nome, setNome] = useState(initial?.nome ?? "")
-  const [peso, setPeso] = useState(String(initial?.peso ?? ""))
-  const [valorUnitario, setValorUnitario] = useState(String(initial?.valorUnitario ?? ""))
+  const [pesoMasked, setPesoMasked] = useState(toKgMasked(initial?.peso))
+  const [valorMasked, setValorMasked] = useState(toMoneyMasked(initial?.valorUnitario))
+
+  function handleValorChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setValorMasked(formatMoneyInput(e.target.value))
+  }
+
+  function handlePesoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setPesoMasked(formatDecimalInput(e.target.value, 3))
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onSubmit({ nome, peso: Number(peso), valorUnitario: Number(valorUnitario) })
+    onSubmit({ nome, peso: parseMaskedDecimal(pesoMasked), valorUnitario: parseMaskedMoney(valorMasked) })
   }
 
   return (
@@ -32,22 +51,18 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
         <div className="space-y-1">
           <Label>Peso (kg)</Label>
           <Input
-            type="number"
-            step="0.1"
-            min="0"
-            value={peso}
-            onChange={(e) => setPeso(e.target.value)}
+            inputMode="numeric"
+            value={pesoMasked}
+            onChange={handlePesoChange}
             required
           />
         </div>
         <div className="space-y-1">
           <Label>Valor unitário (R$)</Label>
           <Input
-            type="number"
-            step="0.01"
-            min="0"
-            value={valorUnitario}
-            onChange={(e) => setValorUnitario(e.target.value)}
+            inputMode="numeric"
+            value={valorMasked}
+            onChange={handleValorChange}
             required
           />
         </div>
@@ -56,7 +71,7 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" className="bg-green-800 hover:bg-green-700" disabled={loading}>
+        <Button type="submit" className="bg-blue-700 hover:bg-blue-600" disabled={loading}>
           {loading ? "Salvando..." : "Salvar"}
         </Button>
       </div>

@@ -3,17 +3,21 @@ import { useState } from "react"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { VeiculoTable } from "@/components/veiculos/VeiculoTable"
 import { VeiculoForm } from "@/components/veiculos/VeiculoForm"
-import { useVeiculos, useCreateVeiculo, useUpdateVeiculo } from "@/hooks/use-veiculos"
+import { useVeiculos, useCreateVeiculo, useUpdateVeiculo, useDeleteVeiculo } from "@/hooks/use-veiculos"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Pagination } from "@/components/ui/Pagination"
 import type { VeiculoDTO } from "@/types/api"
 
 export default function VeiculosPage() {
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(15)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<VeiculoDTO | null>(null)
-  const { data: veiculos = [], isLoading } = useVeiculos()
+  const { data: result, isLoading } = useVeiculos(page, limit)
   const createMutation = useCreateVeiculo()
   const updateMutation = useUpdateVeiculo()
+  const deleteMutation = useDeleteVeiculo()
 
   function handleSubmit(data: { placa: string; modelo: string; pesoMaximo: number }) {
     if (editing) {
@@ -29,7 +33,7 @@ export default function VeiculosPage() {
         title="Veículos"
         action={
           <Button
-            className="bg-green-800 hover:bg-green-700"
+            className="bg-blue-700 hover:bg-blue-600"
             onClick={() => { setEditing(null); setOpen(true) }}
           >
             + Novo Veículo
@@ -39,10 +43,23 @@ export default function VeiculosPage() {
       {isLoading ? (
         <p className="text-sm text-gray-500">Carregando...</p>
       ) : (
-        <VeiculoTable
-          veiculos={veiculos}
-          onEdit={(v) => { setEditing(v); setOpen(true) }}
-        />
+        <>
+          <VeiculoTable
+            veiculos={result?.data ?? []}
+            onEdit={(v) => { setEditing(v); setOpen(true) }}
+            onDelete={(id) => deleteMutation.mutate(id)}
+          />
+          {result && (
+            <Pagination
+              page={result.page}
+              totalPages={result.totalPages}
+              total={result.total}
+              limit={limit}
+              onPageChange={setPage}
+              onLimitChange={setLimit}
+            />
+          )}
+        </>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

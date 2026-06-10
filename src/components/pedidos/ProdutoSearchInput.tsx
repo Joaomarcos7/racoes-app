@@ -20,8 +20,8 @@ export function ProdutoSearchInput({ onSelect }: ProdutoSearchInputProps) {
     return () => clearTimeout(t)
   }, [query])
 
-  const { data: produtos = [] } = useProdutos(debouncedQuery || undefined)
-  const filtered = debouncedQuery ? produtos : []
+  const { data: result } = useProdutos(debouncedQuery || undefined, 1, 50)
+  const filtered = debouncedQuery ? (result?.data ?? []) : []
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

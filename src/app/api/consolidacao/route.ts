@@ -1,20 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
-  const rotas = await prisma.consolidacaoRota.findMany({
-    include: { veiculo: true, _count: { select: { itens: true } } },
-    orderBy: { createdAt: "desc" },
-  })
+  const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
 
-  return NextResponse.json(rotas.map((r) => ({
+  const [total, rotas] = await Promise.all([
+    prisma.consolidacaoRota.count(),
+    prisma.consolidacaoRota.findMany({
+      include: { veiculo: true, _count: { select: { itens: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ])
+
+  const data = rotas.map((r) => ({
     id: r.id, data: r.data, status: r.status,
     veiculo: r.veiculo, numeroPedidos: r._count.itens, createdAt: r.createdAt,
-  })))
+  }))
+
+  return NextResponse.json({ data, ...buildPaginationMeta({ total, page, limit }) })
 }
 
 export async function POST(req: NextRequest) {

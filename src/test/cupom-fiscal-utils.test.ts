@@ -6,6 +6,7 @@ import {
   calcularSubtotal,
   calcularTotal,
   formatarDataEmissao,
+  gerarScriptImpressao,
   LINHA_WIDTH,
 } from "@/lib/cupom-fiscal-utils"
 
@@ -85,5 +86,25 @@ describe("formatarDataEmissao", () => {
     const date = new Date("2026-06-05T14:32:00")
     const result = formatarDataEmissao(date)
     expect(result).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/)
+  })
+})
+
+describe("gerarScriptImpressao", () => {
+  it("includes window.print() call", () => {
+    const script = gerarScriptImpressao("/pedidos")
+    expect(script).toContain("window.print()")
+  })
+
+  it("adds afterprint event listener that redirects to given URL", () => {
+    const script = gerarScriptImpressao("/pedidos")
+    expect(script).toContain("afterprint")
+    expect(script).toContain("/pedidos")
+    expect(script).toContain("window.location")
+  })
+
+  it("uses the provided redirect URL, not a hardcoded one", () => {
+    const script = gerarScriptImpressao("/outra-pagina")
+    expect(script).toContain("/outra-pagina")
+    expect(script).not.toContain("/pedidos")
   })
 })

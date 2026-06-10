@@ -2,9 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { ClienteDTO, PedidoDTO } from "@/types/api"
 import { toast } from "sonner"
 
-async function fetchClientes(search?: string): Promise<ClienteDTO[]> {
+interface PagedResult<T> { data: T[]; total: number; page: number; totalPages: number; hasNext: boolean; hasPrev: boolean }
+
+async function fetchClientes(search?: string, page = 1, limit = 15): Promise<PagedResult<ClienteDTO>> {
   const params = new URLSearchParams()
   if (search) params.set("search", search)
+  params.set("page", String(page))
+  params.set("limit", String(limit))
   const res = await fetch(`/api/clientes?${params}`)
   if (!res.ok) throw new Error("Erro ao buscar clientes")
   return res.json()
@@ -16,10 +20,10 @@ async function fetchCliente(id: string): Promise<ClienteDTO & { pedidos: PedidoD
   return res.json()
 }
 
-export function useClientes(search?: string) {
+export function useClientes(search?: string, page = 1, limit = 15) {
   return useQuery({
-    queryKey: ["clientes", search],
-    queryFn: () => fetchClientes(search),
+    queryKey: ["clientes", search, page, limit],
+    queryFn: () => fetchClientes(search, page, limit),
   })
 }
 
@@ -72,6 +76,21 @@ export function useUpdateCliente() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clientes"] })
       toast.success("Cliente atualizado")
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useDeleteCliente() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/clientes/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Erro ao remover cliente")
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clientes"] })
+      toast.success("Cliente removido")
     },
     onError: (e: Error) => toast.error(e.message),
   })

@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
-  const veiculos = await prisma.veiculo.findMany({
-    where: { ativo: true },
-    orderBy: { modelo: "asc" },
-  })
-  return NextResponse.json(veiculos)
+  const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
+  const where = { ativo: true }
+
+  const [total, data] = await Promise.all([
+    prisma.veiculo.count({ where }),
+    prisma.veiculo.findMany({ where, orderBy: { modelo: "asc" }, skip: (page - 1) * limit, take: limit }),
+  ])
+
+  return NextResponse.json({ data, ...buildPaginationMeta({ total, page, limit }) })
 }
 
 export async function POST(req: NextRequest) {

@@ -28,7 +28,7 @@ export function DashboardPDF({ data, periodo }: { data: DashboardKPIsDTO; period
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        <Text style={s.title}>RaçõesPro — Dashboard</Text>
+        <Text style={s.title}>Comercial Ouriques — Dashboard</Text>
         <Text style={s.subtitle}>Período: {periodoLabel[periodo] ?? periodo} · Gerado em {new Date().toLocaleDateString("pt-BR")}</Text>
         <View style={s.row}>
           <View style={s.kpi}><Text style={s.kpiLabel}>Vendas</Text><Text style={s.kpiValue}>{fmtBRL(data.vendasTotal)}</Text></View>

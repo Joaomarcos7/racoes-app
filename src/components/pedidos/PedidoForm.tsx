@@ -8,6 +8,7 @@ import { ProdutoSearchInput } from "./ProdutoSearchInput"
 import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
 import { useClientes } from "@/hooks/use-clientes"
 import { formatCurrency } from "@/lib/utils"
+import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
 import type { ProdutoDTO } from "@/types/api"
 
 interface PedidoFormProps {
@@ -17,12 +18,21 @@ interface PedidoFormProps {
     statusPagamento: string
     metodoPagamento?: string
     observacoes?: string
+    dataVencimentoFiado?: string
+    desconto?: number
   }) => void
   onCancel: () => void
   loading?: boolean
 }
 
-const METODOS = ["DINHEIRO", "PIX", "BOLETO", "CHEQUE", "FIADO"]
+const METODOS: { value: string; label: string }[] = [
+  { value: "DINHEIRO", label: "Dinheiro" },
+  { value: "PIX", label: "Pix" },
+  { value: "BOLETO", label: "Boleto" },
+  { value: "CHEQUE", label: "Cheque" },
+  { value: "CARTAO_CREDITO", label: "Cartão de Crédito" },
+  { value: "CARTAO_DEBITO", label: "Cartão de Débito" },
+]
 
 export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
   const [clienteId, setClienteId] = useState("")
@@ -30,7 +40,10 @@ export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
   const [statusPagamento, setStatusPagamento] = useState("PENDENTE")
   const [metodoPagamento, setMetodoPagamento] = useState("")
   const [observacoes, setObservacoes] = useState("")
-  const { data: clientes = [] } = useClientes()
+  const [dataVencimentoFiado, setDataVencimentoFiado] = useState("")
+  const [descontoMasked, setDescontoMasked] = useState("0,00")
+  const { data: result } = useClientes(undefined, 1, 100)
+  const clientes = result?.data ?? []
 
   const total = itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
   const pesoTotal = itens.reduce((acc, i) => acc + i.quantidade * i.pesoUnit, 0)
@@ -59,6 +72,8 @@ export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
       statusPagamento,
       metodoPagamento: metodoPagamento || undefined,
       observacoes: observacoes || undefined,
+      dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? dataVencimentoFiado : undefined,
+      desconto: parseMaskedMoney(descontoMasked) || undefined,
     })
   }
 
@@ -100,7 +115,17 @@ export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
           </table>
           <div className="mt-2 flex justify-between text-sm font-medium">
             <span className="text-gray-600">Peso total: {pesoTotal.toFixed(1)} kg</span>
-            <span>Total: {formatCurrency(total)}</span>
+            <span className="text-gray-600">Subtotal: {formatCurrency(total)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-gray-500 whitespace-nowrap">Desconto (R$)</Label>
+            <Input
+              className="h-7 text-sm w-32 text-right"
+              inputMode="numeric"
+              value={descontoMasked}
+              onChange={(e) => setDescontoMasked(formatMoneyInput(e.target.value))}
+            />
+            <span className="text-sm font-semibold ml-auto">Total: {formatCurrency(Math.max(0, total - parseMaskedMoney(descontoMasked)))}</span>
           </div>
         </div>
       )}
@@ -121,18 +146,24 @@ export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
           <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
             <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
             <SelectContent>
-              {METODOS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
       </div>
+      {statusPagamento === "FIADO" && (
+        <div className="space-y-1">
+          <Label>Data máxima de pagamento (Fiado) *</Label>
+          <Input type="date" value={dataVencimentoFiado} onChange={(e) => setDataVencimentoFiado(e.target.value)} required />
+        </div>
+      )}
       <div className="space-y-1">
         <Label>Observações</Label>
         <Input value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
       </div>
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" className="bg-green-800 hover:bg-green-700" disabled={loading || !clienteId || itens.length === 0}>
+        <Button type="submit" className="bg-blue-700 hover:bg-blue-600" disabled={loading || !clienteId || itens.length === 0}>
           {loading ? "Salvando..." : "Criar Pedido"}
         </Button>
       </div>

@@ -1,12 +1,17 @@
 "use client"
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { KpiCard } from "@/components/dashboard/KpiCard"
-import { GraficoVendas } from "@/components/dashboard/GraficoVendas"
 import { PainelFiado } from "@/components/dashboard/PainelFiado"
-import { ExportButton } from "@/components/dashboard/ExportButton"
+import { PainelMetodosPagamento } from "@/components/dashboard/PainelMetodosPagamento"
+import { PainelTopClientes } from "@/components/dashboard/PainelTopClientes"
 import { useDashboard } from "@/hooks/use-dashboard"
 import { cn, formatCurrency } from "@/lib/utils"
+import { DollarSign, ShoppingBag, Users, Truck, CheckCircle2, Store } from "lucide-react"
+
+const GraficoVendas = dynamic(() => import("@/components/dashboard/GraficoVendas").then(m => m.GraficoVendas), { ssr: false })
+const ExportButton = dynamic(() => import("@/components/dashboard/ExportButton").then(m => m.ExportButton), { ssr: false })
 
 type Periodo = "hoje" | "semana" | "mes"
 
@@ -19,11 +24,11 @@ export default function DashboardPage() {
       <PageHeader
         title="Dashboard"
         action={
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="flex border rounded-md overflow-hidden">
               {(["hoje","semana","mes"] as Periodo[]).map((p) => (
                 <button key={p} onClick={() => setPeriodo(p)}
-                  className={cn("px-3 py-1.5 text-sm transition-colors", periodo === p ? "bg-green-800 text-white" : "bg-white text-gray-600 hover:bg-gray-50")}>
+                  className={cn("px-2.5 py-1.5 text-xs sm:text-sm transition-colors", periodo === p ? "bg-blue-700 text-white" : "bg-white text-gray-600 hover:bg-gray-50")}>
                   {p === "hoje" ? "Hoje" : p === "semana" ? "Semana" : "Mês"}
                 </button>
               ))}
@@ -36,15 +41,23 @@ export default function DashboardPage() {
         <p className="text-sm text-gray-500">Carregando...</p>
       ) : (
         <div className="space-y-4">
-          <div className="grid grid-cols-4 gap-4">
-            <KpiCard label="💰 Vendas" value={data.vendasTotal} isCurrency subtext={`${data.numeroPedidos} pedidos`} accentColor="#0C5E3A" />
-            <KpiCard label="📦 Pedidos" value={data.numeroPedidos} subtext={`Ticket médio ${formatCurrency(data.ticketMedio)}`} accentColor="#1E6FBF" />
-            <KpiCard label="⚠️ Fiado" value={data.totalFiado} isCurrency subtext={`${data.clientesComFiado} clientes`} accentColor="#E67E22" />
-            <KpiCard label="👥 Clientes" value={data.totalClientes} subtext={data.novosClientes > 0 ? `+${data.novosClientes} novos` : undefined} accentColor="#7B1FA2" />
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+            <KpiCard label="Vendas" value={data.vendasTotal} isCurrency subtext={`${data.numeroPedidos} pedidos`} accentColor="#1d4ed8" icon={DollarSign} />
+            <KpiCard label="Pedidos" value={data.numeroPedidos} subtext={`Ticket médio ${formatCurrency(data.ticketMedio)}`} accentColor="#1E6FBF" icon={ShoppingBag} />
+            <KpiCard label="Clientes" value={data.totalClientes} subtext={data.novosClientes > 0 ? `+${data.novosClientes} novos` : undefined} accentColor="#6B21A8" icon={Users} />
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2"><GraficoVendas data={data.grafico} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+            <KpiCard label="Entregas" value={data.pedidosEntrega} subtext={`${formatCurrency(data.vendasEntrega)} em vendas`} accentColor="#0C5E3A" icon={Truck} />
+            <KpiCard label="Realizadas" value={data.entregasRealizadas} subtext={`de ${data.pedidosEntrega} pedidos`} accentColor="#15803D" icon={CheckCircle2} />
+            <KpiCard label="Balcão" value={data.pedidosBalcao} subtext={`${formatCurrency(data.vendasBalcao)} em vendas`} accentColor="#1D4ED8" icon={Store} />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2"><GraficoVendas data={data.grafico} /></div>
             <PainelFiado clientes={(data.clientesFiado as unknown as { id: string; nome: string; cidade: string; totalFiado: number }[])} totalFiado={data.totalFiado} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PainelMetodosPagamento stats={data.metodosPagamento} />
+            <PainelTopClientes clientes={data.topClientes} />
           </div>
         </div>
       )}

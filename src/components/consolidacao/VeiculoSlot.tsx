@@ -7,7 +7,7 @@ interface VeiculoSlotProps {
   veiculo: VeiculoDTO
   pedidos: PedidoDTO[]
   pesoAtual: number
-  onDesalocar: (pedidoId: string) => void
+  onDesalocar?: (pedidoId: string) => void
   loadingId?: string
 }
 
@@ -31,7 +31,7 @@ export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, loadingI
       ) : (
         <div className="space-y-2">
           {pedidos.map((p) => (
-            <PedidoCard key={p.id} pedido={p} variant="alocado" onDesalocar={() => onDesalocar(p.id)} loading={loadingId === p.id} />
+            <PedidoCard key={p.id} pedido={p} variant="alocado" onDesalocar={onDesalocar ? () => onDesalocar(p.id) : undefined} loading={loadingId === p.id} />
           ))}
         </div>
       )}
