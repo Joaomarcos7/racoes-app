@@ -51,6 +51,21 @@ describe("formatarLinhaProduto", () => {
     const linha = formatarLinhaProduto("Nome Muito Longo De Produto Especial Super", 10, 1, 50)
     expect(linha.length).toBeLessThanOrEqual(LINHA_WIDTH)
   })
+
+  it("keeps KG column at the same position regardless of total amount", () => {
+    const linha1 = formatarLinhaProduto("Produto", 5, 1, 10)
+    const linha2 = formatarLinhaProduto("Produto", 5, 1, 1000)
+    const kgPos1 = linha1.indexOf("5kg")
+    const kgPos2 = linha2.indexOf("5kg")
+    expect(kgPos1).toBe(kgPos2)
+  })
+
+  it("produces lines of exactly LINHA_WIDTH chars", () => {
+    const linha1 = formatarLinhaProduto("Produto", 5, 1, 10)
+    const linha2 = formatarLinhaProduto("Produto", 5, 1, 9999.99)
+    expect(linha1.length).toBe(LINHA_WIDTH)
+    expect(linha2.length).toBe(LINHA_WIDTH)
+  })
 })
 
 describe("calcularSubtotal", () => {

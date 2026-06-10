@@ -3,11 +3,14 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import {
   LINHA_WIDTH,
+  NOME_COL_WIDTH,
+  TOTAL_COL_WIDTH,
   calcularSubtotal,
   calcularTotal,
   formatarLinhaProduto,
   formatarDataEmissao,
   gerarScriptImpressao,
+  padEnd,
 } from "@/lib/cupom-fiscal-utils"
 
 const METODO_LABELS: Record<string, string> = {
@@ -113,7 +116,7 @@ export default async function CupomFiscalPrintPage({
     `Pedido: ${clienteInfo}`,
     ...(cidadeInfo ? [`Cidade: ${cidadeInfo}`] : []),
     SEP,
-    "PRODUTO             KG    QTD  TOTAL",
+    padEnd("PRODUTO", NOME_COL_WIDTH) + " " + padEnd("KG", 5) + " " + padEnd("QTD", 3) + " " + padEnd("TOTAL", TOTAL_COL_WIDTH),
     ...linhasItens,
     SEP,
     rightAlign("Subtotal:", formatBRL(subtotal)),

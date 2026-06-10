@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { Printer } from "lucide-react"
 
 const entregaConfig: Record<string, { label: string; className: string }> = {
   AGUARDANDO: { label: "Aguardando", className: "bg-gray-100 text-gray-700" },
@@ -51,6 +52,12 @@ export default function PedidoDetailPage() {
       <PageHeader
         title={pedido.cliente ? `Pedido — ${pedido.cliente.nome}` : "Venda Balcão"}
         description={`${formatDate(pedido.dataPedido)}${pedido.cliente ? ` · ${pedido.cliente.cidade}` : ""}`}
+        action={
+          <Button variant="outline" size="sm" onClick={() => window.open(`/pedidos/${id}/print`, "_blank")}>
+            <Printer size={14} className="mr-1.5" />
+            Imprimir Cupom
+          </Button>
+        }
       />
       <div className="bg-white rounded-lg border p-6">
         <div className="flex gap-3 mb-4 flex-wrap">
