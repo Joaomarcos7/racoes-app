@@ -26,7 +26,7 @@ export interface ClienteDTO {
   id: string
   nome: string
   telefone: string | null
-  email: string | null
+  instituicao: string | null
   cidade: string
   ativo: boolean
   createdAt: string

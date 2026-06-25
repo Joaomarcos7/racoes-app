@@ -38,7 +38,7 @@ export function useCliente(id: string) {
 export function useCreateCliente() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { nome: string; telefone?: string; email?: string; cidade: string }) => {
+    mutationFn: async (data: { nome: string; telefone?: string; instituicao?: string; cidade: string }) => {
       const res = await fetch("/api/clientes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

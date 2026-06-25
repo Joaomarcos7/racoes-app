@@ -7,7 +7,7 @@ import type { ClienteDTO } from "@/types/api"
 
 interface ClienteFormProps {
   initial?: ClienteDTO
-  onSubmit: (data: { nome: string; telefone?: string; email?: string; cidade: string }) => void
+  onSubmit: (data: { nome: string; telefone?: string; instituicao?: string; cidade: string }) => void
   onCancel?: () => void
   loading?: boolean
 }
@@ -15,12 +15,12 @@ interface ClienteFormProps {
 export function ClienteForm({ initial, onSubmit, onCancel, loading }: ClienteFormProps) {
   const [nome, setNome] = useState(initial?.nome ?? "")
   const [telefone, setTelefone] = useState(initial?.telefone ?? "")
-  const [email, setEmail] = useState(initial?.email ?? "")
+  const [instituicao, setInstituicao] = useState(initial?.instituicao ?? "")
   const [cidade, setCidade] = useState(initial?.cidade ?? "")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onSubmit({ nome, telefone: telefone || undefined, email: email || undefined, cidade })
+    onSubmit({ nome, telefone: telefone || undefined, instituicao: instituicao || undefined, cidade })
   }
 
   return (
@@ -39,8 +39,8 @@ export function ClienteForm({ initial, onSubmit, onCancel, loading }: ClienteFor
           <Input value={telefone ?? ""} onChange={(e) => setTelefone(e.target.value)} />
         </div>
         <div className="space-y-1">
-          <Label>Email</Label>
-          <Input type="email" value={email ?? ""} onChange={(e) => setEmail(e.target.value)} />
+          <Label>Instituição</Label>
+          <Input value={instituicao ?? ""} onChange={(e) => setInstituicao(e.target.value)} />
         </div>
       </div>
       <div className="flex gap-2 justify-end">
