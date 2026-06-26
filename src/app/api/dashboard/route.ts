@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
   })
 
   const clientesFiado = clientesComFiadoRaw.map((c) => ({
-    id: c.id, nome: c.nome, cidade: c.cidade, telefone: c.telefone, email: c.email,
+    id: c.id, nome: c.nome, cidade: c.cidade, telefone: c.telefone, instituicao: c.instituicao,
     ativo: c.ativo, createdAt: c.createdAt, temFiado: true,
     totalFiado: c.pedidos.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0),
   }))
