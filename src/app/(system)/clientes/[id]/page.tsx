@@ -38,6 +38,43 @@ export default function ClienteDetailPage() {
           </div>
         }
       />
+      {(cliente.telefone || cliente.instituicao || cliente.cep || cliente.endereco || cliente.complemento) && (
+        <div className="bg-white rounded-lg border p-6 mb-4">
+          <h2 className="font-semibold mb-3 text-gray-700">Informações</h2>
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            {cliente.telefone && (
+              <>
+                <dt className="text-gray-500">Telefone</dt>
+                <dd className="text-gray-900">{cliente.telefone}</dd>
+              </>
+            )}
+            {cliente.instituicao && (
+              <>
+                <dt className="text-gray-500">Instituição</dt>
+                <dd className="text-gray-900">{cliente.instituicao}</dd>
+              </>
+            )}
+            {cliente.cep && (
+              <>
+                <dt className="text-gray-500">CEP</dt>
+                <dd className="text-gray-900">{cliente.cep}</dd>
+              </>
+            )}
+            {cliente.endereco && (
+              <>
+                <dt className="text-gray-500">Endereço</dt>
+                <dd className="text-gray-900">{cliente.endereco}</dd>
+              </>
+            )}
+            {cliente.complemento && (
+              <>
+                <dt className="text-gray-500">Complemento</dt>
+                <dd className="text-gray-900">{cliente.complemento}</dd>
+              </>
+            )}
+          </dl>
+        </div>
+      )}
       <div className="bg-white rounded-lg border p-6">
         <h2 className="font-semibold mb-3 text-gray-700">Histórico de Pedidos</h2>
         <ClienteHistorico pedidos={cliente.pedidos ?? []} />
