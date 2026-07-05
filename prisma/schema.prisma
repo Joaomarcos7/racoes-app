@@ -35,14 +35,17 @@ model HistoricoProduto {
 }
 
 model Cliente {
-  id        String   @id @default(cuid())
-  nome      String
-  telefone   String?
+  id          String   @id @default(cuid())
+  nome        String
+  telefone    String?
   instituicao String?
-  cidade     String
-  ativo     Boolean  @default(true)
-  createdAt DateTime @default(now())
-  pedidos   Pedido[]
+  cidade      String
+  cep         String?
+  endereco    String?
+  complemento String?
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  pedidos     Pedido[]
 }
 
 model Veiculo {

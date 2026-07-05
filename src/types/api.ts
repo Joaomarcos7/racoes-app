@@ -28,6 +28,9 @@ export interface ClienteDTO {
   telefone: string | null
   instituicao: string | null
   cidade: string
+  cep: string | null
+  endereco: string | null
+  complemento: string | null
   ativo: boolean
   createdAt: string
   temFiado?: boolean
