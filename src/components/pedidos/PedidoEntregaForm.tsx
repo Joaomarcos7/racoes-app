@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { ProdutoSearchInput } from "./ProdutoSearchInput"
+import { ClienteSearchInput } from "./ClienteSearchInput"
 import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
 import { formatCurrency } from "@/lib/utils"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
-import type { ProdutoDTO } from "@/types/api"
+import type { ClienteDTO, ProdutoDTO } from "@/types/api"
 
 interface PedidoEntregaFormProps {
   onSubmit: (data: {
@@ -37,6 +38,7 @@ const METODOS: { value: string; label: string }[] = [
 ]
 
 export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntregaFormProps) {
+  const [selectedCliente, setSelectedCliente] = useState<ClienteDTO | null>(null)
   const [clienteNome, setClienteNome] = useState("")
   const [clienteCidade, setClienteCidade] = useState("")
   const [itens, setItens] = useState<ItemLocal[]>([])
@@ -48,6 +50,18 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
 
   const total = itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
   const pesoTotal = itens.reduce((acc, i) => acc + i.quantidade * i.pesoUnit, 0)
+
+  function handleSelectCliente(c: ClienteDTO) {
+    setSelectedCliente(c)
+    setClienteNome(c.nome)
+    setClienteCidade(c.cidade)
+  }
+
+  function handleClearCliente() {
+    setSelectedCliente(null)
+    setClienteNome("")
+    setClienteCidade("")
+  }
 
   function handleAddProduto(p: ProdutoDTO) {
     setItens((prev) => {
@@ -80,27 +94,39 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
     })
   }
 
+  const canSubmit = clienteNome && clienteCidade && itens.length > 0 && !(statusPagamento === "FIADO" && !dataVencimentoFiado)
+
   return (
     <form onSubmit={handleSubmit} aria-label="Pedido Entrega" className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label>Nome do Cliente *</Label>
-          <Input
-            placeholder="Nome do cliente"
-            value={clienteNome}
-            onChange={(e) => setClienteNome(e.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-1">
-          <Label>Cidade *</Label>
-          <Input
-            placeholder="Cidade"
-            value={clienteCidade}
-            onChange={(e) => setClienteCidade(e.target.value)}
-            required
-          />
-        </div>
+      <div className="space-y-1">
+        <Label>Cliente *</Label>
+        <ClienteSearchInput
+          selected={selectedCliente}
+          onSelect={handleSelectCliente}
+          onClear={handleClearCliente}
+          placeholder="Buscar cliente existente..."
+        />
+        {!selectedCliente && (
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-500">Nome (novo cliente)</Label>
+              <Input
+                placeholder="Nome do cliente"
+                value={clienteNome}
+                onChange={(e) => setClienteNome(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-500">Cidade *</Label>
+              <Input
+                placeholder="Cidade"
+                value={clienteCidade}
+                onChange={(e) => setClienteCidade(e.target.value)}
+                required={!selectedCliente && !!clienteNome}
+              />
+            </div>
+          </div>
+        )}
       </div>
       <div className="space-y-2">
         <Label>Adicionar Produto</Label>
@@ -180,7 +206,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
         <Button
           type="submit"
           className="bg-blue-700 hover:bg-blue-600"
-          disabled={loading || !clienteNome || !clienteCidade || itens.length === 0 || (statusPagamento === "FIADO" && !dataVencimentoFiado)}
+          disabled={loading || !canSubmit}
         >
           {loading ? "Salvando..." : "Criar Pedido"}
         </Button>

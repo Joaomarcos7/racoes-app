@@ -16,9 +16,9 @@ describe("PedidoBalcaoForm", () => {
     expect(screen.getAllByText(/opcional/i).length).toBeGreaterThanOrEqual(1)
   })
 
-  it("client select placeholder indicates optional", () => {
+  it("client search input placeholder indicates optional", () => {
     render(<PedidoBalcaoForm onSubmit={vi.fn()} onCancel={vi.fn()} />)
-    expect(screen.getByText(/selecione.*opcional/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/opcional/i)).toBeInTheDocument()
   })
 
   it("does not show statusEntrega field", () => {

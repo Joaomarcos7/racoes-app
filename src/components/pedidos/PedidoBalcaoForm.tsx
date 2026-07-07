@@ -5,12 +5,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { ProdutoSearchInput } from "./ProdutoSearchInput"
+import { ClienteSearchInput } from "./ClienteSearchInput"
 import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
-import { useClientes } from "@/hooks/use-clientes"
 import { formatCurrency } from "@/lib/utils"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
 import { calcularValorPesoVariavel, validarAdiantadoFiado } from "@/lib/pedido-utils"
-import type { ProdutoDTO, TipoFiado } from "@/types/api"
+import type { ClienteDTO, ProdutoDTO, TipoFiado } from "@/types/api"
 
 interface PedidoBalcaoFormProps {
   onSubmit: (data: {
@@ -40,6 +40,7 @@ const METODOS: { value: string; label: string }[] = [
 ]
 
 export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFormProps) {
+  const [selectedCliente, setSelectedCliente] = useState<ClienteDTO | null>(null)
   const [clienteId, setClienteId] = useState("")
   const [itens, setItens] = useState<ItemLocal[]>([])
   const [statusPagamento, setStatusPagamento] = useState("PAGO")
@@ -50,8 +51,6 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
   const [valorAdiantadoMasked, setValorAdiantadoMasked] = useState("0,00")
   const [adiantadoError, setAdiantadoError] = useState<string | null>(null)
   const [descontoMasked, setDescontoMasked] = useState("0,00")
-  const { data: result } = useClientes(undefined, 1, 100)
-  const clientes = result?.data ?? []
 
   const total = itens.reduce((acc, i) => {
     if (i.pesoVariavel && i.pesoKg != null) return acc + calcularValorPesoVariavel(i.pesoKg, i.valorUnit, i.pesoUnit)
@@ -113,14 +112,12 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-1">
         <Label>Cliente <span className="text-gray-400 text-xs font-normal">(opcional)</span></Label>
-        <Select value={clienteId} onValueChange={setClienteId}>
-          <SelectTrigger><SelectValue placeholder="Selecione o cliente (opcional)" /></SelectTrigger>
-          <SelectContent>
-            {clientes.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.nome} — {c.cidade}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ClienteSearchInput
+          selected={selectedCliente}
+          onSelect={(c) => { setSelectedCliente(c); setClienteId(c.id) }}
+          onClear={() => { setSelectedCliente(null); setClienteId("") }}
+          placeholder="Buscar cliente (opcional)..."
+        />
       </div>
       <div className="space-y-2">
         <Label>Adicionar Produto</Label>
