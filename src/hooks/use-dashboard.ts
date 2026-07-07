@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import type { DashboardKPIsDTO } from "@/types/api"
 
-export function useDashboard(periodo: "hoje" | "semana" | "mes") {
+export function useDashboard(periodo: "hoje" | "semana" | "mes" | "trimestre" | "anual") {
   return useQuery({
     queryKey: ["dashboard", periodo],
     queryFn: async (): Promise<DashboardKPIsDTO> => {

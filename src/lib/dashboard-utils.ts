@@ -1,4 +1,29 @@
 interface ItemBasico { quantidade: number; valorUnit: number }
+
+export function getPeriodoDates(periodo: string): { start: Date; end: Date } {
+  const now = new Date()
+  const end = new Date(now)
+  end.setHours(23, 59, 59, 999)
+  if (periodo === "hoje") {
+    const start = new Date(now)
+    start.setHours(0, 0, 0, 0)
+    return { start, end }
+  }
+  const daysMap: Record<string, number> = { semana: 6, mes: 29, trimestre: 89, anual: 364 }
+  const days = daysMap[periodo] ?? 0
+  const start = new Date(now)
+  start.setDate(now.getDate() - days)
+  start.setHours(0, 0, 0, 0)
+  return { start, end }
+}
+
+interface ItemPeso { quantidade: number; pesoUnit: number }
+interface PedidoComPeso { itens: ItemPeso[] }
+
+export function calcularPesoVendido(pedidos: PedidoComPeso[]): number {
+  return pedidos.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.pesoUnit, 0), 0)
+}
+
 interface PedidoBasico {
   clienteId: string | null
   cliente: { id: string; nome: string; cidade: string } | null

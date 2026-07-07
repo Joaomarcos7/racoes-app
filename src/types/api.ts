@@ -126,6 +126,7 @@ export interface DashboardKPIsDTO {
   vendasEntrega: number
   vendasBalcao: number
   entregasRealizadas: number
+  pesoVendido: number
   metodosPagamento: Array<{ metodo: string; count: number; total: number }>
   topClientes: Array<{ id: string; nome: string; cidade: string; count: number; total: number }>
   grafico: Array<{ label: string; valor: number }>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { groupByMetodoPagamento, getTopClientes } from "@/lib/dashboard-utils"
+import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates } from "@/lib/dashboard-utils"
 
 const makePedido = (overrides: Record<string, unknown>) => ({
   id: "p1",
@@ -105,7 +105,7 @@ describe("getTopClientes", () => {
     expect(result[0].total).toBe(160) // 2 × 80, histórico preservado
   })
 
-  it("excludes pedidos without cliente", () => {
+  it("excludes pedidos without cliente (peso)", () => {
     const pedidos = [
       makePedido({ clienteId: null, cliente: null }),
       makePedido({ id: "2", clienteId: "c1", cliente: { id: "c1", nome: "Alice", cidade: "SP" } }),
@@ -113,5 +113,57 @@ describe("getTopClientes", () => {
     const result = getTopClientes(pedidos, 5)
     expect(result).toHaveLength(1)
     expect(result[0].nome).toBe("Alice")
+  })
+})
+
+describe("calcularPesoVendido", () => {
+  it("retorna 0 para lista vazia", () => {
+    expect(calcularPesoVendido([])).toBe(0)
+  })
+
+  it("soma quantidade * pesoUnit de um pedido", () => {
+    const pedidos = [{ itens: [{ quantidade: 3, pesoUnit: 5 }] }]
+    expect(calcularPesoVendido(pedidos)).toBe(15)
+  })
+
+  it("soma múltiplos itens e múltiplos pedidos", () => {
+    const pedidos = [
+      { itens: [{ quantidade: 2, pesoUnit: 10 }, { quantidade: 1, pesoUnit: 5 }] },
+      { itens: [{ quantidade: 3, pesoUnit: 2 }] },
+    ]
+    expect(calcularPesoVendido(pedidos)).toBe(31)
+  })
+})
+
+describe("getPeriodoDates", () => {
+  it("hoje: start e end no mesmo dia", () => {
+    const { start, end } = getPeriodoDates("hoje")
+    expect(start.getDate()).toBe(end.getDate())
+    expect(start.getHours()).toBe(0)
+    expect(end.getHours()).toBe(23)
+  })
+
+  it("semana: start ~6 dias atrás", () => {
+    const { start, end } = getPeriodoDates("semana")
+    const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    expect(diffDays).toBe(6)
+  })
+
+  it("mes: start ~29 dias atrás", () => {
+    const { start, end } = getPeriodoDates("mes")
+    const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    expect(diffDays).toBe(29)
+  })
+
+  it("trimestre: start ~89 dias atrás", () => {
+    const { start, end } = getPeriodoDates("trimestre")
+    const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    expect(diffDays).toBe(89)
+  })
+
+  it("anual: start ~364 dias atrás", () => {
+    const { start, end } = getPeriodoDates("anual")
+    const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    expect(diffDays).toBe(364)
   })
 })
