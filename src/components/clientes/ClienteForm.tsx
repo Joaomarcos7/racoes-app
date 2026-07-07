@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { ClienteDTO } from "@/types/api"
 import { fetchViaCep } from "@/lib/viacep"
+import { formatTelefoneInput, validateDDD, parseTelefoneDigits } from "@/lib/phone-mask"
 
 interface ClienteFormProps {
   initial?: ClienteDTO
@@ -15,13 +16,24 @@ interface ClienteFormProps {
 
 export function ClienteForm({ initial, onSubmit, onCancel, loading }: ClienteFormProps) {
   const [nome, setNome] = useState(initial?.nome ?? "")
-  const [telefone, setTelefone] = useState(initial?.telefone ?? "")
+  const [telefone, setTelefone] = useState(() => {
+    const raw = initial?.telefone ?? ""
+    return raw ? formatTelefoneInput(parseTelefoneDigits(raw)) : ""
+  })
   const [instituicao, setInstituicao] = useState(initial?.instituicao ?? "")
   const [cidade, setCidade] = useState(initial?.cidade ?? "")
   const [cep, setCep] = useState(initial?.cep ?? "")
   const [endereco, setEndereco] = useState(initial?.endereco ?? "")
   const [complemento, setComplemento] = useState(initial?.complemento ?? "")
   const [cepLoading, setCepLoading] = useState(false)
+
+  const telefoneDigits = parseTelefoneDigits(telefone)
+  const ddd = telefoneDigits.slice(0, 2)
+  const dddError = telefoneDigits.length >= 2 && !validateDDD(ddd)
+    ? `DDD ${ddd} inválido`
+    : null
+  const telefoneCompleto = telefoneDigits.length === 11
+  const telefoneValido = !telefoneDigits || (telefoneCompleto && !dddError)
 
   async function handleCepBlur() {
     const digits = cep.replace(/\D/g, "")
@@ -35,8 +47,13 @@ export function ClienteForm({ initial, onSubmit, onCancel, loading }: ClienteFor
     }
   }
 
+  function handleTelefoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setTelefone(formatTelefoneInput(e.target.value))
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!telefoneValido) return
     onSubmit({
       nome,
       telefone: telefone || undefined,
@@ -57,7 +74,17 @@ export function ClienteForm({ initial, onSubmit, onCancel, loading }: ClienteFor
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label>Telefone</Label>
-          <Input value={telefone ?? ""} onChange={(e) => setTelefone(e.target.value)} />
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm text-slate-500 font-medium whitespace-nowrap">+55</span>
+            <Input
+              value={telefone}
+              onChange={handleTelefoneChange}
+              placeholder="(11) 98765-4321"
+              inputMode="numeric"
+              className={dddError ? "border-red-500" : ""}
+            />
+          </div>
+          {dddError && <p className="text-xs text-red-600">{dddError}</p>}
         </div>
         <div className="space-y-1">
           <Label>Instituição</Label>
@@ -94,7 +121,7 @@ export function ClienteForm({ initial, onSubmit, onCancel, loading }: ClienteFor
             Cancelar
           </Button>
         )}
-        <Button type="submit" className="bg-blue-700 hover:bg-blue-600" disabled={loading || cepLoading}>
+        <Button type="submit" className="bg-blue-700 hover:bg-blue-600" disabled={loading || cepLoading || !telefoneValido}>
           {loading ? "Salvando..." : "Salvar"}
         </Button>
       </div>
