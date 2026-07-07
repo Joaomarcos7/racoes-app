@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { normalizeNome } from "@/lib/cliente-utils"
-import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto } from "@/lib/pedido-utils"
+import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado } from "@/lib/pedido-utils"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
 const pedidoInclude = {
@@ -110,6 +110,11 @@ export async function POST(req: NextRequest) {
   const descontoVal = typeof desconto === "number" && desconto > 0 ? desconto : 0
   const subtotal = itensComValor.reduce((acc: number, i: { quantidadeFinal: number; valorUnit: number }) => acc + i.quantidadeFinal * i.valorUnit, 0)
   const totalPedido = Math.max(0, subtotal - descontoVal)
+  if (statusPagamento === "FIADO" && tipoFiado === "PARCIAL") {
+    const adiantadoErr = validarAdiantadoFiado(valorAdiantadoFiado ?? 0, totalPedido)
+    if (adiantadoErr) return NextResponse.json({ error: adiantadoErr }, { status: 400 })
+  }
+
   const resolvedValorEmAberto = statusPagamento === "FIADO" ? calcularValorEmAberto(totalPedido, tipoFiado, valorAdiantadoFiado ?? 0) : null
 
   try {

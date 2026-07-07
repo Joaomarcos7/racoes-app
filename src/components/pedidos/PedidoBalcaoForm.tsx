@@ -9,7 +9,7 @@ import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
 import { useClientes } from "@/hooks/use-clientes"
 import { formatCurrency } from "@/lib/utils"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
-import { calcularValorPesoVariavel } from "@/lib/pedido-utils"
+import { calcularValorPesoVariavel, validarAdiantadoFiado } from "@/lib/pedido-utils"
 import type { ProdutoDTO, TipoFiado } from "@/types/api"
 
 interface PedidoBalcaoFormProps {
@@ -47,6 +47,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
   const [dataVencimentoFiado, setDataVencimentoFiado] = useState("")
   const [tipoFiado, setTipoFiado] = useState<TipoFiado>("INTEGRAL")
   const [valorAdiantadoMasked, setValorAdiantadoMasked] = useState("0,00")
+  const [adiantadoError, setAdiantadoError] = useState<string | null>(null)
   const [descontoMasked, setDescontoMasked] = useState("0,00")
   const { data: result } = useClientes(undefined, 1, 100)
   const clientes = result?.data ?? []
@@ -83,6 +84,12 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (statusPagamento === "FIADO" && tipoFiado === "PARCIAL") {
+      const totalFinal = Math.max(0, total - parseMaskedMoney(descontoMasked))
+      const err = validarAdiantadoFiado(parseMaskedMoney(valorAdiantadoMasked), totalFinal)
+      if (err) { setAdiantadoError(err); return }
+    }
+    setAdiantadoError(null)
     onSubmit({
       tipoPedido: "BALCAO",
       clienteId: clienteId || undefined,
@@ -211,9 +218,11 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
               <Input
                 inputMode="numeric"
                 value={valorAdiantadoMasked}
-                onChange={(e) => setValorAdiantadoMasked(formatMoneyInput(e.target.value))}
+                onChange={(e) => { setValorAdiantadoMasked(formatMoneyInput(e.target.value)); setAdiantadoError(null) }}
+                className={adiantadoError ? "border-red-500" : ""}
                 required
               />
+              {adiantadoError && <p className="text-xs text-red-600">{adiantadoError}</p>}
             </div>
           )}
         </div>

@@ -30,3 +30,8 @@ export function calcularValorEmAberto(total: number, tipoFiado: string, valorAdi
   if (tipoFiado === "INTEGRAL") return total
   return Math.max(0, total - (valorAdiantado ?? 0))
 }
+
+export function validarAdiantadoFiado(valorAdiantado: number, totalPedido: number): string | null {
+  if (valorAdiantado >= totalPedido) return "Valor adiantado deve ser menor que o total do pedido"
+  return null
+}

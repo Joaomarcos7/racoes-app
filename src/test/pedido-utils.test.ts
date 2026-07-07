@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -110,5 +110,23 @@ describe("calcularValorEmAberto", () => {
 
   it("PARCIAL clamps to zero if adiantado exceeds total", () => {
     expect(calcularValorEmAberto(100, "PARCIAL", 150)).toBe(0)
+  })
+})
+
+describe("validarAdiantadoFiado", () => {
+  it("returns null when adiantado is less than total", () => {
+    expect(validarAdiantadoFiado(200, 500)).toBeNull()
+  })
+
+  it("returns error when adiantado equals total", () => {
+    expect(validarAdiantadoFiado(500, 500)).not.toBeNull()
+  })
+
+  it("returns error when adiantado exceeds total", () => {
+    expect(validarAdiantadoFiado(600, 500)).not.toBeNull()
+  })
+
+  it("returns null when adiantado is zero", () => {
+    expect(validarAdiantadoFiado(0, 500)).toBeNull()
   })
 })
