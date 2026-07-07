@@ -37,7 +37,8 @@ export default function ConsolidacaoPage() {
         <p className="text-sm text-gray-500 py-4">Nenhuma rota criada ainda.</p>
       ) : (
         <>
-          <div className="rounded-md border overflow-hidden overflow-x-auto">
+          <div className="rounded-md border overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
@@ -82,6 +83,7 @@ export default function ConsolidacaoPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
           {result && (
             <Pagination

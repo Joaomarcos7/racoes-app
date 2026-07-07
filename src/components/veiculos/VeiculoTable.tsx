@@ -17,7 +17,8 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
   }
 
   return (
-    <div className="rounded-md border overflow-hidden overflow-x-auto">
+    <div className="rounded-md border overflow-hidden">
+      <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
@@ -55,6 +56,7 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
