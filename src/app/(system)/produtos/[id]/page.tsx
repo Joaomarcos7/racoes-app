@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
+import { paginateArray } from "@/lib/pagination-utils"
+import { Pagination } from "@/components/ui/Pagination"
+
+const HISTORICO_LIMIT = 10
 
 function formatDateTime(iso: string) {
   const d = new Date(iso)
@@ -29,9 +33,14 @@ export default function ProdutoDetailPage() {
   const updateMutation = useUpdateProduto()
   const [editOpen, setEditOpen] = useState(false)
   const [periodo, setPeriodo] = useState("mes")
+  const [pagePreco, setPagePreco] = useState(1)
+  const [pageCusto, setPageCusto] = useState(1)
   const { data: historico, isLoading: loadingHistorico } = useProdutoHistorico(id)
   const { data: historicoCusto, isLoading: loadingHistoricoCusto } = useProdutoHistoricoCusto(id)
   const { data: stats, isLoading: loadingStats } = useProdutoStats(id, periodo)
+
+  const precoPage = paginateArray(historico ?? [], pagePreco, HISTORICO_LIMIT)
+  const custoPage = paginateArray(historicoCusto ?? [], pageCusto, HISTORICO_LIMIT)
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!produto) return <p className="text-sm text-red-500">Produto não encontrado.</p>
@@ -82,24 +91,35 @@ export default function ProdutoDetailPage() {
           ) : !historicoCusto || historicoCusto.length === 0 ? (
             <p className="text-sm text-gray-400">Nenhuma alteração de custo registrada.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-500 text-xs border-b">
-                  <th className="text-left pb-2">Data / Hora</th>
-                  <th className="text-right pb-2">Custo Anterior</th>
-                  <th className="text-right pb-2">Custo Novo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historicoCusto.map((h) => (
-                  <tr key={h.id} className="border-b border-gray-100">
-                    <td className="py-2 text-gray-600">{formatDateTime(h.criadoEm)}</td>
-                    <td className="py-2 text-right text-red-600 line-through">{h.custoAnterior != null ? formatCurrency(h.custoAnterior) : "—"}</td>
-                    <td className="py-2 text-right text-blue-700 font-medium">{h.custoNovo != null ? formatCurrency(h.custoNovo) : "—"}</td>
+            <>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-gray-500 text-xs border-b">
+                    <th className="text-left pb-2">Data / Hora</th>
+                    <th className="text-right pb-2">Custo Anterior</th>
+                    <th className="text-right pb-2">Custo Novo</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {custoPage.data.map((h) => (
+                    <tr key={h.id} className="border-b border-gray-100">
+                      <td className="py-2 text-gray-600">{formatDateTime(h.criadoEm)}</td>
+                      <td className="py-2 text-right text-red-600 line-through">{h.custoAnterior != null ? formatCurrency(h.custoAnterior) : "—"}</td>
+                      <td className="py-2 text-right text-blue-700 font-medium">{h.custoNovo != null ? formatCurrency(h.custoNovo) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {custoPage.meta.totalPages > 1 && (
+                <Pagination
+                  page={custoPage.meta.page}
+                  totalPages={custoPage.meta.totalPages}
+                  total={custoPage.meta.total}
+                  limit={HISTORICO_LIMIT}
+                  onPageChange={setPageCusto}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -111,24 +131,35 @@ export default function ProdutoDetailPage() {
           ) : !historico || historico.length === 0 ? (
             <p className="text-sm text-gray-400">Nenhuma alteração de preço registrada.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-500 text-xs border-b">
-                  <th className="text-left pb-2">Data / Hora</th>
-                  <th className="text-right pb-2">Preço Anterior</th>
-                  <th className="text-right pb-2">Preço Novo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historico.map((h) => (
-                  <tr key={h.id} className="border-b border-gray-100">
-                    <td className="py-2 text-gray-600">{formatDateTime(h.criadoEm)}</td>
-                    <td className="py-2 text-right text-red-600 line-through">{formatCurrency(h.precoAnterior)}</td>
-                    <td className="py-2 text-right text-blue-700 font-medium">{formatCurrency(h.precoNovo)}</td>
+            <>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-gray-500 text-xs border-b">
+                    <th className="text-left pb-2">Data / Hora</th>
+                    <th className="text-right pb-2">Preço Anterior</th>
+                    <th className="text-right pb-2">Preço Novo</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {precoPage.data.map((h) => (
+                    <tr key={h.id} className="border-b border-gray-100">
+                      <td className="py-2 text-gray-600">{formatDateTime(h.criadoEm)}</td>
+                      <td className="py-2 text-right text-red-600 line-through">{formatCurrency(h.precoAnterior)}</td>
+                      <td className="py-2 text-right text-blue-700 font-medium">{formatCurrency(h.precoNovo)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {precoPage.meta.totalPages > 1 && (
+                <Pagination
+                  page={precoPage.meta.page}
+                  totalPages={precoPage.meta.totalPages}
+                  total={precoPage.meta.total}
+                  limit={HISTORICO_LIMIT}
+                  onPageChange={setPagePreco}
+                />
+              )}
+            </>
           )}
         </div>
       </div>

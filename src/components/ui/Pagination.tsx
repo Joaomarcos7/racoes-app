@@ -11,7 +11,7 @@ interface PaginationProps {
   total: number
   limit: number
   onPageChange: (page: number) => void
-  onLimitChange: (limit: number) => void
+  onLimitChange?: (limit: number) => void
 }
 
 export function Pagination({ page, totalPages, total, limit, onPageChange, onLimitChange }: PaginationProps) {
@@ -22,16 +22,18 @@ export function Pagination({ page, totalPages, total, limit, onPageChange, onLim
         <span>Página {page} de {totalPages}</span>
       </div>
       <div className="flex items-center gap-2">
-        <Select value={String(limit)} onValueChange={(v) => { onLimitChange(Number(v)); onPageChange(1) }}>
-          <SelectTrigger className="h-8 w-32 text-sm">
-            <SelectValue>{limit} por página</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {LIMIT_OPTIONS.map((n) => (
-              <SelectItem key={n} value={String(n)}>{n} por página</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {onLimitChange && (
+          <Select value={String(limit)} onValueChange={(v) => { onLimitChange(Number(v)); onPageChange(1) }}>
+            <SelectTrigger className="h-8 w-32 text-sm">
+              <SelectValue>{limit} por página</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {LIMIT_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>{n} por página</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Button
           variant="outline"
           size="sm"
