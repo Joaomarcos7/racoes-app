@@ -52,7 +52,7 @@ export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
     setItens((prev) => {
       const existing = prev.find((i) => i.produtoId === p.id)
       if (existing) return prev.map((i) => i.produtoId === p.id ? { ...i, quantidade: i.quantidade + 1 } : i)
-      return [...prev, { produtoId: p.id, nome: p.nome, pesoUnit: p.peso, valorUnit: p.valorUnitario, quantidade: 1 }]
+      return [...prev, { produtoId: p.id, nome: p.nome, pesoUnit: p.peso, valorUnit: p.valorUnitario, quantidade: 1, pesoVariavel: false }]
     })
   }
 
