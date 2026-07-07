@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import type { VeiculoDTO } from "@/types/api"
 import { Pencil, Trash2 } from "lucide-react"
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
+import { labelCarroceria } from "@/lib/veiculo-utils"
 
 interface VeiculoTableProps {
   veiculos: VeiculoDTO[]
@@ -22,6 +23,9 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Placa</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Modelo</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Ano</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Carroceria</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cor</th>
             <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peso Máx. (kg)</th>
             <th className="px-4 py-3"></th>
           </tr>
@@ -31,6 +35,9 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
             <tr key={v.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
               <td className="px-4 py-3 font-mono font-medium">{v.placa}</td>
               <td className="px-4 py-3">{v.modelo}</td>
+              <td className="px-4 py-3 text-gray-600">{v.ano}</td>
+              <td className="px-4 py-3 text-gray-600">{labelCarroceria(v.carroceria)}</td>
+              <td className="px-4 py-3 text-gray-600">{v.cor}</td>
               <td className="px-4 py-3 text-right">{v.pesoMaximo} kg</td>
               <td className="px-4 py-3 text-right">
                 <div className="flex gap-1 justify-end">

@@ -64,6 +64,9 @@ model Veiculo {
   id         String             @id @default(cuid())
   placa      String             @unique
   modelo     String
+  ano        Int
+  carroceria Carroceria
+  cor        String
   pesoMaximo Float
   ativo      Boolean            @default(true)
   rotas      ConsolidacaoRota[]
@@ -175,4 +178,14 @@ enum TipoPedido {
 enum TipoProduto {
   CONSUMIDOR_FINAL
   ATACADO
+}
+
+enum Carroceria {
+  BAU
+  GRADE_BAIXA
+  SIDER
+  GRANELEIRO
+  PLATAFORMA
+  FURGAO
+  OUTROS
 }

@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react"
 import { VeiculoSlot } from "@/components/consolidacao/VeiculoSlot"
 import type { VeiculoDTO, PedidoDTO } from "@/types/api"
 
-const veiculo: VeiculoDTO = { id: "v1", placa: "ABC-1234", modelo: "Fiat", pesoMaximo: 1000, ativo: true }
+const veiculo: VeiculoDTO = { id: "v1", placa: "ABC-1234", modelo: "Fiat", ano: 2022, carroceria: "BAU", cor: "Branco", pesoMaximo: 1000, ativo: true }
 
 const pedido: PedidoDTO = {
   id: "p1",

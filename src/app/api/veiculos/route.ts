@@ -23,14 +23,14 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const body = await req.json()
-  const { placa, modelo, pesoMaximo } = body
+  const { placa, modelo, ano, carroceria, cor, pesoMaximo } = body
 
-  if (!placa || !modelo || typeof pesoMaximo !== "number") {
-    return NextResponse.json({ error: "placa, modelo e pesoMaximo são obrigatórios" }, { status: 400 })
+  if (!placa || !modelo || !carroceria || !cor || typeof ano !== "number" || typeof pesoMaximo !== "number") {
+    return NextResponse.json({ error: "placa, modelo, ano, carroceria, cor e pesoMaximo são obrigatórios" }, { status: 400 })
   }
 
   try {
-    const veiculo = await prisma.veiculo.create({ data: { placa, modelo, pesoMaximo } })
+    const veiculo = await prisma.veiculo.create({ data: { placa, modelo, ano, carroceria, cor, pesoMaximo } })
     return NextResponse.json(veiculo, { status: 201 })
   } catch (e: unknown) {
     if ((e as { code?: string }).code === "P2002") {

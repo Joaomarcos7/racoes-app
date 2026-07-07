@@ -7,7 +7,7 @@ import { useVeiculos, useCreateVeiculo, useUpdateVeiculo, useDeleteVeiculo } fro
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Pagination } from "@/components/ui/Pagination"
-import type { VeiculoDTO } from "@/types/api"
+import type { VeiculoDTO, TipoCarroceria } from "@/types/api"
 
 export default function VeiculosPage() {
   const [page, setPage] = useState(1)
@@ -19,7 +19,7 @@ export default function VeiculosPage() {
   const updateMutation = useUpdateVeiculo()
   const deleteMutation = useDeleteVeiculo()
 
-  function handleSubmit(data: { placa: string; modelo: string; pesoMaximo: number }) {
+  function handleSubmit(data: { placa: string; modelo: string; ano: number; carroceria: TipoCarroceria; cor: string; pesoMaximo: number }) {
     if (editing) {
       updateMutation.mutate({ id: editing.id, ...data }, { onSuccess: () => setOpen(false) })
     } else {

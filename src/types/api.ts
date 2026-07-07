@@ -48,10 +48,15 @@ export interface ClienteDTO {
   temFiado?: boolean
 }
 
+export type TipoCarroceria = "BAU" | "GRADE_BAIXA" | "SIDER" | "GRANELEIRO" | "PLATAFORMA" | "FURGAO" | "OUTROS"
+
 export interface VeiculoDTO {
   id: string
   placa: string
   modelo: string
+  ano: number
+  carroceria: TipoCarroceria
+  cor: string
   pesoMaximo: number
   ativo: boolean
 }

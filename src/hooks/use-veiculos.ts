@@ -19,7 +19,7 @@ export function useVeiculos(page = 1, limit = 15) {
 export function useCreateVeiculo() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { placa: string; modelo: string; pesoMaximo: number }) => {
+    mutationFn: async (data: { placa: string; modelo: string; ano: number; carroceria: string; cor: string; pesoMaximo: number }) => {
       const res = await fetch("/api/veiculos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
