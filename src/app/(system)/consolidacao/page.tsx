@@ -39,25 +39,25 @@ export default function ConsolidacaoPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Data</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Veículo</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Pedidos</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3"></th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Veículo</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Pedidos</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="px-3 py-3"></th>
                 </tr>
               </thead>
               <tbody>
                 {rotas.map((r, i) => (
                   <tr key={r.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                    <td className="px-4 py-3">{formatDate(r.data)}</td>
-                    <td className="px-4 py-3 font-medium">{r.veiculo.placa} — {r.veiculo.modelo}</td>
-                    <td className="px-4 py-3 text-center">{r.numeroPedidos}</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge className={r.status === "FECHADA" ? "bg-blue-100 text-blue-700" : "bg-blue-100 text-blue-700"}>
+                    <td className="px-3 py-3 whitespace-nowrap">{formatDate(r.data)}</td>
+                    <td className="px-3 py-3 font-medium">{r.veiculo.placa} — {r.veiculo.modelo}</td>
+                    <td className="px-3 py-3 text-center hidden sm:table-cell">{r.numeroPedidos}</td>
+                    <td className="px-3 py-3 text-center">
+                      <Badge className={r.status === "FECHADA" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}>
                         {r.status === "FECHADA" ? "Fechada" : "Aberta"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-3 py-3 text-right">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>

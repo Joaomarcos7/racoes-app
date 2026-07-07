@@ -35,7 +35,7 @@ export default function ClientesPage() {
           placeholder="Buscar cliente..."
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
       </div>
       {isLoading ? (

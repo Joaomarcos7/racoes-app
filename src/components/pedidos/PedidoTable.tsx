@@ -29,14 +29,14 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
       <table className="w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Data</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cliente</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cidade</th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
-            <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Entrega</th>
-            <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Pagamento</th>
-            <th className="px-4 py-3"></th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Tipo</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cliente</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Cidade</th>
+            <th className="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Total</th>
+            <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Entrega</th>
+            <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Pgto</th>
+            <th className="px-3 py-3"></th>
           </tr>
         </thead>
         <tbody>
@@ -44,24 +44,24 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
             const total = p.itens.reduce((acc, item) => acc + item.quantidade * item.valorUnit, 0)
             return (
               <tr key={p.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                <td className="px-4 py-3">{formatDate(p.dataPedido)}</td>
-                <td className="px-4 py-3">
-                  <Badge className={p.tipoPedido === "ENTREGA" ? "bg-blue-100 text-blue-700" : "bg-blue-100 text-blue-700"}>
+                <td className="px-3 py-3 whitespace-nowrap">{formatDate(p.dataPedido)}</td>
+                <td className="px-3 py-3 hidden sm:table-cell">
+                  <Badge className="bg-blue-100 text-blue-700">
                     {p.tipoPedido === "ENTREGA" ? "Entrega" : "Balcão"}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 font-medium">{p.cliente?.nome ?? <span className="text-gray-400 italic">—</span>}</td>
-                <td className="px-4 py-3 text-gray-600">{p.cliente?.cidade ?? "—"}</td>
-                <td className="px-4 py-3 text-right">{formatCurrency(total)}</td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-3 py-3 font-medium max-w-[120px] sm:max-w-none truncate">{p.cliente?.nome ?? <span className="text-gray-400 italic">—</span>}</td>
+                <td className="px-3 py-3 text-gray-600 hidden sm:table-cell">{p.cliente?.cidade ?? "—"}</td>
+                <td className="px-3 py-3 text-right whitespace-nowrap">{formatCurrency(total)}</td>
+                <td className="px-3 py-3 text-center hidden md:table-cell">
                   {p.statusEntrega
                     ? <Badge className={entregaConfig[p.statusEntrega].className}>{entregaConfig[p.statusEntrega].label}</Badge>
                     : <span className="text-gray-400 text-xs">—</span>}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-3 py-3 text-center">
                   <Badge className={pagConfig[p.statusPagamento].className}>{pagConfig[p.statusPagamento].label}</Badge>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-3 py-3 text-right">
                   <div className="flex gap-1 justify-end">
                     <TooltipProvider>
                       <Tooltip>

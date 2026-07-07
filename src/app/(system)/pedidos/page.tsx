@@ -38,10 +38,15 @@ export default function PedidosPage() {
           </Button>
         }
       />
-      <div className="flex gap-3 mb-4 flex-wrap">
-        <Input placeholder="Buscar por cliente..." value={search} onChange={(e) => { setSearch(e.target.value); resetPage() }} className="max-w-xs" />
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Input
+          placeholder="Buscar por cliente..."
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); resetPage() }}
+          className="w-full sm:w-auto sm:max-w-xs"
+        />
         <Select value={tipoPedido} onValueChange={(v) => { setTipoPedido(v); resetPage() }}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Tipo: todos" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Tipo: todos" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="ENTREGA">Entrega</SelectItem>
@@ -49,7 +54,7 @@ export default function PedidosPage() {
           </SelectContent>
         </Select>
         <Select value={statusEntrega} onValueChange={(v) => { setStatusEntrega(v); resetPage() }}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Entrega: todos" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Entrega: todos" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
@@ -58,7 +63,7 @@ export default function PedidosPage() {
           </SelectContent>
         </Select>
         <Select value={statusPagamento} onValueChange={(v) => { setStatusPagamento(v); resetPage() }}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Pagamento: todos" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Pagamento: todos" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="PENDENTE">Pendente</SelectItem>

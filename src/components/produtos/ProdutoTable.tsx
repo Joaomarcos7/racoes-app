@@ -24,21 +24,21 @@ export function ProdutoTable({ produtos, onEdit, onDelete }: ProdutoTableProps) 
       <table className="w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peso (kg)</th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Valor Unit.</th>
-            <th className="px-4 py-3"></th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Tipo</th>
+            <th className="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell whitespace-nowrap">Peso (kg)</th>
+            <th className="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Valor Unit.</th>
+            <th className="px-3 py-3"></th>
           </tr>
         </thead>
         <tbody>
           {produtos.map((p, i) => (
             <tr key={p.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-              <td className="px-4 py-3 font-medium">{p.nome}</td>
-              <td className="px-4 py-3 text-xs text-gray-500">{labelTipoProduto(p.tipo)}</td>
-              <td className="px-4 py-3 text-right">{p.peso}</td>
-              <td className="px-4 py-3 text-right">{formatCurrency(p.valorUnitario)}</td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-3 py-3 font-medium">{p.nome}</td>
+              <td className="px-3 py-3 text-xs text-gray-500 hidden sm:table-cell">{labelTipoProduto(p.tipo)}</td>
+              <td className="px-3 py-3 text-right hidden sm:table-cell">{p.peso}</td>
+              <td className="px-3 py-3 text-right whitespace-nowrap">{formatCurrency(p.valorUnitario)}</td>
+              <td className="px-3 py-3 text-right">
                 <div className="flex gap-1 justify-end">
                   <TooltipProvider>
                     <Tooltip>
