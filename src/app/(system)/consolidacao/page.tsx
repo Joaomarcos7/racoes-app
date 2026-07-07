@@ -43,7 +43,7 @@ export default function ConsolidacaoPage() {
                 <tr>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Veículo</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Pedidos</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Pedidos</th>
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                   <th className="px-3 py-3"></th>
                 </tr>
@@ -53,7 +53,7 @@ export default function ConsolidacaoPage() {
                   <tr key={r.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                     <td className="px-3 py-3 whitespace-nowrap">{formatDate(r.data)}</td>
                     <td className="px-3 py-3 font-medium">{r.veiculo.placa} — {r.veiculo.modelo}</td>
-                    <td className="px-3 py-3 text-center hidden sm:table-cell">{r.numeroPedidos}</td>
+                    <td className="px-3 py-3 text-center whitespace-nowrap">{r.numeroPedidos}</td>
                     <td className="px-3 py-3 text-center">
                       <Badge className={r.status === "FECHADA" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}>
                         {r.status === "FECHADA" ? "Fechada" : "Aberta"}

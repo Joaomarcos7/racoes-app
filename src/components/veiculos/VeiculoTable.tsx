@@ -23,10 +23,10 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Placa</th>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Modelo</th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Ano</th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Carroceria</th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Cor</th>
-            <th className="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell whitespace-nowrap">Peso Máx.</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Ano</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Carroceria</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Cor</th>
+            <th className="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Peso Máx.</th>
             <th className="px-3 py-3"></th>
           </tr>
         </thead>
@@ -35,10 +35,10 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
             <tr key={v.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
               <td className="px-3 py-3 font-mono font-medium whitespace-nowrap">{v.placa}</td>
               <td className="px-3 py-3">{v.modelo}</td>
-              <td className="px-3 py-3 text-gray-600 hidden md:table-cell">{v.ano}</td>
-              <td className="px-3 py-3 text-gray-600 hidden sm:table-cell">{labelCarroceria(v.carroceria)}</td>
-              <td className="px-3 py-3 text-gray-600 hidden md:table-cell">{v.cor}</td>
-              <td className="px-3 py-3 text-right hidden sm:table-cell whitespace-nowrap">{v.pesoMaximo} kg</td>
+              <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{v.ano}</td>
+              <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{labelCarroceria(v.carroceria)}</td>
+              <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{v.cor}</td>
+              <td className="px-3 py-3 text-right whitespace-nowrap">{v.pesoMaximo} kg</td>
               <td className="px-3 py-3 text-right whitespace-nowrap">
                 <div className="flex gap-1 justify-end">
                   <Button size="icon" variant="ghost" onClick={() => onEdit(v)}>

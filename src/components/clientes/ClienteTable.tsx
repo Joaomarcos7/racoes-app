@@ -23,7 +23,7 @@ export function ClienteTable({ clientes, onDelete }: ClienteTableProps) {
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Cidade</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Cidade</th>
             <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Fiado</th>
             <th className="px-3 py-3"></th>
           </tr>
@@ -32,7 +32,7 @@ export function ClienteTable({ clientes, onDelete }: ClienteTableProps) {
           {clientes.map((c, i) => (
             <tr key={c.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
               <td className="px-3 py-3 font-medium">{c.nome}</td>
-              <td className="px-3 py-3 text-gray-600 hidden sm:table-cell">{c.cidade}</td>
+              <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{c.cidade}</td>
               <td className="px-3 py-3 text-center">
                 {c.temFiado && (
                   <Badge className="bg-orange-100 text-orange-700 border-orange-200">

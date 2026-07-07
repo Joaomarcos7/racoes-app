@@ -30,11 +30,11 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data</th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Tipo</th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cliente</th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Cidade</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Tipo</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Cliente</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Cidade</th>
             <th className="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Total</th>
-            <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Entrega</th>
+            <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Entrega</th>
             <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Pgto</th>
             <th className="px-3 py-3"></th>
           </tr>
@@ -45,15 +45,15 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
             return (
               <tr key={p.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <td className="px-3 py-3 whitespace-nowrap">{formatDate(p.dataPedido)}</td>
-                <td className="px-3 py-3 hidden sm:table-cell">
+                <td className="px-3 py-3 whitespace-nowrap">
                   <Badge className="bg-blue-100 text-blue-700">
                     {p.tipoPedido === "ENTREGA" ? "Entrega" : "Balcão"}
                   </Badge>
                 </td>
                 <td className="px-3 py-3 font-medium whitespace-nowrap">{p.cliente?.nome ?? <span className="text-gray-400 italic">—</span>}</td>
-                <td className="px-3 py-3 text-gray-600 hidden sm:table-cell">{p.cliente?.cidade ?? "—"}</td>
+                <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{p.cliente?.cidade ?? "—"}</td>
                 <td className="px-3 py-3 text-right whitespace-nowrap">{formatCurrency(total)}</td>
-                <td className="px-3 py-3 text-center hidden md:table-cell">
+                <td className="px-3 py-3 text-center whitespace-nowrap">
                   {p.statusEntrega
                     ? <Badge className={entregaConfig[p.statusEntrega].className}>{entregaConfig[p.statusEntrega].label}</Badge>
                     : <span className="text-gray-400 text-xs">—</span>}
