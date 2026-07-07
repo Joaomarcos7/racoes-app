@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateReabrirRota, validateFecharRota } from "@/lib/consolidacao-utils"
+import { validateReabrirRota, validateFecharRota, aggregateProdutosAlocados } from "@/lib/consolidacao-utils"
 
 describe("validateReabrirRota", () => {
   it("permite reabrir rota FECHADA", () => {
@@ -22,5 +22,38 @@ describe("validateFecharRota", () => {
 
   it("rejeita fechar rota já FECHADA", () => {
     expect(validateFecharRota({ status: "FECHADA", numItens: 3 })).toBe("Rota já está fechada")
+  })
+})
+
+describe("aggregateProdutosAlocados", () => {
+  const makeItem = (nome: string, quantidade: number) => ({
+    id: nome, produtoId: nome, produto: { id: nome, nome, peso: 1, valorUnitario: 1, custo: null, tipo: "CONSUMIDOR_FINAL" as const, ativo: true, createdAt: "" },
+    quantidade, pesoUnit: 1, valorUnit: 1, pedidoId: "",
+  })
+
+  it("retorna produto único com quantidade correta", () => {
+    const pedidos = [{ itens: [makeItem("Ração 5kg", 3)] }]
+    const result = aggregateProdutosAlocados(pedidos)
+    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 3 }])
+  })
+
+  it("soma quantidades do mesmo produto em pedidos diferentes", () => {
+    const pedidos = [
+      { itens: [makeItem("Ração 5kg", 2)] },
+      { itens: [makeItem("Ração 5kg", 4)] },
+    ]
+    const result = aggregateProdutosAlocados(pedidos)
+    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 6 }])
+  })
+
+  it("lista produtos distintos separadamente", () => {
+    const pedidos = [{ itens: [makeItem("Ração 5kg", 2), makeItem("Ração 10kg", 1)] }]
+    const result = aggregateProdutosAlocados(pedidos)
+    expect(result.find(p => p.nome === "Ração 5kg")?.quantidade).toBe(2)
+    expect(result.find(p => p.nome === "Ração 10kg")?.quantidade).toBe(1)
+  })
+
+  it("retorna vazio para lista sem pedidos", () => {
+    expect(aggregateProdutosAlocados([])).toEqual([])
   })
 })
