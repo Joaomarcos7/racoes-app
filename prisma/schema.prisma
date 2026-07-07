@@ -20,6 +20,7 @@ model Produto {
   peso           Float
   valorUnitario  Float
   custo          Float?
+  tipo           TipoProduto        @default(CONSUMIDOR_FINAL)
   ativo          Boolean            @default(true)
   createdAt      DateTime           @default(now())
   itens          ItemPedido[]
@@ -169,4 +170,9 @@ enum TipoNotificacao {
 enum TipoPedido {
   ENTREGA
   BALCAO
+}
+
+enum TipoProduto {
+  CONSUMIDOR_FINAL
+  ATACADO
 }

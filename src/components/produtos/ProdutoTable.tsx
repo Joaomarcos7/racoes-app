@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
+import { labelTipoProduto } from "@/lib/produto-utils"
 import type { ProdutoDTO } from "@/types/api"
 import { Pencil, Trash2, Plus } from "lucide-react"
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
@@ -24,6 +25,7 @@ export function ProdutoTable({ produtos, onEdit, onDelete }: ProdutoTableProps) 
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</th>
             <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peso (kg)</th>
             <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Valor Unit.</th>
             <th className="px-4 py-3"></th>
@@ -33,6 +35,7 @@ export function ProdutoTable({ produtos, onEdit, onDelete }: ProdutoTableProps) 
           {produtos.map((p, i) => (
             <tr key={p.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
               <td className="px-4 py-3 font-medium">{p.nome}</td>
+              <td className="px-4 py-3 text-xs text-gray-500">{labelTipoProduto(p.tipo)}</td>
               <td className="px-4 py-3 text-right">{p.peso}</td>
               <td className="px-4 py-3 text-right">{formatCurrency(p.valorUnitario)}</td>
               <td className="px-4 py-3 text-right">

@@ -1,9 +1,12 @@
+export type TipoProduto = "CONSUMIDOR_FINAL" | "ATACADO"
+
 export interface ProdutoDTO {
   id: string
   nome: string
   peso: number
   valorUnitario: number
   custo: number | null
+  tipo: TipoProduto
   ativo: boolean
   createdAt: string
 }

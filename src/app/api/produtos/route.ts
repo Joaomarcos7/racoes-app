@@ -29,14 +29,14 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const body = await req.json()
-  const { nome, peso, valorUnitario } = body
+  const { nome, peso, valorUnitario, custo, tipo } = body
 
   if (!nome || typeof peso !== "number" || typeof valorUnitario !== "number") {
     return NextResponse.json({ error: "nome, peso e valorUnitario são obrigatórios" }, { status: 400 })
   }
 
   const produto = await prisma.produto.create({
-    data: { nome, peso, valorUnitario },
+    data: { nome, peso, valorUnitario, custo: custo ?? null, tipo: tipo ?? "CONSUMIDOR_FINAL" },
   })
 
   return NextResponse.json(produto, { status: 201 })

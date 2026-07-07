@@ -3,12 +3,14 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatMoneyInput, parseMaskedMoney, formatDecimalInput, parseMaskedDecimal } from "@/lib/money-mask"
-import type { ProdutoDTO } from "@/types/api"
+import { TIPOS_PRODUTO } from "@/lib/produto-utils"
+import type { ProdutoDTO, TipoProduto } from "@/types/api"
 
 interface ProdutoFormProps {
   initial?: ProdutoDTO
-  onSubmit: (data: { nome: string; peso: number; valorUnitario: number; custo?: number | null }) => void
+  onSubmit: (data: { nome: string; peso: number; valorUnitario: number; custo?: number | null; tipo: TipoProduto }) => void
   onCancel: () => void
   loading?: boolean
 }
@@ -28,6 +30,7 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
   const [pesoMasked, setPesoMasked] = useState(toKgMasked(initial?.peso))
   const [valorMasked, setValorMasked] = useState(toMoneyMasked(initial?.valorUnitario))
   const [custoMasked, setCustoMasked] = useState(toMoneyMasked(initial?.custo))
+  const [tipo, setTipo] = useState<TipoProduto>(initial?.tipo ?? "CONSUMIDOR_FINAL")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +40,7 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
       peso: parseMaskedDecimal(pesoMasked),
       valorUnitario: parseMaskedMoney(valorMasked),
       custo: custoVal > 0 ? custoVal : null,
+      tipo,
     })
   }
 
@@ -65,6 +69,17 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
             required
           />
         </div>
+      </div>
+      <div className="space-y-1">
+        <Label>Tipo</Label>
+        <Select value={tipo} onValueChange={(v) => setTipo(v as TipoProduto)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {TIPOS_PRODUTO.map((t) => (
+              <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-1">
         <Label>Custo (R$) <span className="text-gray-400 text-xs font-normal">(opcional)</span></Label>

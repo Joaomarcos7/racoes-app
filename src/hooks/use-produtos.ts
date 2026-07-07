@@ -36,7 +36,7 @@ export function useProdutos(search?: string, page = 1, limit = 15) {
 export function useCreateProduto() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { nome: string; peso: number; valorUnitario: number }) => {
+    mutationFn: async (data: { nome: string; peso: number; valorUnitario: number; custo?: number | null; tipo?: string }) => {
       const res = await fetch("/api/produtos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

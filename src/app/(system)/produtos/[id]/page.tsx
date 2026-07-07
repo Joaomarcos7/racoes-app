@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatCurrency } from "@/lib/utils"
 import { paginateArray } from "@/lib/pagination-utils"
 import { Pagination } from "@/components/ui/Pagination"
+import { labelTipoProduto } from "@/lib/produto-utils"
 
 const HISTORICO_LIMIT = 10
 
@@ -49,7 +50,7 @@ export default function ProdutoDetailPage() {
     <div>
       <PageHeader
         title={produto.nome}
-        description={`${produto.peso} kg/saco • ${formatCurrency(produto.valorUnitario)}/saco${produto.custo ? ` • Custo: ${formatCurrency(produto.custo)}` : ""}`}
+        description={`${labelTipoProduto(produto.tipo)} • ${produto.peso} kg/saco • ${formatCurrency(produto.valorUnitario)}/saco${produto.custo ? ` • Custo: ${formatCurrency(produto.custo)}` : ""}`}
         action={
           <Button variant="outline" onClick={() => setEditOpen(true)}>
             Editar
