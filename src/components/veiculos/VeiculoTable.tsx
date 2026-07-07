@@ -19,7 +19,7 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
   return (
     <div className="rounded-md border overflow-hidden">
       <div className="overflow-x-auto">
-      <table className="text-sm" style={{ minWidth: "640px" }}>
+      <table className="text-sm w-full" style={{ minWidth: "640px" }}>
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Placa</th>
