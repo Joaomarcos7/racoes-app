@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
@@ -8,43 +9,57 @@ import { calcularValorPesoVariavel } from "@/lib/pedido-utils"
 export interface ItemLocal {
   produtoId: string
   nome: string
-  pesoUnit: number       // peso padrão do produto (kg/saco)
-  valorUnit: number      // preço padrão do produto (por saco)
-  quantidade: number
-  pesoVariavelKg?: number // se definido, modo peso variável
+  pesoUnit: number    // peso padrão do saco (kg)
+  valorUnit: number   // preço por saco
+  quantidade: number  // número de sacos inteiros
+  pesoVariavel: boolean
+  pesoKg?: number     // peso digitado em modo variável (kg)
 }
 
 interface ItemPedidoRowProps {
   item: ItemLocal
   onChange: (id: string, quantidade: number) => void
-  onChangePesoVariavel?: (id: string, pesoKg: number | undefined) => void
+  onTogglePesoVariavel?: (id: string) => void
+  onChangePesoKg?: (id: string, pesoKg: number | undefined) => void
   onRemove: (id: string) => void
   allowPesoVariavel?: boolean
 }
 
-export function ItemPedidoRow({ item, onChange, onChangePesoVariavel, onRemove, allowPesoVariavel }: ItemPedidoRowProps) {
-  const isVariavel = item.pesoVariavelKg != null
-  const subtotal = isVariavel
-    ? calcularValorPesoVariavel(item.pesoVariavelKg!, item.valorUnit, item.pesoUnit)
+export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePesoKg, onRemove, allowPesoVariavel }: ItemPedidoRowProps) {
+  const [pesoInput, setPesoInput] = useState(item.pesoKg != null ? String(item.pesoKg) : "")
+
+  // Sync local string when mode is toggled off externally
+  useEffect(() => {
+    if (!item.pesoVariavel) setPesoInput("")
+  }, [item.pesoVariavel])
+
+  const subtotal = item.pesoVariavel && item.pesoKg != null
+    ? calcularValorPesoVariavel(item.pesoKg, item.valorUnit, item.pesoUnit)
     : item.quantidade * item.valorUnit
+
+  function handlePesoChange(raw: string) {
+    setPesoInput(raw)
+    const parsed = parseFloat(raw.replace(",", "."))
+    onChangePesoKg?.(item.produtoId, isNaN(parsed) ? undefined : parsed)
+  }
 
   return (
     <tr className="border-b">
       <td className="py-2 pr-3 text-sm">{item.nome}</td>
       <td className="py-2 pr-3 text-sm text-right text-gray-600">
-        {isVariavel ? `${item.pesoVariavelKg} kg` : `${item.pesoUnit} kg`}
+        {item.pesoVariavel && item.pesoKg != null ? `${item.pesoKg} kg` : `${item.pesoUnit} kg/saco`}
       </td>
       <td className="py-2 pr-3 text-sm text-right">{formatCurrency(item.valorUnit)}</td>
       <td className="py-2 pr-3">
-        {isVariavel ? (
+        {item.pesoVariavel ? (
           <Input
-            type="number"
-            min="0.001"
-            step="0.001"
-            value={item.pesoVariavelKg ?? ""}
-            onChange={(e) => onChangePesoVariavel?.(item.produtoId, e.target.value ? Number(e.target.value) : undefined)}
+            type="text"
+            inputMode="decimal"
+            value={pesoInput}
+            onChange={(e) => handlePesoChange(e.target.value)}
             className="w-24 text-right"
-            placeholder="kg"
+            placeholder="ex: 0.75"
+            autoFocus
           />
         ) : (
           <Input
@@ -62,9 +77,9 @@ export function ItemPedidoRow({ item, onChange, onChangePesoVariavel, onRemove, 
           {allowPesoVariavel && (
             <button
               type="button"
-              title={isVariavel ? "Modo saco inteiro" : "Modo peso variável"}
-              onClick={() => onChangePesoVariavel?.(item.produtoId, isVariavel ? undefined : item.pesoUnit)}
-              className={`text-xs px-1.5 py-0.5 rounded border ${isVariavel ? "bg-blue-100 text-blue-700 border-blue-300" : "text-gray-400 border-gray-200 hover:border-gray-400"}`}
+              title={item.pesoVariavel ? "Voltar para sacos inteiros" : "Modo peso variável"}
+              onClick={() => onTogglePesoVariavel?.(item.produtoId)}
+              className={`text-xs px-1.5 py-0.5 rounded border ${item.pesoVariavel ? "bg-blue-100 text-blue-700 border-blue-300" : "text-gray-400 border-gray-200 hover:border-gray-400"}`}
             >
               kg
             </button>

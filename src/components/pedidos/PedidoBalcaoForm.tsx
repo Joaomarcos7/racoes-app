@@ -48,16 +48,16 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
   const clientes = result?.data ?? []
 
   const total = itens.reduce((acc, i) => {
-    if (i.pesoVariavelKg != null) return acc + calcularValorPesoVariavel(i.pesoVariavelKg, i.valorUnit, i.pesoUnit)
+    if (i.pesoVariavel && i.pesoKg != null) return acc + calcularValorPesoVariavel(i.pesoKg, i.valorUnit, i.pesoUnit)
     return acc + i.quantidade * i.valorUnit
   }, 0)
-  const pesoTotal = itens.reduce((acc, i) => acc + (i.pesoVariavelKg ?? i.quantidade * i.pesoUnit), 0)
+  const pesoTotal = itens.reduce((acc, i) => acc + (i.pesoVariavel && i.pesoKg != null ? i.pesoKg : i.quantidade * i.pesoUnit), 0)
 
   function handleAddProduto(p: ProdutoDTO) {
     setItens((prev) => {
       const existing = prev.find((i) => i.produtoId === p.id)
       if (existing) return prev.map((i) => i.produtoId === p.id ? { ...i, quantidade: i.quantidade + 1 } : i)
-      return [...prev, { produtoId: p.id, nome: p.nome, pesoUnit: p.peso, valorUnit: p.valorUnitario, quantidade: 1 }]
+      return [...prev, { produtoId: p.id, nome: p.nome, pesoUnit: p.peso, valorUnit: p.valorUnitario, quantidade: 1, pesoVariavel: false }]
     })
   }
 
@@ -65,8 +65,12 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
     setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, quantidade: Math.max(1, quantidade) } : i))
   }
 
-  function handleChangePesoVariavel(produtoId: string, pesoKg: number | undefined) {
-    setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, pesoVariavelKg: pesoKg } : i))
+  function handleTogglePesoVariavel(produtoId: string) {
+    setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, pesoVariavel: !i.pesoVariavel, pesoKg: undefined } : i))
+  }
+
+  function handleChangePesoKg(produtoId: string, pesoKg: number | undefined) {
+    setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, pesoKg } : i))
   }
 
   function handleRemove(produtoId: string) {
@@ -78,7 +82,11 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
     onSubmit({
       tipoPedido: "BALCAO",
       clienteId: clienteId || undefined,
-      itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, pesoVariavelKg: i.pesoVariavelKg })),
+      itens: itens.map((i) => ({
+        produtoId: i.produtoId,
+        quantidade: i.quantidade,
+        pesoVariavelKg: i.pesoVariavel ? i.pesoKg : undefined,
+      })),
       statusPagamento,
       metodoPagamento: metodoPagamento || undefined,
       observacoes: observacoes || undefined,
@@ -112,7 +120,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
                 <th className="text-left pb-1">Produto</th>
                 <th className="text-right pb-1">Peso/un</th>
                 <th className="text-right pb-1">Valor/un</th>
-                <th className="text-right pb-1">Qtd</th>
+                <th className="text-right pb-1">Qtd / Peso</th>
                 <th className="text-right pb-1">Subtotal</th>
                 <th></th>
               </tr>
@@ -123,7 +131,8 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
                   key={item.produtoId}
                   item={item}
                   onChange={handleChangeQtd}
-                  onChangePesoVariavel={handleChangePesoVariavel}
+                  onTogglePesoVariavel={handleTogglePesoVariavel}
+                  onChangePesoKg={handleChangePesoKg}
                   onRemove={handleRemove}
                   allowPesoVariavel
                 />
@@ -132,7 +141,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
           </table>
           <div className="mt-2 space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Peso total: {pesoTotal.toFixed(1)} kg</span>
+              <span className="text-gray-600">Peso total: {pesoTotal.toFixed(3)} kg</span>
               <span className="text-gray-600">Subtotal: {formatCurrency(total)}</span>
             </div>
             <div className="flex items-center gap-2">
