@@ -1,9 +1,11 @@
 "use client"
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ProdutoSearchInput } from "./ProdutoSearchInput"
 import { ClienteSearchInput } from "./ClienteSearchInput"
 import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
@@ -14,8 +16,7 @@ import type { ClienteDTO, ProdutoDTO } from "@/types/api"
 interface PedidoEntregaFormProps {
   onSubmit: (data: {
     tipoPedido: "ENTREGA"
-    clienteNome: string
-    clienteCidade: string
+    clienteId: string
     itens: { produtoId: string; quantidade: number }[]
     statusPagamento: string
     metodoPagamento?: string
@@ -39,8 +40,6 @@ const METODOS: { value: string; label: string }[] = [
 
 export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntregaFormProps) {
   const [selectedCliente, setSelectedCliente] = useState<ClienteDTO | null>(null)
-  const [clienteNome, setClienteNome] = useState("")
-  const [clienteCidade, setClienteCidade] = useState("")
   const [itens, setItens] = useState<ItemLocal[]>([])
   const [statusPagamento, setStatusPagamento] = useState("PENDENTE")
   const [metodoPagamento, setMetodoPagamento] = useState("")
@@ -50,18 +49,6 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
 
   const total = itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
   const pesoTotal = itens.reduce((acc, i) => acc + i.quantidade * i.pesoUnit, 0)
-
-  function handleSelectCliente(c: ClienteDTO) {
-    setSelectedCliente(c)
-    setClienteNome(c.nome)
-    setClienteCidade(c.cidade)
-  }
-
-  function handleClearCliente() {
-    setSelectedCliente(null)
-    setClienteNome("")
-    setClienteCidade("")
-  }
 
   function handleAddProduto(p: ProdutoDTO) {
     setItens((prev) => {
@@ -81,10 +68,10 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!selectedCliente) return
     onSubmit({
       tipoPedido: "ENTREGA",
-      clienteNome,
-      clienteCidade,
+      clienteId: selectedCliente.id,
       itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade })),
       statusPagamento,
       metodoPagamento: metodoPagamento || undefined,
@@ -94,7 +81,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
     })
   }
 
-  const canSubmit = clienteNome && clienteCidade && itens.length > 0 && !(statusPagamento === "FIADO" && !dataVencimentoFiado)
+  const canSubmit = !!selectedCliente && itens.length > 0 && !(statusPagamento === "FIADO" && !dataVencimentoFiado)
 
   return (
     <form onSubmit={handleSubmit} aria-label="Pedido Entrega" className="space-y-5">
@@ -102,30 +89,17 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
         <Label>Cliente *</Label>
         <ClienteSearchInput
           selected={selectedCliente}
-          onSelect={handleSelectCliente}
-          onClear={handleClearCliente}
-          placeholder="Buscar cliente existente..."
+          onSelect={setSelectedCliente}
+          onClear={() => setSelectedCliente(null)}
+          placeholder="Buscar cliente cadastrado..."
         />
         {!selectedCliente && (
-          <div className="grid grid-cols-2 gap-3 mt-2">
-            <div className="space-y-1">
-              <Label className="text-xs text-gray-500">Nome (novo cliente)</Label>
-              <Input
-                placeholder="Nome do cliente"
-                value={clienteNome}
-                onChange={(e) => setClienteNome(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-gray-500">Cidade *</Label>
-              <Input
-                placeholder="Cidade"
-                value={clienteCidade}
-                onChange={(e) => setClienteCidade(e.target.value)}
-                required={!selectedCliente && !!clienteNome}
-              />
-            </div>
-          </div>
+          <p className="text-xs text-amber-700 flex items-center gap-1 mt-1">
+            Cliente obrigatório para pedido de entrega.{" "}
+            <Link href="/clientes/novo" className="underline font-medium" aria-label="Cadastrar cliente">
+              Cadastrar cliente
+            </Link>
+          </p>
         )}
       </div>
       <div className="space-y-2">
@@ -203,13 +177,26 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
       </div>
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button
-          type="submit"
-          className="bg-blue-700 hover:bg-blue-600"
-          disabled={loading || !canSubmit}
-        >
-          {loading ? "Salvando..." : "Criar Pedido"}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  type="submit"
+                  className="bg-blue-700 hover:bg-blue-600"
+                  disabled={loading || !canSubmit}
+                >
+                  {loading ? "Salvando..." : "Criar Pedido"}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!selectedCliente && (
+              <TooltipContent>
+                <p>Selecione um cliente cadastrado para continuar</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </form>
   )

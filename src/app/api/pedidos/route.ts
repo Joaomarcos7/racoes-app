@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { normalizeNome } from "@/lib/cliente-utils"
 import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado } from "@/lib/pedido-utils"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
@@ -65,27 +64,15 @@ export async function POST(req: NextRequest) {
   let clienteId: string | null = null
 
   if (tipoPedido === "ENTREGA") {
-    const { clienteNome, clienteCidade } = body
-    if (!clienteNome || !clienteCidade) {
-      return NextResponse.json({ error: "Nome e cidade do cliente são obrigatórios para pedido de entrega" }, { status: 400 })
+    const cid = body.clienteId
+    if (!cid) {
+      return NextResponse.json({ error: "Cliente cadastrado obrigatório para pedido de entrega" }, { status: 400 })
     }
-
-    const nomeNorm = normalizeNome(clienteNome)
-    const existing = await prisma.cliente.findFirst({
-      where: {
-        ativo: true,
-        cidade: clienteCidade.trim(),
-      },
-    })
-
-    if (existing && normalizeNome(existing.nome) === nomeNorm) {
-      clienteId = existing.id
-    } else {
-      const novo = await prisma.cliente.create({
-        data: { nome: clienteNome.trim(), cidade: clienteCidade.trim() },
-      })
-      clienteId = novo.id
+    const cliente = await prisma.cliente.findFirst({ where: { id: cid, ativo: true } })
+    if (!cliente) {
+      return NextResponse.json({ error: "Cliente não encontrado ou inativo" }, { status: 400 })
     }
+    clienteId = cliente.id
   } else {
     clienteId = body.clienteId ?? null
   }
