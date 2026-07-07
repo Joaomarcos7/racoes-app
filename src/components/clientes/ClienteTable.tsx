@@ -19,7 +19,7 @@ export function ClienteTable({ clientes, onDelete }: ClienteTableProps) {
 
   return (
     <div className="rounded-md border overflow-hidden overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="min-w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
@@ -40,7 +40,7 @@ export function ClienteTable({ clientes, onDelete }: ClienteTableProps) {
                   </Badge>
                 )}
               </td>
-              <td className="px-3 py-3 text-right">
+              <td className="px-3 py-3 text-right whitespace-nowrap">
                 <div className="flex gap-1 justify-end">
                   <TooltipProvider>
                     <Tooltip>

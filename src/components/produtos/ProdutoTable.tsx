@@ -21,7 +21,7 @@ export function ProdutoTable({ produtos, onEdit, onDelete }: ProdutoTableProps) 
 
   return (
     <div className="rounded-md border overflow-hidden overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="min-w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
@@ -38,7 +38,7 @@ export function ProdutoTable({ produtos, onEdit, onDelete }: ProdutoTableProps) 
               <td className="px-3 py-3 text-xs text-gray-500 hidden sm:table-cell">{labelTipoProduto(p.tipo)}</td>
               <td className="px-3 py-3 text-right hidden sm:table-cell">{p.peso}</td>
               <td className="px-3 py-3 text-right whitespace-nowrap">{formatCurrency(p.valorUnitario)}</td>
-              <td className="px-3 py-3 text-right">
+              <td className="px-3 py-3 text-right whitespace-nowrap">
                 <div className="flex gap-1 justify-end">
                   <TooltipProvider>
                     <Tooltip>

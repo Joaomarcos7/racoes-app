@@ -26,7 +26,7 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
   if (pedidos.length === 0) return <p className="text-sm text-gray-500 py-4">Nenhum pedido encontrado.</p>
   return (
     <div className="rounded-md border overflow-hidden overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="min-w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data</th>
@@ -50,7 +50,7 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
                     {p.tipoPedido === "ENTREGA" ? "Entrega" : "Balcão"}
                   </Badge>
                 </td>
-                <td className="px-3 py-3 font-medium max-w-[120px] sm:max-w-none truncate">{p.cliente?.nome ?? <span className="text-gray-400 italic">—</span>}</td>
+                <td className="px-3 py-3 font-medium whitespace-nowrap">{p.cliente?.nome ?? <span className="text-gray-400 italic">—</span>}</td>
                 <td className="px-3 py-3 text-gray-600 hidden sm:table-cell">{p.cliente?.cidade ?? "—"}</td>
                 <td className="px-3 py-3 text-right whitespace-nowrap">{formatCurrency(total)}</td>
                 <td className="px-3 py-3 text-center hidden md:table-cell">
@@ -61,7 +61,7 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
                 <td className="px-3 py-3 text-center">
                   <Badge className={pagConfig[p.statusPagamento].className}>{pagConfig[p.statusPagamento].label}</Badge>
                 </td>
-                <td className="px-3 py-3 text-right">
+                <td className="px-3 py-3 text-right whitespace-nowrap">
                   <div className="flex gap-1 justify-end">
                     <TooltipProvider>
                       <Tooltip>

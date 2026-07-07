@@ -18,7 +18,7 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
 
   return (
     <div className="rounded-md border overflow-hidden overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="min-w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Placa</th>
@@ -39,7 +39,7 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
               <td className="px-3 py-3 text-gray-600 hidden sm:table-cell">{labelCarroceria(v.carroceria)}</td>
               <td className="px-3 py-3 text-gray-600 hidden md:table-cell">{v.cor}</td>
               <td className="px-3 py-3 text-right hidden sm:table-cell whitespace-nowrap">{v.pesoMaximo} kg</td>
-              <td className="px-3 py-3 text-right">
+              <td className="px-3 py-3 text-right whitespace-nowrap">
                 <div className="flex gap-1 justify-end">
                   <Button size="icon" variant="ghost" onClick={() => onEdit(v)}>
                     <Pencil size={14} />
