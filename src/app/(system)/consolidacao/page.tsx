@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { useConsolidacoes, useCreateConsolidacao } from "@/hooks/use-consolidacao"
+import { useConsolidacoes, useCreateConsolidacao, useDeleteConsolidacao } from "@/hooks/use-consolidacao"
 import { useVeiculos } from "@/hooks/use-veiculos"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/Pagination"
 import { formatDate } from "@/lib/utils"
-import { Plus } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
 type Rota = { id: string; data: string; veiculo: { placa: string; modelo: string }; numeroPedidos: number; status: string }
 
@@ -22,6 +23,7 @@ export default function ConsolidacaoPage() {
   const { data: veiculosResult } = useVeiculos(1, 100)
   const veiculos = veiculosResult?.data ?? []
   const createMutation = useCreateConsolidacao()
+  const deleteMutation = useDeleteConsolidacao()
   const [open, setOpen] = useState(false)
   const [veiculoId, setVeiculoId] = useState("")
   const rotas = (result?.data ?? []) as Rota[]
@@ -58,16 +60,23 @@ export default function ConsolidacaoPage() {
                       </Badge>
                     </td>
                     <td className="px-3 py-3 text-right">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button size="icon" variant="ghost" asChild>
-                              <Link href={`/consolidacao/${r.id}`}><Plus size={14} /></Link>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Gerenciar rota</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <div className="flex gap-1 justify-end">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="icon" variant="ghost" asChild>
+                                <Link href={`/consolidacao/${r.id}`}><Plus size={14} /></Link>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Gerenciar rota</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <ConfirmDeleteDialog onConfirm={() => deleteMutation.mutate(r.id)}>
+                          <Button size="icon" variant="ghost" className="text-red-500 hover:text-red-700">
+                            <Trash2 size={14} />
+                          </Button>
+                        </ConfirmDeleteDialog>
+                      </div>
                     </td>
                   </tr>
                 ))}

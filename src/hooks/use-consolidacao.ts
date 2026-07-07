@@ -45,6 +45,21 @@ export function useCreateConsolidacao() {
   })
 }
 
+export function useDeleteConsolidacao() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/consolidacao/${id}`, { method: "DELETE" })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Erro ao excluir rota") }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["consolidacoes"] })
+      toast.success("Rota excluída.")
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
 export function useAlocarPedido(rotaId: string) {
   const qc = useQueryClient()
   return useMutation({
