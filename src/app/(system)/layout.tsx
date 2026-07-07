@@ -9,7 +9,7 @@ export default function SystemLayout({ children }: { children: React.ReactNode }
         <header className="hidden lg:flex items-center justify-end px-6 h-14 border-b border-slate-100 bg-white flex-shrink-0">
           <NotificacaoBell variant="light" />
         </header>
-        <main className="flex-1 bg-slate-50 p-4 lg:p-6 overflow-y-auto pt-[72px] lg:pt-6">
+        <main className="flex-1 bg-slate-50 p-4 lg:p-6 overflow-y-auto overflow-x-hidden pt-[72px] lg:pt-6">
           {children}
         </main>
       </div>

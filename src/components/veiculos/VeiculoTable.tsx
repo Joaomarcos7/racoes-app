@@ -19,7 +19,7 @@ export function VeiculoTable({ veiculos, onEdit, onDelete }: VeiculoTableProps) 
   return (
     <div className="rounded-md border overflow-hidden">
       <div className="overflow-x-auto">
-      <table className="min-w-full text-sm">
+      <table className="min-w-full min-w-[640px] text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Placa</th>
