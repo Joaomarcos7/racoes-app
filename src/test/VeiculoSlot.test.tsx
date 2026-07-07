@@ -9,7 +9,7 @@ const pedido: PedidoDTO = {
   id: "p1",
   tipoPedido: "ENTREGA",
   clienteId: "c1",
-  cliente: { id: "c1", nome: "João", cidade: "SP", telefone: null, email: null, ativo: true, createdAt: "" },
+  cliente: { id: "c1", nome: "João", cidade: "SP", telefone: null, instituicao: null, cep: null, endereco: null, complemento: null, ativo: true, createdAt: "" },
   dataPedido: "",
   statusEntrega: "AGUARDANDO",
   statusPagamento: "PENDENTE",
@@ -17,7 +17,7 @@ const pedido: PedidoDTO = {
   observacoes: null,
   desconto: 0,
   dataVencimentoFiado: null,
-  itens: [{ id: "i1", pedidoId: "p1", produtoId: "pr1", produto: { id: "pr1", nome: "Ração", peso: 25, valorUnitario: 100, ativo: true, createdAt: "" }, quantidade: 1, pesoUnit: 25, valorUnit: 100 }],
+  itens: [{ id: "i1", pedidoId: "p1", produtoId: "pr1", produto: { id: "pr1", nome: "Ração", peso: 25, valorUnitario: 100, custo: null, tipo: "CONSUMIDOR_FINAL" as const, ativo: true, createdAt: "" }, quantidade: 1, pesoUnit: 25, valorUnit: 100 }],
   createdAt: "",
   updatedAt: "",
 }

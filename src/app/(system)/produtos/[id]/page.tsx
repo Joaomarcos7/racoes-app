@@ -11,6 +11,7 @@ import { formatCurrency } from "@/lib/utils"
 import { paginateArray } from "@/lib/pagination-utils"
 import { Pagination } from "@/components/ui/Pagination"
 import { labelTipoProduto } from "@/lib/produto-utils"
+import { HistoricoLineChart } from "@/components/produtos/HistoricoLineChart"
 
 const HISTORICO_LIMIT = 10
 
@@ -42,6 +43,21 @@ export default function ProdutoDetailPage() {
 
   const precoPage = paginateArray(historico ?? [], pagePreco, HISTORICO_LIMIT)
   const custoPage = paginateArray(historicoCusto ?? [], pageCusto, HISTORICO_LIMIT)
+
+  const precoChartData = [...(historico ?? [])]
+    .sort((a, b) => new Date(a.criadoEm).getTime() - new Date(b.criadoEm).getTime())
+    .map((h) => ({
+      label: new Date(h.criadoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      valor: h.precoNovo,
+    }))
+
+  const custoChartData = [...(historicoCusto ?? [])]
+    .sort((a, b) => new Date(a.criadoEm).getTime() - new Date(b.criadoEm).getTime())
+    .filter((h) => h.custoNovo != null)
+    .map((h) => ({
+      label: new Date(h.criadoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      valor: h.custoNovo as number,
+    }))
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!produto) return <p className="text-sm text-red-500">Produto não encontrado.</p>
@@ -93,6 +109,11 @@ export default function ProdutoDetailPage() {
             <p className="text-sm text-gray-400">Nenhuma alteração de custo registrada.</p>
           ) : (
             <>
+              <HistoricoLineChart
+                data={custoChartData}
+                color="#d97706"
+                title="Evolução do custo ao longo do tempo"
+              />
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-gray-500 text-xs border-b">
@@ -133,6 +154,11 @@ export default function ProdutoDetailPage() {
             <p className="text-sm text-gray-400">Nenhuma alteração de preço registrada.</p>
           ) : (
             <>
+              <HistoricoLineChart
+                data={precoChartData}
+                color="#2563eb"
+                title="Evolução do preço ao longo do tempo"
+              />
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-gray-500 text-xs border-b">
