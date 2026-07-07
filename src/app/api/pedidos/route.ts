@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
         clienteId,
         statusEntrega: tipoPedido === "ENTREGA" ? "AGUARDANDO" : null,
         statusPagamento: statusPagamento ?? "PENDENTE",
-        metodoPagamento: statusPagamento === "FIADO" ? "FIADO" : (metodoPagamento ?? null),
+        metodoPagamento: statusPagamento === "FIADO" ? null : (metodoPagamento ?? null),
         observacoes: observacoes ?? null,
         dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? new Date(dataVencimentoFiado) : null,
         tipoFiado: statusPagamento === "FIADO" ? tipoFiado : null,
