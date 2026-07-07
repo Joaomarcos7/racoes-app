@@ -24,7 +24,6 @@ export function ClienteTable({ clientes, onDelete }: ClienteTableProps) {
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cidade</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Telefone</th>
             <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Fiado</th>
             <th className="px-4 py-3"></th>
           </tr>
@@ -34,7 +33,6 @@ export function ClienteTable({ clientes, onDelete }: ClienteTableProps) {
             <tr key={c.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
               <td className="px-4 py-3 font-medium">{c.nome}</td>
               <td className="px-4 py-3 text-gray-600">{c.cidade}</td>
-              <td className="px-4 py-3 text-gray-600">{c.telefone ?? "—"}</td>
               <td className="px-4 py-3 text-center">
                 {c.temFiado && (
                   <Badge className="bg-orange-100 text-orange-700 border-orange-200">
