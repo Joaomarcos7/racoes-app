@@ -110,6 +110,39 @@ export default function PedidoDetailPage() {
         </div>
         {pedido.observacoes && <p className="text-sm text-gray-500 mt-3">Obs: {pedido.observacoes}</p>}
       </div>
+      {pedido.statusPagamento === "FIADO" && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 space-y-3">
+          <h3 className="font-semibold text-amber-800">Fiado em Aberto</h3>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <div>
+              <p className="text-xs text-amber-600 mb-0.5">Tipo</p>
+              <p className="font-medium text-amber-900">
+                {pedido.tipoFiado === "INTEGRAL" ? "Integral" : pedido.tipoFiado === "PARCIAL" ? "Parcial" : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-amber-600 mb-0.5">Vencimento</p>
+              <p className="font-medium text-amber-900">
+                {pedido.dataVencimentoFiado ? formatDate(pedido.dataVencimentoFiado) : "—"}
+              </p>
+            </div>
+            {pedido.tipoFiado === "PARCIAL" && (
+              <div>
+                <p className="text-xs text-amber-600 mb-0.5">Valor adiantado</p>
+                <p className="font-medium text-amber-900">
+                  {pedido.valorAdiantadoFiado != null ? formatCurrency(pedido.valorAdiantadoFiado) : "—"}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs text-amber-600 mb-0.5">Em aberto</p>
+              <p className="text-lg font-bold text-amber-900">
+                {pedido.valorEmAbertoFiado != null ? formatCurrency(pedido.valorEmAbertoFiado) : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {pedido.historicoStatus && pedido.historicoStatus.length > 0 && (
         <div className="bg-white rounded-lg border p-6">
           <h3 className="font-semibold mb-3 text-gray-700">Histórico de Status</h3>
