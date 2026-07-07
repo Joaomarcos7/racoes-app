@@ -20,3 +20,8 @@ export function calcTotalComDesconto(subtotal: number, desconto: number): number
 export function calcularValorPesoVariavel(pesoKg: number, valorUnitario: number, pesoUnit: number): number {
   return pesoKg * (valorUnitario / pesoUnit)
 }
+
+export function shouldRegistrarHistoricoCusto(anterior: number | null, novo: number | null | undefined): boolean {
+  if (novo === undefined) return false
+  return anterior !== novo
+}

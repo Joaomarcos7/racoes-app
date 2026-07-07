@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { ProdutoForm } from "@/components/produtos/ProdutoForm"
-import { useProduto, useProdutoHistorico, useProdutoStats, useUpdateProduto } from "@/hooks/use-produtos"
+import { useProduto, useProdutoHistorico, useProdutoHistoricoCusto, useProdutoStats, useUpdateProduto } from "@/hooks/use-produtos"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -30,6 +30,7 @@ export default function ProdutoDetailPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [periodo, setPeriodo] = useState("mes")
   const { data: historico, isLoading: loadingHistorico } = useProdutoHistorico(id)
+  const { data: historicoCusto, isLoading: loadingHistoricoCusto } = useProdutoHistoricoCusto(id)
   const { data: stats, isLoading: loadingStats } = useProdutoStats(id, periodo)
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
@@ -39,7 +40,7 @@ export default function ProdutoDetailPage() {
     <div>
       <PageHeader
         title={produto.nome}
-        description={`${produto.peso} kg/saco • ${formatCurrency(produto.valorUnitario)}/saco`}
+        description={`${produto.peso} kg/saco • ${formatCurrency(produto.valorUnitario)}/saco${produto.custo ? ` • Custo: ${formatCurrency(produto.custo)}` : ""}`}
         action={
           <Button variant="outline" onClick={() => setEditOpen(true)}>
             Editar
@@ -71,6 +72,35 @@ export default function ProdutoDetailPage() {
               <StatCard label="kg Balcão" value={`${stats.kgBalcao.toFixed(1)} kg`} />
             </div>
           ) : null}
+        </div>
+
+        {/* Histórico de Custo */}
+        <div className="bg-white rounded-lg border p-6">
+          <h2 className="font-semibold text-gray-700 mb-4">Histórico de Custo</h2>
+          {loadingHistoricoCusto ? (
+            <p className="text-xs text-gray-400">Carregando...</p>
+          ) : !historicoCusto || historicoCusto.length === 0 ? (
+            <p className="text-sm text-gray-400">Nenhuma alteração de custo registrada.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-gray-500 text-xs border-b">
+                  <th className="text-left pb-2">Data / Hora</th>
+                  <th className="text-right pb-2">Custo Anterior</th>
+                  <th className="text-right pb-2">Custo Novo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historicoCusto.map((h) => (
+                  <tr key={h.id} className="border-b border-gray-100">
+                    <td className="py-2 text-gray-600">{formatDateTime(h.criadoEm)}</td>
+                    <td className="py-2 text-right text-red-600 line-through">{h.custoAnterior != null ? formatCurrency(h.custoAnterior) : "—"}</td>
+                    <td className="py-2 text-right text-blue-700 font-medium">{h.custoNovo != null ? formatCurrency(h.custoNovo) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Histórico de Preços */}

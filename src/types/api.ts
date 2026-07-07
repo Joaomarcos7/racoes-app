@@ -3,6 +3,7 @@ export interface ProdutoDTO {
   nome: string
   peso: number
   valorUnitario: number
+  custo: number | null
   ativo: boolean
   createdAt: string
 }
@@ -12,6 +13,14 @@ export interface HistoricoProdutoDTO {
   produtoId: string
   precoAnterior: number
   precoNovo: number
+  criadoEm: string
+}
+
+export interface HistoricoCustoDTO {
+  id: string
+  produtoId: string
+  custoAnterior: number | null
+  custoNovo: number | null
   criadoEm: string
 }
 

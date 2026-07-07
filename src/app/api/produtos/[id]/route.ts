@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { shouldRegistrarHistoricoCusto } from "@/lib/pedido-utils"
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -27,6 +28,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.valorUnitario !== undefined && body.valorUnitario !== atual.valorUnitario) {
     await prisma.historicoProduto.create({
       data: { produtoId: id, precoAnterior: atual.valorUnitario, precoNovo: body.valorUnitario },
+    })
+  }
+
+  if (shouldRegistrarHistoricoCusto(atual.custo, body.custo)) {
+    await prisma.historicoCusto.create({
+      data: { produtoId: id, custoAnterior: atual.custo, custoNovo: body.custo ?? null },
     })
   }
 

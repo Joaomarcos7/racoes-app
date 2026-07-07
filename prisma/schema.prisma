@@ -15,14 +15,16 @@ model User {
 }
 
 model Produto {
-  id            String             @id @default(cuid())
-  nome          String
-  peso          Float
-  valorUnitario Float
-  ativo         Boolean            @default(true)
-  createdAt     DateTime           @default(now())
-  itens         ItemPedido[]
-  historico     HistoricoProduto[]
+  id             String             @id @default(cuid())
+  nome           String
+  peso           Float
+  valorUnitario  Float
+  custo          Float?
+  ativo          Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  itens          ItemPedido[]
+  historico      HistoricoProduto[]
+  historicoCusto HistoricoCusto[]
 }
 
 model HistoricoProduto {
@@ -31,6 +33,15 @@ model HistoricoProduto {
   produto       Produto  @relation(fields: [produtoId], references: [id])
   precoAnterior Float
   precoNovo     Float
+  criadoEm      DateTime @default(now())
+}
+
+model HistoricoCusto {
+  id            String   @id @default(cuid())
+  produtoId     String
+  produto       Produto  @relation(fields: [produtoId], references: [id])
+  custoAnterior Float?
+  custoNovo     Float?
   criadoEm      DateTime @default(now())
 }
 

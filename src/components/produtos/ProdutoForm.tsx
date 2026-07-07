@@ -8,12 +8,12 @@ import type { ProdutoDTO } from "@/types/api"
 
 interface ProdutoFormProps {
   initial?: ProdutoDTO
-  onSubmit: (data: { nome: string; peso: number; valorUnitario: number }) => void
+  onSubmit: (data: { nome: string; peso: number; valorUnitario: number; custo?: number | null }) => void
   onCancel: () => void
   loading?: boolean
 }
 
-function toMoneyMasked(value: number | undefined): string {
+function toMoneyMasked(value: number | null | undefined): string {
   if (!value) return "0,00"
   return formatMoneyInput(Math.round(value * 100).toString())
 }
@@ -27,18 +27,17 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
   const [nome, setNome] = useState(initial?.nome ?? "")
   const [pesoMasked, setPesoMasked] = useState(toKgMasked(initial?.peso))
   const [valorMasked, setValorMasked] = useState(toMoneyMasked(initial?.valorUnitario))
-
-  function handleValorChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setValorMasked(formatMoneyInput(e.target.value))
-  }
-
-  function handlePesoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setPesoMasked(formatDecimalInput(e.target.value, 3))
-  }
+  const [custoMasked, setCustoMasked] = useState(toMoneyMasked(initial?.custo))
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onSubmit({ nome, peso: parseMaskedDecimal(pesoMasked), valorUnitario: parseMaskedMoney(valorMasked) })
+    const custoVal = parseMaskedMoney(custoMasked)
+    onSubmit({
+      nome,
+      peso: parseMaskedDecimal(pesoMasked),
+      valorUnitario: parseMaskedMoney(valorMasked),
+      custo: custoVal > 0 ? custoVal : null,
+    })
   }
 
   return (
@@ -53,7 +52,7 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
           <Input
             inputMode="numeric"
             value={pesoMasked}
-            onChange={handlePesoChange}
+            onChange={(e) => setPesoMasked(formatDecimalInput(e.target.value, 3))}
             required
           />
         </div>
@@ -62,10 +61,18 @@ export function ProdutoForm({ initial, onSubmit, onCancel, loading }: ProdutoFor
           <Input
             inputMode="numeric"
             value={valorMasked}
-            onChange={handleValorChange}
+            onChange={(e) => setValorMasked(formatMoneyInput(e.target.value))}
             required
           />
         </div>
+      </div>
+      <div className="space-y-1">
+        <Label>Custo (R$) <span className="text-gray-400 text-xs font-normal">(opcional)</span></Label>
+        <Input
+          inputMode="numeric"
+          value={custoMasked}
+          onChange={(e) => setCustoMasked(formatMoneyInput(e.target.value))}
+        />
       </div>
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>

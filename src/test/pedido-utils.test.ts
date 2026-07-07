@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -62,5 +62,31 @@ describe("calcularValorPesoVariavel", () => {
   it("calculates price for 750g with different product", () => {
     // produto: 50kg bag at R$200 → R$4/kg → 0.75kg = R$3
     expect(calcularValorPesoVariavel(0.75, 200, 50)).toBeCloseTo(3)
+  })
+})
+
+describe("shouldRegistrarHistoricoCusto", () => {
+  it("returns true when custo changed from a value to a different value", () => {
+    expect(shouldRegistrarHistoricoCusto(10, 15)).toBe(true)
+  })
+
+  it("returns false when custo is the same", () => {
+    expect(shouldRegistrarHistoricoCusto(10, 10)).toBe(false)
+  })
+
+  it("returns true when custo changes from null to a value", () => {
+    expect(shouldRegistrarHistoricoCusto(null, 10)).toBe(true)
+  })
+
+  it("returns true when custo changes from a value to null", () => {
+    expect(shouldRegistrarHistoricoCusto(10, null)).toBe(true)
+  })
+
+  it("returns false when both are null", () => {
+    expect(shouldRegistrarHistoricoCusto(null, null)).toBe(false)
+  })
+
+  it("returns false when novo is undefined (not being updated)", () => {
+    expect(shouldRegistrarHistoricoCusto(10, undefined)).toBe(false)
   })
 })

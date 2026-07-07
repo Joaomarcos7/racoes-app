@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import type { ProdutoDTO, HistoricoProdutoDTO, ProdutoStatsDTO } from "@/types/api"
+import type { ProdutoDTO, HistoricoProdutoDTO, HistoricoCustoDTO, ProdutoStatsDTO } from "@/types/api"
 import { toast } from "sonner"
 
 interface PagedResult<T> { data: T[]; total: number; page: number; totalPages: number; hasNext: boolean; hasPrev: boolean }
@@ -74,6 +74,7 @@ export function useUpdateProduto() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["produtos"] })
       qc.invalidateQueries({ queryKey: ["produto-historico", vars.id] })
+      qc.invalidateQueries({ queryKey: ["produto-historico-custo", vars.id] })
       qc.invalidateQueries({ queryKey: ["produto-stats", vars.id] })
       toast.success("Produto atualizado")
     },
@@ -88,6 +89,18 @@ export function useProdutoHistorico(produtoId: string | null) {
       const res = await fetch(`/api/produtos/${produtoId}/historico`)
       if (!res.ok) throw new Error("Erro ao buscar histórico")
       return res.json() as Promise<HistoricoProdutoDTO[]>
+    },
+    enabled: !!produtoId,
+  })
+}
+
+export function useProdutoHistoricoCusto(produtoId: string | null) {
+  return useQuery({
+    queryKey: ["produto-historico-custo", produtoId],
+    queryFn: async () => {
+      const res = await fetch(`/api/produtos/${produtoId}/historico-custo`)
+      if (!res.ok) throw new Error("Erro ao buscar histórico de custo")
+      return res.json() as Promise<HistoricoCustoDTO[]>
     },
     enabled: !!produtoId,
   })
