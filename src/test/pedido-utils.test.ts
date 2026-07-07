@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -88,5 +88,27 @@ describe("shouldRegistrarHistoricoCusto", () => {
 
   it("returns false when novo is undefined (not being updated)", () => {
     expect(shouldRegistrarHistoricoCusto(10, undefined)).toBe(false)
+  })
+})
+
+describe("calcularValorEmAberto", () => {
+  it("INTEGRAL returns full total as em aberto", () => {
+    expect(calcularValorEmAberto(500, "INTEGRAL", undefined)).toBe(500)
+  })
+
+  it("INTEGRAL ignores any adiantado passed", () => {
+    expect(calcularValorEmAberto(500, "INTEGRAL", 100)).toBe(500)
+  })
+
+  it("PARCIAL returns total minus adiantado", () => {
+    expect(calcularValorEmAberto(500, "PARCIAL", 200)).toBe(300)
+  })
+
+  it("PARCIAL with zero adiantado returns full total", () => {
+    expect(calcularValorEmAberto(500, "PARCIAL", 0)).toBe(500)
+  })
+
+  it("PARCIAL clamps to zero if adiantado exceeds total", () => {
+    expect(calcularValorEmAberto(100, "PARCIAL", 150)).toBe(0)
   })
 })

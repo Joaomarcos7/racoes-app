@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { normalizeNome } from "@/lib/cliente-utils"
-import { validateItensPedido, calcularValorPesoVariavel } from "@/lib/pedido-utils"
+import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto } from "@/lib/pedido-utils"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
 const pedidoInclude = {
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const body = await req.json()
-  const { tipoPedido = "ENTREGA", itens, statusPagamento, metodoPagamento, observacoes, dataVencimentoFiado, desconto } = body
+  const { tipoPedido = "ENTREGA", itens, statusPagamento, metodoPagamento, observacoes, dataVencimentoFiado, desconto, tipoFiado, valorAdiantadoFiado } = body
 
   if (!itens || itens.length === 0) {
     return NextResponse.json({ error: "Ao menos um item é obrigatório" }, { status: 400 })
@@ -56,6 +56,10 @@ export async function POST(req: NextRequest) {
 
   if (statusPagamento === "FIADO" && !dataVencimentoFiado) {
     return NextResponse.json({ error: "Data de vencimento obrigatória para pagamento Fiado" }, { status: 400 })
+  }
+
+  if (statusPagamento === "FIADO" && !tipoFiado) {
+    return NextResponse.json({ error: "Tipo de fiado (INTEGRAL ou PARCIAL) obrigatório" }, { status: 400 })
   }
 
   let clienteId: string | null = null
@@ -95,6 +99,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: itemError }, { status: 400 })
   }
 
+  // pre-compute item values to calculate totalPedido for fiado
+  const itensComValor = itens.map((item: { produtoId: string; quantidade: number; pesoVariavelKg?: number }) => {
+    const produto = produtoMap.get(item.produtoId)!
+    if (item.pesoVariavelKg != null) {
+      return { ...item, valorUnit: calcularValorPesoVariavel(item.pesoVariavelKg, produto.valorUnitario, produto.peso), pesoUnit: item.pesoVariavelKg, quantidadeFinal: 1 }
+    }
+    return { ...item, valorUnit: produto.valorUnitario, pesoUnit: produto.peso, quantidadeFinal: item.quantidade }
+  })
+  const descontoVal = typeof desconto === "number" && desconto > 0 ? desconto : 0
+  const subtotal = itensComValor.reduce((acc: number, i: { quantidadeFinal: number; valorUnit: number }) => acc + i.quantidadeFinal * i.valorUnit, 0)
+  const totalPedido = Math.max(0, subtotal - descontoVal)
+  const resolvedValorEmAberto = statusPagamento === "FIADO" ? calcularValorEmAberto(totalPedido, tipoFiado, valorAdiantadoFiado ?? 0) : null
+
   try {
     const pedido = await prisma.pedido.create({
       data: {
@@ -102,28 +119,20 @@ export async function POST(req: NextRequest) {
         clienteId,
         statusEntrega: tipoPedido === "ENTREGA" ? "AGUARDANDO" : null,
         statusPagamento: statusPagamento ?? "PENDENTE",
-        metodoPagamento: metodoPagamento ?? null,
+        metodoPagamento: statusPagamento === "FIADO" ? "FIADO" : (metodoPagamento ?? null),
         observacoes: observacoes ?? null,
         dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? new Date(dataVencimentoFiado) : null,
-        desconto: typeof desconto === "number" && desconto > 0 ? desconto : 0,
+        tipoFiado: statusPagamento === "FIADO" ? tipoFiado : null,
+        valorAdiantadoFiado: statusPagamento === "FIADO" && tipoFiado === "PARCIAL" ? (valorAdiantadoFiado ?? 0) : null,
+        valorEmAbertoFiado: resolvedValorEmAberto,
+        desconto: descontoVal,
         itens: {
-          create: itens.map((item: { produtoId: string; quantidade: number; pesoVariavelKg?: number }) => {
-            const produto = produtoMap.get(item.produtoId)!
-            if (item.pesoVariavelKg != null) {
-              return {
-                produtoId: item.produtoId,
-                quantidade: 1,
-                pesoUnit: item.pesoVariavelKg,
-                valorUnit: calcularValorPesoVariavel(item.pesoVariavelKg, produto.valorUnitario, produto.peso),
-              }
-            }
-            return {
-              produtoId: item.produtoId,
-              quantidade: item.quantidade,
-              pesoUnit: produto.peso,
-              valorUnit: produto.valorUnitario,
-            }
-          }),
+          create: itensComValor.map((item: { produtoId: string; quantidadeFinal: number; pesoUnit: number; valorUnit: number }) => ({
+            produtoId: item.produtoId,
+            quantidade: item.quantidadeFinal,
+            pesoUnit: item.pesoUnit,
+            valorUnit: item.valorUnit,
+          })),
         },
       },
       include: pedidoInclude,

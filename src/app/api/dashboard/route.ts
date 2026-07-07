@@ -52,13 +52,14 @@ export async function GET(req: NextRequest) {
 
   const clientesComFiadoRaw = await prisma.cliente.findMany({
     where: { ativo: true, pedidos: { some: { statusPagamento: "FIADO" } } },
-    include: { pedidos: { where: { statusPagamento: "FIADO" }, include: { itens: true } } },
+    include: { pedidos: { where: { statusPagamento: "FIADO" } } },
   })
 
   const clientesFiado = clientesComFiadoRaw.map((c) => ({
     id: c.id, nome: c.nome, cidade: c.cidade, telefone: c.telefone, instituicao: c.instituicao,
+    cep: c.cep, endereco: c.endereco, complemento: c.complemento,
     ativo: c.ativo, createdAt: c.createdAt, temFiado: true,
-    totalFiado: c.pedidos.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0),
+    totalFiado: c.pedidos.reduce((acc, p) => acc + (p.valorEmAbertoFiado ?? 0), 0),
   }))
 
   const totalFiado = clientesFiado.reduce((acc, c) => acc + c.totalFiado, 0)

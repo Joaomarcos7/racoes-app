@@ -25,3 +25,8 @@ export function shouldRegistrarHistoricoCusto(anterior: number | null, novo: num
   if (novo === undefined) return false
   return anterior !== novo
 }
+
+export function calcularValorEmAberto(total: number, tipoFiado: string, valorAdiantado: number | undefined): number {
+  if (tipoFiado === "INTEGRAL") return total
+  return Math.max(0, total - (valorAdiantado ?? 0))
+}

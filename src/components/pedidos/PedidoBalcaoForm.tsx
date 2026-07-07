@@ -10,7 +10,7 @@ import { useClientes } from "@/hooks/use-clientes"
 import { formatCurrency } from "@/lib/utils"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
 import { calcularValorPesoVariavel } from "@/lib/pedido-utils"
-import type { ProdutoDTO } from "@/types/api"
+import type { ProdutoDTO, TipoFiado } from "@/types/api"
 
 interface PedidoBalcaoFormProps {
   onSubmit: (data: {
@@ -21,6 +21,8 @@ interface PedidoBalcaoFormProps {
     metodoPagamento?: string
     observacoes?: string
     dataVencimentoFiado?: string
+    tipoFiado?: TipoFiado
+    valorAdiantadoFiado?: number
     desconto?: number
   }) => void
   onCancel: () => void
@@ -43,6 +45,8 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
   const [metodoPagamento, setMetodoPagamento] = useState("")
   const [observacoes, setObservacoes] = useState("")
   const [dataVencimentoFiado, setDataVencimentoFiado] = useState("")
+  const [tipoFiado, setTipoFiado] = useState<TipoFiado>("INTEGRAL")
+  const [valorAdiantadoMasked, setValorAdiantadoMasked] = useState("0,00")
   const [descontoMasked, setDescontoMasked] = useState("0,00")
   const { data: result } = useClientes(undefined, 1, 100)
   const clientes = result?.data ?? []
@@ -88,9 +92,11 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
         pesoVariavelKg: i.pesoVariavel ? i.pesoKg : undefined,
       })),
       statusPagamento,
-      metodoPagamento: metodoPagamento || undefined,
+      metodoPagamento: statusPagamento === "FIADO" ? undefined : (metodoPagamento || undefined),
       observacoes: observacoes || undefined,
       dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? dataVencimentoFiado : undefined,
+      tipoFiado: statusPagamento === "FIADO" ? tipoFiado : undefined,
+      valorAdiantadoFiado: statusPagamento === "FIADO" && tipoFiado === "PARCIAL" ? parseMaskedMoney(valorAdiantadoMasked) : undefined,
       desconto: parseMaskedMoney(descontoMasked) || undefined,
     })
   }
@@ -157,7 +163,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
           </div>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className={statusPagamento === "FIADO" ? "space-y-1" : "grid grid-cols-2 gap-3"}>
         <div className="space-y-1">
           <Label>Status Pagamento</Label>
           <Select value={statusPagamento} onValueChange={setStatusPagamento}>
@@ -169,20 +175,47 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <Label>Método de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
-          <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
-            <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-            <SelectContent>
-              {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+        {statusPagamento !== "FIADO" && (
+          <div className="space-y-1">
+            <Label>Método de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
+            <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
+              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectContent>
+                {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
       {statusPagamento === "FIADO" && (
-        <div className="space-y-1">
-          <Label>Data máxima de pagamento (Fiado) *</Label>
-          <Input type="date" value={dataVencimentoFiado} onChange={(e) => setDataVencimentoFiado(e.target.value)} required />
+        <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50 p-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>Tipo de Fiado *</Label>
+              <Select value={tipoFiado} onValueChange={(v) => setTipoFiado(v as TipoFiado)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INTEGRAL">Integral — tudo em aberto</SelectItem>
+                  <SelectItem value="PARCIAL">Parcial — pagou parte agora</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Data máxima de pagamento *</Label>
+              <Input type="date" value={dataVencimentoFiado} onChange={(e) => setDataVencimentoFiado(e.target.value)} required />
+            </div>
+          </div>
+          {tipoFiado === "PARCIAL" && (
+            <div className="space-y-1">
+              <Label>Valor pago adiantado (R$) *</Label>
+              <Input
+                inputMode="numeric"
+                value={valorAdiantadoMasked}
+                onChange={(e) => setValorAdiantadoMasked(formatMoneyInput(e.target.value))}
+                required
+              />
+            </div>
+          )}
         </div>
       )}
       <div className="space-y-1">

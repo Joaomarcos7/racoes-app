@@ -79,6 +79,8 @@ export interface HistoricoStatusPedidoDTO {
   criadoEm: string
 }
 
+export type TipoFiado = "INTEGRAL" | "PARCIAL"
+
 export interface PedidoDTO {
   id: string
   tipoPedido: "ENTREGA" | "BALCAO"
@@ -87,10 +89,13 @@ export interface PedidoDTO {
   dataPedido: string
   statusEntrega: "AGUARDANDO" | "EM_ROTA" | "ENTREGUE" | null
   statusPagamento: "PENDENTE" | "PAGO" | "FIADO"
-  metodoPagamento: "DINHEIRO" | "PIX" | "BOLETO" | "CHEQUE" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | null
+  metodoPagamento: "DINHEIRO" | "PIX" | "BOLETO" | "CHEQUE" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | "FIADO" | null
   observacoes: string | null
   desconto: number
   dataVencimentoFiado: string | null
+  tipoFiado: TipoFiado | null
+  valorAdiantadoFiado: number | null
+  valorEmAbertoFiado: number | null
   itens: ItemPedidoDTO[]
   historicoStatus?: HistoricoStatusPedidoDTO[]
   createdAt: string

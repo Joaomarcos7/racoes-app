@@ -83,6 +83,9 @@ model Pedido {
   metodoPagamento      MetodoPagamento?
   observacoes          String?
   dataVencimentoFiado  DateTime?
+  tipoFiado            TipoFiado?
+  valorAdiantadoFiado  Float?
+  valorEmAbertoFiado   Float?
   desconto             Float              @default(0)
   ativo                Boolean            @default(true)
   createdAt            DateTime           @default(now())
@@ -178,6 +181,11 @@ enum TipoPedido {
 enum TipoProduto {
   CONSUMIDOR_FINAL
   ATACADO
+}
+
+enum TipoFiado {
+  INTEGRAL
+  PARCIAL
 }
 
 enum Carroceria {
