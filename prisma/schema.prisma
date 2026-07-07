@@ -148,6 +148,7 @@ enum StatusPagamento {
 enum MetodoPagamento {
   DINHEIRO
   PIX
+  PIX_TERCEIROS
   BOLETO
   CHEQUE
   CARTAO_CREDITO

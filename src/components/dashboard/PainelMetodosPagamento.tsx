@@ -8,6 +8,7 @@ interface PainelMetodosPagamentoProps {
 
 const CORES: Record<string, string> = {
   PIX: "bg-blue-500",
+  PIX_TERCEIROS: "bg-sky-400",
   DINHEIRO: "bg-green-500",
   BOLETO: "bg-yellow-500",
   CHEQUE: "bg-purple-500",
@@ -18,6 +19,7 @@ const CORES: Record<string, string> = {
 const LABELS: Record<string, string> = {
   DINHEIRO: "Dinheiro",
   PIX: "Pix",
+  PIX_TERCEIROS: "Pix Terceiros",
   BOLETO: "Boleto",
   CHEQUE: "Cheque",
   CARTAO_CREDITO: "Cartão de Crédito",

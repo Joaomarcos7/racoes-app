@@ -89,7 +89,7 @@ export interface PedidoDTO {
   dataPedido: string
   statusEntrega: "AGUARDANDO" | "EM_ROTA" | "ENTREGUE" | null
   statusPagamento: "PENDENTE" | "PAGO" | "FIADO"
-  metodoPagamento: "DINHEIRO" | "PIX" | "BOLETO" | "CHEQUE" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | null
+  metodoPagamento: "DINHEIRO" | "PIX" | "PIX_TERCEIROS" | "BOLETO" | "CHEQUE" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | null
   observacoes: string | null
   desconto: number
   dataVencimentoFiado: string | null

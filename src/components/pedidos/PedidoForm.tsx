@@ -31,6 +31,7 @@ interface PedidoFormProps {
 const METODOS: { value: string; label: string }[] = [
   { value: "DINHEIRO", label: "Dinheiro" },
   { value: "PIX", label: "Pix" },
+  { value: "PIX_TERCEIROS", label: "Pix Terceiros" },
   { value: "BOLETO", label: "Boleto" },
   { value: "CHEQUE", label: "Cheque" },
   { value: "CARTAO_CREDITO", label: "Cartão de Crédito" },

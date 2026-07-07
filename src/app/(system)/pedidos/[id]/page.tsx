@@ -18,6 +18,7 @@ const entregaConfig: Record<string, { label: string; className: string }> = {
 const METODO_LABELS: Record<string, string> = {
   DINHEIRO: "Dinheiro",
   PIX: "Pix",
+  PIX_TERCEIROS: "Pix Terceiros",
   BOLETO: "Boleto",
   CHEQUE: "Cheque",
   CARTAO_CREDITO: "Cartão de Crédito",
