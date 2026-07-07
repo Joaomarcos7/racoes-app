@@ -50,8 +50,7 @@ export function usePedido(id: string) {
 type CreatePedidoData =
   | {
       tipoPedido: "ENTREGA"
-      clienteNome: string
-      clienteCidade: string
+      clienteId: string
       itens: { produtoId: string; quantidade: number }[]
       statusPagamento?: string
       metodoPagamento?: string
