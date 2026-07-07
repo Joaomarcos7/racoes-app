@@ -16,3 +16,7 @@ export function validateItensPedido(
 export function calcTotalComDesconto(subtotal: number, desconto: number): number {
   return Math.max(0, subtotal - desconto)
 }
+
+export function calcularValorPesoVariavel(pesoKg: number, valorUnitario: number, pesoUnit: number): number {
+  return pesoKg * (valorUnitario / pesoUnit)
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -40,5 +40,27 @@ describe("calcTotalComDesconto", () => {
 
   it("handles decimal discount correctly", () => {
     expect(calcTotalComDesconto(100, 10.5)).toBeCloseTo(89.5)
+  })
+})
+
+describe("calcularValorPesoVariavel", () => {
+  it("calculates price for exact 1kg", () => {
+    // produto: 25kg bag at R$100 → R$4/kg → 1kg = R$4
+    expect(calcularValorPesoVariavel(1, 100, 25)).toBeCloseTo(4)
+  })
+
+  it("calculates price for 500g (0.5kg)", () => {
+    // R$4/kg → 0.5kg = R$2
+    expect(calcularValorPesoVariavel(0.5, 100, 25)).toBeCloseTo(2)
+  })
+
+  it("calculates price for 1.25kg", () => {
+    // R$4/kg → 1.25kg = R$5
+    expect(calcularValorPesoVariavel(1.25, 100, 25)).toBeCloseTo(5)
+  })
+
+  it("calculates price for 750g with different product", () => {
+    // produto: 50kg bag at R$200 → R$4/kg → 0.75kg = R$3
+    expect(calcularValorPesoVariavel(0.75, 200, 50)).toBeCloseTo(3)
   })
 })

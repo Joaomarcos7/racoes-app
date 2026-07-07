@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { normalizeNome } from "@/lib/cliente-utils"
-import { validateItensPedido } from "@/lib/pedido-utils"
+import { validateItensPedido, calcularValorPesoVariavel } from "@/lib/pedido-utils"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
 const pedidoInclude = {
@@ -107,8 +107,16 @@ export async function POST(req: NextRequest) {
         dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? new Date(dataVencimentoFiado) : null,
         desconto: typeof desconto === "number" && desconto > 0 ? desconto : 0,
         itens: {
-          create: itens.map((item: { produtoId: string; quantidade: number }) => {
+          create: itens.map((item: { produtoId: string; quantidade: number; pesoVariavelKg?: number }) => {
             const produto = produtoMap.get(item.produtoId)!
+            if (item.pesoVariavelKg != null) {
+              return {
+                produtoId: item.produtoId,
+                quantidade: 1,
+                pesoUnit: item.pesoVariavelKg,
+                valorUnit: calcularValorPesoVariavel(item.pesoVariavelKg, produto.valorUnitario, produto.peso),
+              }
+            }
             return {
               produtoId: item.produtoId,
               quantidade: item.quantidade,

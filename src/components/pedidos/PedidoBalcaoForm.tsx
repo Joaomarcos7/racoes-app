@@ -9,13 +9,14 @@ import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
 import { useClientes } from "@/hooks/use-clientes"
 import { formatCurrency } from "@/lib/utils"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
+import { calcularValorPesoVariavel } from "@/lib/pedido-utils"
 import type { ProdutoDTO } from "@/types/api"
 
 interface PedidoBalcaoFormProps {
   onSubmit: (data: {
     tipoPedido: "BALCAO"
     clienteId?: string
-    itens: { produtoId: string; quantidade: number }[]
+    itens: { produtoId: string; quantidade: number; pesoVariavelKg?: number }[]
     statusPagamento: string
     metodoPagamento?: string
     observacoes?: string
@@ -46,8 +47,11 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
   const { data: result } = useClientes(undefined, 1, 100)
   const clientes = result?.data ?? []
 
-  const total = itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
-  const pesoTotal = itens.reduce((acc, i) => acc + i.quantidade * i.pesoUnit, 0)
+  const total = itens.reduce((acc, i) => {
+    if (i.pesoVariavelKg != null) return acc + calcularValorPesoVariavel(i.pesoVariavelKg, i.valorUnit, i.pesoUnit)
+    return acc + i.quantidade * i.valorUnit
+  }, 0)
+  const pesoTotal = itens.reduce((acc, i) => acc + (i.pesoVariavelKg ?? i.quantidade * i.pesoUnit), 0)
 
   function handleAddProduto(p: ProdutoDTO) {
     setItens((prev) => {
@@ -61,6 +65,10 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
     setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, quantidade: Math.max(1, quantidade) } : i))
   }
 
+  function handleChangePesoVariavel(produtoId: string, pesoKg: number | undefined) {
+    setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, pesoVariavelKg: pesoKg } : i))
+  }
+
   function handleRemove(produtoId: string) {
     setItens((prev) => prev.filter((i) => i.produtoId !== produtoId))
   }
@@ -70,7 +78,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
     onSubmit({
       tipoPedido: "BALCAO",
       clienteId: clienteId || undefined,
-      itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade })),
+      itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, pesoVariavelKg: i.pesoVariavelKg })),
       statusPagamento,
       metodoPagamento: metodoPagamento || undefined,
       observacoes: observacoes || undefined,
@@ -111,7 +119,14 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
             </thead>
             <tbody>
               {itens.map((item) => (
-                <ItemPedidoRow key={item.produtoId} item={item} onChange={handleChangeQtd} onRemove={handleRemove} />
+                <ItemPedidoRow
+                  key={item.produtoId}
+                  item={item}
+                  onChange={handleChangeQtd}
+                  onChangePesoVariavel={handleChangePesoVariavel}
+                  onRemove={handleRemove}
+                  allowPesoVariavel
+                />
               ))}
             </tbody>
           </table>
