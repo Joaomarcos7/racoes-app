@@ -1,14 +1,18 @@
-interface ItemSimples { produto: { nome: string }; quantidade: number }
+interface ItemSimples { produto: { nome: string }; quantidade: number; pesoUnit: number }
 interface PedidoSimples { itens: ItemSimples[] }
 
-export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: string; quantidade: number }[] {
-  const map = new Map<string, number>()
+export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: string; quantidade: number; pesoTotal: number }[] {
+  const map = new Map<string, { quantidade: number; pesoTotal: number }>()
   for (const pedido of pedidos) {
     for (const item of pedido.itens) {
-      map.set(item.produto.nome, (map.get(item.produto.nome) ?? 0) + item.quantidade)
+      const prev = map.get(item.produto.nome) ?? { quantidade: 0, pesoTotal: 0 }
+      map.set(item.produto.nome, {
+        quantidade: prev.quantidade + item.quantidade,
+        pesoTotal: prev.pesoTotal + item.quantidade * item.pesoUnit,
+      })
     }
   }
-  return Array.from(map.entries()).map(([nome, quantidade]) => ({ nome, quantidade }))
+  return Array.from(map.entries()).map(([nome, v]) => ({ nome, ...v }))
 }
 
 export function validateReabrirRota(rota: { status: string }): string | null {

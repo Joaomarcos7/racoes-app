@@ -34,9 +34,10 @@ export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, loadingI
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Produtos no veículo</p>
           <div className="space-y-1">
             {produtosAgregados.map((p) => (
-              <div key={p.nome} className="flex justify-between text-xs">
-                <span className="text-slate-700">{p.nome}</span>
-                <span className="font-medium text-slate-800">{p.quantidade} un</span>
+              <div key={p.nome} className="flex justify-between text-xs gap-2">
+                <span className="text-slate-700 flex-1 truncate">{p.nome}</span>
+                <span className="text-slate-500 whitespace-nowrap">{p.pesoTotal.toFixed(1)} kg</span>
+                <span className="font-medium text-slate-800 whitespace-nowrap">{p.quantidade} un</span>
               </div>
             ))}
           </div>

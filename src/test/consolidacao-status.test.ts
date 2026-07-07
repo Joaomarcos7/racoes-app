@@ -31,26 +31,27 @@ describe("aggregateProdutosAlocados", () => {
     quantidade, pesoUnit: 1, valorUnit: 1, pedidoId: "",
   })
 
-  it("retorna produto único com quantidade correta", () => {
+  it("retorna produto único com quantidade e peso corretos", () => {
     const pedidos = [{ itens: [makeItem("Ração 5kg", 3)] }]
     const result = aggregateProdutosAlocados(pedidos)
-    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 3 }])
+    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 3, pesoTotal: 3 }])
   })
 
-  it("soma quantidades do mesmo produto em pedidos diferentes", () => {
+  it("soma quantidades e pesos do mesmo produto em pedidos diferentes", () => {
     const pedidos = [
       { itens: [makeItem("Ração 5kg", 2)] },
       { itens: [makeItem("Ração 5kg", 4)] },
     ]
     const result = aggregateProdutosAlocados(pedidos)
-    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 6 }])
+    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 6, pesoTotal: 6 }])
   })
 
-  it("lista produtos distintos separadamente", () => {
+  it("lista produtos distintos separadamente com peso", () => {
     const pedidos = [{ itens: [makeItem("Ração 5kg", 2), makeItem("Ração 10kg", 1)] }]
     const result = aggregateProdutosAlocados(pedidos)
     expect(result.find(p => p.nome === "Ração 5kg")?.quantidade).toBe(2)
     expect(result.find(p => p.nome === "Ração 10kg")?.quantidade).toBe(1)
+    expect(result.find(p => p.nome === "Ração 5kg")?.pesoTotal).toBe(2)
   })
 
   it("retorna vazio para lista sem pedidos", () => {
