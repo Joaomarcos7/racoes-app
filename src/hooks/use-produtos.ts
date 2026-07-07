@@ -14,6 +14,18 @@ async function fetchProdutos(search?: string, page = 1, limit = 15): Promise<Pag
   return res.json()
 }
 
+export function useProduto(id: string) {
+  return useQuery({
+    queryKey: ["produtos", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/produtos/${id}`)
+      if (!res.ok) throw new Error("Produto não encontrado")
+      return res.json() as Promise<ProdutoDTO>
+    },
+    enabled: !!id,
+  })
+}
+
 export function useProdutos(search?: string, page = 1, limit = 15) {
   return useQuery({
     queryKey: ["produtos", search, page, limit],
