@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { calcularStatusEntregaAlocacao, calcularPesoFaltante, calcularPesoRestante, validateFalta } from "@/lib/consolidacao-utils"
+import { calcularStatusEntregaAlocacao, calcularPesoFaltante, calcularPesoRestante, calcularPesoAlocar, validateFalta } from "@/lib/consolidacao-utils"
 
 const item = (quantidade: number, pesoUnit: number, quantidadeFalta: number) => ({
   quantidade,
@@ -71,6 +71,37 @@ describe("calcularPesoRestante", () => {
   it("soma restante de múltiplos itens", () => {
     // (5-2)*10 + (3-1)*5 = 30 + 10 = 40
     expect(calcularPesoRestante([item(5, 10, 2), item(3, 5, 1)])).toBe(40)
+  })
+})
+
+describe("calcularPesoAlocar", () => {
+  it("pedido sem falta usa peso total (primeira alocação)", () => {
+    // AGUARDANDO: quantidadeFalta=0 → carrega tudo
+    expect(calcularPesoAlocar([item(5, 10, 0)])).toBe(50)
+  })
+
+  it("pedido parcial usa apenas peso dos itens em falta", () => {
+    // 2 faltaram * 10kg = 20kg (os 3 já entregues não entram)
+    expect(calcularPesoAlocar([item(5, 10, 2)])).toBe(20)
+  })
+
+  it("pedido com item totalmente em falta usa peso total do item", () => {
+    // 5 faltaram * 10kg = 50kg
+    expect(calcularPesoAlocar([item(5, 10, 5)])).toBe(50)
+  })
+
+  it("pedido parcial com múltiplos itens soma apenas os em falta", () => {
+    // item A: 2 falta * 10kg = 20kg, item B: 0 falta = 0kg → total 20kg
+    expect(calcularPesoAlocar([item(5, 10, 2), item(3, 5, 0)])).toBe(20)
+  })
+
+  it("múltiplos itens com falta soma todos", () => {
+    // (2*10) + (1*5) = 25kg
+    expect(calcularPesoAlocar([item(5, 10, 2), item(3, 5, 1)])).toBe(25)
+  })
+
+  it("retorna 0 para lista vazia", () => {
+    expect(calcularPesoAlocar([])).toBe(0)
   })
 })
 

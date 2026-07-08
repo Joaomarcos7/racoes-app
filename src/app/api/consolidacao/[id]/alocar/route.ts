@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularPesoRestante } from "@/lib/consolidacao-utils"
+import { calcularPesoAlocar } from "@/lib/consolidacao-utils"
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -26,8 +26,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId }, include: { itens: true } })
     if (!pedido) return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 })
 
-    const pesoAtual = rota.itens.reduce((acc, ci) => acc + calcularPesoRestante(ci.pedido.itens), 0)
-    const pesoPedido = calcularPesoRestante(pedido.itens)
+    const pesoAtual = rota.itens.reduce((acc, ci) => acc + calcularPesoAlocar(ci.pedido.itens), 0)
+    const pesoPedido = calcularPesoAlocar(pedido.itens)
 
     if (pesoAtual + pesoPedido > rota.veiculo.pesoMaximo) {
       const disponivel = (rota.veiculo.pesoMaximo - pesoAtual).toFixed(1)

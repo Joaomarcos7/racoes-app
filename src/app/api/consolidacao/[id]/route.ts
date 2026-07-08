@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularPesoRestante } from "@/lib/consolidacao-utils"
+import { calcularPesoAlocar } from "@/lib/consolidacao-utils"
 
 function calcPesoTotal(itens: { pedido: { itens: { quantidade: number; pesoUnit: number; quantidadeFalta: number }[] } }[]): number {
-  return itens.reduce((acc, ci) => acc + calcularPesoRestante(ci.pedido.itens), 0)
+  return itens.reduce((acc, ci) => acc + calcularPesoAlocar(ci.pedido.itens), 0)
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

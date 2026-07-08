@@ -58,10 +58,10 @@ describe("aggregateProdutosAlocados", () => {
     expect(aggregateProdutosAlocados([])).toEqual([])
   })
 
-  it("desconta quantidadeFalta da quantidade e peso agregados", () => {
-    // 5 pedidos, 2 em falta → mostra 3
+  it("pedido parcial mostra apenas quantidadeFalta (itens ainda a entregar)", () => {
+    // ordenou 5, 2 em falta → mostra 2 (os que ainda faltam entregar)
     const pedidos = [{ itens: [makeItem("Ração 5kg", 5, 2)] }]
     const result = aggregateProdutosAlocados(pedidos)
-    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 3, pesoTotal: 3 }])
+    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 2, pesoTotal: 2 }])
   })
 })

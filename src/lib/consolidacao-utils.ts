@@ -15,6 +15,12 @@ export function calcularPesoRestante(itens: ItemComFalta[]): number {
   return itens.reduce((acc, i) => acc + (i.quantidade - i.quantidadeFalta) * i.pesoUnit, 0)
 }
 
+export function calcularPesoAlocar(itens: ItemComFalta[]): number {
+  const isParcial = itens.some((i) => i.quantidadeFalta > 0)
+  if (isParcial) return itens.reduce((acc, i) => acc + i.quantidadeFalta * i.pesoUnit, 0)
+  return itens.reduce((acc, i) => acc + i.quantidade * i.pesoUnit, 0)
+}
+
 export function validateFalta(quantidade: number, quantidadeFalta: number): string | null {
   if (quantidadeFalta < 0) return "Quantidade em falta não pode ser negativa"
   if (quantidadeFalta > quantidade) return "Quantidade em falta não pode exceder a quantidade do item"
@@ -26,10 +32,12 @@ export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: str
   for (const pedido of pedidos) {
     for (const item of pedido.itens) {
       const prev = map.get(item.produto.nome) ?? { quantidade: 0, pesoTotal: 0 }
-      const qtdRestante = item.quantidade - (item.quantidadeFalta ?? 0)
+      const falta = item.quantidadeFalta ?? 0
+      const isParcial = falta > 0
+      const qtd = isParcial ? falta : item.quantidade
       map.set(item.produto.nome, {
-        quantidade: prev.quantidade + qtdRestante,
-        pesoTotal: prev.pesoTotal + qtdRestante * item.pesoUnit,
+        quantidade: prev.quantidade + qtd,
+        pesoTotal: prev.pesoTotal + qtd * item.pesoUnit,
       })
     }
   }
