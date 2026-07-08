@@ -3,6 +3,10 @@ interface PedidoSimples { itens: ItemSimples[] }
 
 interface ItemComFalta { quantidade: number; pesoUnit: number; quantidadeFalta: number }
 
+export function statusAposAlocar(statusAtual: string | null): "EM_ROTA" | null {
+  return statusAtual === "ENTREGA_PARCIAL" ? "EM_ROTA" : null
+}
+
 export function calcularStatusEntregaAlocacao(itens: ItemComFalta[]): "EM_ROTA" | "ENTREGA_PARCIAL" {
   return itens.some((i) => i.quantidadeFalta > 0) ? "ENTREGA_PARCIAL" : "EM_ROTA"
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularPesoAlocar } from "@/lib/consolidacao-utils"
+import { calcularPesoAlocar, statusAposAlocar } from "@/lib/consolidacao-utils"
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -37,7 +37,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       )
     }
 
-    await prisma.consolidacaoItem.create({ data: { consolidacaoRotaId: id, pedidoId } })
+    const novoStatus = statusAposAlocar(pedido.statusEntrega)
+    await prisma.$transaction([
+      prisma.consolidacaoItem.create({ data: { consolidacaoRotaId: id, pedidoId } }),
+      ...(novoStatus ? [prisma.pedido.update({ where: { id: pedidoId }, data: { statusEntrega: novoStatus } })] : []),
+    ])
     return NextResponse.json({ ok: true })
   } catch (e) {
     console.error("[POST /api/consolidacao/alocar]", e)
