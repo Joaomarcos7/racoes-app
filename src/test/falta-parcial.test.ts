@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { calcularStatusEntregaAlocacao, calcularPesoFaltante, validateFalta } from "@/lib/consolidacao-utils"
+import { calcularStatusEntregaAlocacao, calcularPesoFaltante, calcularPesoRestante, validateFalta } from "@/lib/consolidacao-utils"
 
 const item = (quantidade: number, pesoUnit: number, quantidadeFalta: number) => ({
   quantidade,
@@ -50,6 +50,27 @@ describe("calcularPesoFaltante", () => {
 
   it("retorna 0 para lista vazia", () => {
     expect(calcularPesoFaltante([])).toBe(0)
+  })
+})
+
+describe("calcularPesoRestante", () => {
+  it("retorna peso total quando não há falta", () => {
+    // 5 un * 10kg = 50kg
+    expect(calcularPesoRestante([item(5, 10, 0)])).toBe(50)
+  })
+
+  it("retorna apenas peso dos itens não faltantes", () => {
+    // (5-2) * 10 = 30kg
+    expect(calcularPesoRestante([item(5, 10, 2)])).toBe(30)
+  })
+
+  it("retorna 0 quando tudo está em falta", () => {
+    expect(calcularPesoRestante([item(5, 10, 5)])).toBe(0)
+  })
+
+  it("soma restante de múltiplos itens", () => {
+    // (5-2)*10 + (3-1)*5 = 30 + 10 = 40
+    expect(calcularPesoRestante([item(5, 10, 2), item(3, 5, 1)])).toBe(40)
   })
 })
 

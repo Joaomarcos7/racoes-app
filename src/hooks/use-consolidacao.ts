@@ -69,7 +69,10 @@ export function useAlocarPedido(rotaId: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pedidoId }),
       })
-      if (!res.ok) { const e = await res.json(); throw new Error(e.error) }
+      if (!res.ok) {
+        try { const e = await res.json(); throw new Error(e.error ?? "Erro ao alocar pedido") }
+        catch (parseErr) { if (parseErr instanceof Error && parseErr.message !== "Erro ao alocar pedido") throw new Error("Erro ao alocar pedido"); throw parseErr }
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["consolidacoes", rotaId] }),
     onError: (e: Error) => toast.error(e.message),

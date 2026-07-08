@@ -1,4 +1,4 @@
-interface ItemSimples { produto: { nome: string }; quantidade: number; pesoUnit: number }
+interface ItemSimples { produto: { nome: string }; quantidade: number; pesoUnit: number; quantidadeFalta?: number }
 interface PedidoSimples { itens: ItemSimples[] }
 
 interface ItemComFalta { quantidade: number; pesoUnit: number; quantidadeFalta: number }
@@ -9,6 +9,10 @@ export function calcularStatusEntregaAlocacao(itens: ItemComFalta[]): "EM_ROTA" 
 
 export function calcularPesoFaltante(itens: ItemComFalta[]): number {
   return itens.reduce((acc, i) => acc + i.quantidadeFalta * i.pesoUnit, 0)
+}
+
+export function calcularPesoRestante(itens: ItemComFalta[]): number {
+  return itens.reduce((acc, i) => acc + (i.quantidade - i.quantidadeFalta) * i.pesoUnit, 0)
 }
 
 export function validateFalta(quantidade: number, quantidadeFalta: number): string | null {
@@ -22,9 +26,10 @@ export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: str
   for (const pedido of pedidos) {
     for (const item of pedido.itens) {
       const prev = map.get(item.produto.nome) ?? { quantidade: 0, pesoTotal: 0 }
+      const qtdRestante = item.quantidade - (item.quantidadeFalta ?? 0)
       map.set(item.produto.nome, {
-        quantidade: prev.quantidade + item.quantidade,
-        pesoTotal: prev.pesoTotal + item.quantidade * item.pesoUnit,
+        quantidade: prev.quantidade + qtdRestante,
+        pesoTotal: prev.pesoTotal + qtdRestante * item.pesoUnit,
       })
     }
   }

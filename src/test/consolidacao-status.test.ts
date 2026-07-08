@@ -26,9 +26,9 @@ describe("validateFecharRota", () => {
 })
 
 describe("aggregateProdutosAlocados", () => {
-  const makeItem = (nome: string, quantidade: number) => ({
+  const makeItem = (nome: string, quantidade: number, quantidadeFalta = 0) => ({
     id: nome, produtoId: nome, produto: { id: nome, nome, peso: 1, valorUnitario: 1, custo: null, tipo: "CONSUMIDOR_FINAL" as const, ativo: true, createdAt: "" },
-    quantidade, pesoUnit: 1, valorUnit: 1, pedidoId: "",
+    quantidade, pesoUnit: 1, valorUnit: 1, pedidoId: "", quantidadeFalta,
   })
 
   it("retorna produto único com quantidade e peso corretos", () => {
@@ -56,5 +56,12 @@ describe("aggregateProdutosAlocados", () => {
 
   it("retorna vazio para lista sem pedidos", () => {
     expect(aggregateProdutosAlocados([])).toEqual([])
+  })
+
+  it("desconta quantidadeFalta da quantidade e peso agregados", () => {
+    // 5 pedidos, 2 em falta → mostra 3
+    const pedidos = [{ itens: [makeItem("Ração 5kg", 5, 2)] }]
+    const result = aggregateProdutosAlocados(pedidos)
+    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 3, pesoTotal: 3 }])
   })
 })
