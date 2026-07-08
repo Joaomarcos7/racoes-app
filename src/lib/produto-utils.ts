@@ -12,6 +12,6 @@ export function labelTipoProduto(tipo: string): string {
 }
 
 export const TIPO_BADGE: Record<string, { label: string; className: string }> = {
-  CONSUMIDOR_FINAL: { label: "CF", className: "bg-gray-100 text-gray-600" },
-  ATACADO:          { label: "AT", className: "bg-blue-100 text-blue-700" },
+  CONSUMIDOR_FINAL: { label: "Consumidor Final", className: "bg-gray-100 text-gray-600" },
+  ATACADO:          { label: "Atacado",          className: "bg-blue-100 text-blue-700" },
 }
