@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { calcularStatusEntregaAlocacao, calcularPesoFaltante, calcularPesoRestante, calcularPesoAlocar, validateFalta } from "@/lib/consolidacao-utils"
+import { calcularStatusEntregaAlocacao, calcularPesoFaltante, calcularPesoRestante, calcularPesoAlocar, calcularStatusFechamento, validateFalta } from "@/lib/consolidacao-utils"
 
 const item = (quantidade: number, pesoUnit: number, quantidadeFalta: number) => ({
   quantidade,
@@ -71,6 +71,35 @@ describe("calcularPesoRestante", () => {
   it("soma restante de múltiplos itens", () => {
     // (5-2)*10 + (3-1)*5 = 30 + 10 = 40
     expect(calcularPesoRestante([item(5, 10, 2), item(3, 5, 1)])).toBe(40)
+  })
+})
+
+describe("calcularStatusFechamento", () => {
+  it("pedido normal sem falta → EM_ROTA", () => {
+    const r = calcularStatusFechamento("AGUARDANDO", false, [item(5, 10, 0)])
+    expect(r).toEqual({ status: "EM_ROTA", resetFalta: false })
+  })
+
+  it("pedido normal com falta registrada → ENTREGA_PARCIAL", () => {
+    const r = calcularStatusFechamento("AGUARDANDO", true, [item(5, 10, 2)])
+    expect(r).toEqual({ status: "ENTREGA_PARCIAL", resetFalta: false })
+  })
+
+  it("pedido ENTREGA_PARCIAL sem nova falta na rota → ENTREGUE e reset", () => {
+    // driver não registrou falta na nova rota = tudo entregue
+    const r = calcularStatusFechamento("ENTREGA_PARCIAL", false, [item(5, 10, 2)])
+    expect(r).toEqual({ status: "ENTREGUE", resetFalta: true })
+  })
+
+  it("pedido ENTREGA_PARCIAL com nova falta ainda pendente → ENTREGA_PARCIAL", () => {
+    const r = calcularStatusFechamento("ENTREGA_PARCIAL", true, [item(5, 10, 1)])
+    expect(r).toEqual({ status: "ENTREGA_PARCIAL", resetFalta: false })
+  })
+
+  it("pedido ENTREGA_PARCIAL com falta registrada zerada → ENTREGUE e reset", () => {
+    // driver registrou falta=0 para todos os itens = tudo entregue desta vez
+    const r = calcularStatusFechamento("ENTREGA_PARCIAL", true, [item(5, 10, 0)])
+    expect(r).toEqual({ status: "ENTREGUE", resetFalta: true })
   })
 })
 

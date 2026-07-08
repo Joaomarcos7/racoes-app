@@ -15,6 +15,23 @@ export function calcularPesoRestante(itens: ItemComFalta[]): number {
   return itens.reduce((acc, i) => acc + (i.quantidade - i.quantidadeFalta) * i.pesoUnit, 0)
 }
 
+export function calcularStatusFechamento(
+  statusAtual: string | null,
+  temFaltaRegistrada: boolean,
+  itens: ItemComFalta[]
+): { status: "EM_ROTA" | "ENTREGA_PARCIAL" | "ENTREGUE"; resetFalta: boolean } {
+  if (statusAtual === "ENTREGA_PARCIAL" && !temFaltaRegistrada) {
+    return { status: "ENTREGUE", resetFalta: true }
+  }
+  if (itens.some((i) => i.quantidadeFalta > 0)) {
+    return { status: "ENTREGA_PARCIAL", resetFalta: false }
+  }
+  if (statusAtual === "ENTREGA_PARCIAL") {
+    return { status: "ENTREGUE", resetFalta: true }
+  }
+  return { status: "EM_ROTA", resetFalta: false }
+}
+
 export function calcularPesoAlocar(itens: ItemComFalta[]): number {
   const isParcial = itens.some((i) => i.quantidadeFalta > 0)
   if (isParcial) return itens.reduce((acc, i) => acc + i.quantidadeFalta * i.pesoUnit, 0)

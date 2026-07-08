@@ -31,14 +31,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (err) return NextResponse.json({ error: err }, { status: 400 })
   }
 
-  await prisma.$transaction(
-    (faltas as { itemPedidoId: string; quantidadeFalta: number }[]).map((f) =>
+  await prisma.$transaction([
+    ...(faltas as { itemPedidoId: string; quantidadeFalta: number }[]).map((f) =>
       prisma.itemPedido.update({
         where: { id: f.itemPedidoId },
         data: { quantidadeFalta: f.quantidadeFalta },
       })
-    )
-  )
+    ),
+    prisma.consolidacaoItem.updateMany({
+      where: { consolidacaoRotaId: id, pedidoId },
+      data: { temFaltaRegistrada: true },
+    }),
+  ])
 
   return NextResponse.json({ ok: true })
 }

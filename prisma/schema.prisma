@@ -132,6 +132,7 @@ model ConsolidacaoItem {
   rota               ConsolidacaoRota @relation(fields: [consolidacaoRotaId], references: [id], onDelete: Cascade)
   pedidoId           String
   pedido             Pedido           @relation(fields: [pedidoId], references: [id])
+  temFaltaRegistrada Boolean          @default(false)
 }
 
 enum StatusEntrega {
