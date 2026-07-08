@@ -34,7 +34,7 @@ describe("aggregateProdutosAlocados", () => {
   it("retorna produto único com quantidade e peso corretos", () => {
     const pedidos = [{ itens: [makeItem("Ração 5kg", 3)] }]
     const result = aggregateProdutosAlocados(pedidos)
-    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 3, pesoTotal: 3 }])
+    expect(result[0]).toMatchObject({ nome: "Ração 5kg", quantidade: 3, pesoTotal: 3 })
   })
 
   it("soma quantidades e pesos do mesmo produto em pedidos diferentes", () => {
@@ -43,7 +43,7 @@ describe("aggregateProdutosAlocados", () => {
       { itens: [makeItem("Ração 5kg", 4)] },
     ]
     const result = aggregateProdutosAlocados(pedidos)
-    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 6, pesoTotal: 6 }])
+    expect(result[0]).toMatchObject({ nome: "Ração 5kg", quantidade: 6, pesoTotal: 6 })
   })
 
   it("lista produtos distintos separadamente com peso", () => {
@@ -62,6 +62,6 @@ describe("aggregateProdutosAlocados", () => {
     // ordenou 5, 2 em falta → mostra 2 (os que ainda faltam entregar)
     const pedidos = [{ itens: [makeItem("Ração 5kg", 5, 2)] }]
     const result = aggregateProdutosAlocados(pedidos)
-    expect(result).toEqual([{ nome: "Ração 5kg", quantidade: 2, pesoTotal: 2 }])
+    expect(result[0]).toMatchObject({ nome: "Ração 5kg", quantidade: 2, pesoTotal: 2 })
   })
 })

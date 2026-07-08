@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils"
 import { calcularPesoFaltante } from "@/lib/consolidacao-utils"
 import type { PedidoDTO, ItemPedidoDTO } from "@/types/api"
 import { ArrowRight, X, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react"
+import { TIPO_BADGE } from "@/lib/produto-utils"
 
 interface PedidoCardProps {
   pedido: PedidoDTO
@@ -21,7 +22,12 @@ interface PedidoCardProps {
 function ItemFaltaRow({ item, value, onChange }: { item: ItemPedidoDTO; value: number; onChange: (v: number) => void }) {
   return (
     <div className="flex items-center gap-2 text-xs">
-      <span className="flex-1 truncate text-slate-700">{item.produto.nome}</span>
+      <span className="flex-1 truncate text-slate-700 flex items-center gap-1">
+        {item.produto.nome}
+        {TIPO_BADGE[item.produto.tipo] && (
+          <span className={`text-[10px] px-1 py-0 rounded font-medium shrink-0 ${TIPO_BADGE[item.produto.tipo].className}`}>{TIPO_BADGE[item.produto.tipo].label}</span>
+        )}
+      </span>
       <span className="text-slate-400 whitespace-nowrap">{item.quantidade} un</span>
       <div className="flex items-center gap-1 whitespace-nowrap">
         <span className="text-slate-500">falta:</span>

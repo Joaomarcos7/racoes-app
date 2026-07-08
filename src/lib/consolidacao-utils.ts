@@ -1,4 +1,4 @@
-interface ItemSimples { produto: { nome: string }; quantidade: number; pesoUnit: number; quantidadeFalta?: number }
+interface ItemSimples { produto: { nome: string; tipo?: string }; quantidade: number; pesoUnit: number; quantidadeFalta?: number }
 interface PedidoSimples { itens: ItemSimples[] }
 
 interface ItemComFalta { quantidade: number; pesoUnit: number; quantidadeFalta: number }
@@ -44,8 +44,8 @@ export function validateFalta(quantidade: number, quantidadeFalta: number): stri
   return null
 }
 
-export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: string; quantidade: number; pesoTotal: number }[] {
-  const map = new Map<string, { quantidade: number; pesoTotal: number }>()
+export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: string; tipo?: string; quantidade: number; pesoTotal: number }[] {
+  const map = new Map<string, { tipo?: string; quantidade: number; pesoTotal: number }>()
   for (const pedido of pedidos) {
     for (const item of pedido.itens) {
       const prev = map.get(item.produto.nome) ?? { quantidade: 0, pesoTotal: 0 }
@@ -53,6 +53,7 @@ export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: str
       const isParcial = falta > 0
       const qtd = isParcial ? falta : item.quantidade
       map.set(item.produto.nome, {
+        tipo: item.produto.tipo,
         quantidade: prev.quantidade + qtd,
         pesoTotal: prev.pesoTotal + qtd * item.pesoUnit,
       })

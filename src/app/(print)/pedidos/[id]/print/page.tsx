@@ -97,14 +97,11 @@ export default async function CupomFiscalPrintPage({
     : ""
   const pagamentoLine = `${STATUS_PAG_LABELS[pedido.statusPagamento] ?? pedido.statusPagamento}${metodoLabel}`
 
-  const linhasItens = pedido.itens.map((item) =>
-    formatarLinhaProduto(
-      item.produto.nome,
-      item.pesoUnit,
-      item.quantidade,
-      item.quantidade * item.valorUnit
-    )
-  )
+  const linhasItens = pedido.itens.map((item) => {
+    const tipoTag = item.produto.tipo === "ATACADO" ? "[AT]" : "[CF]"
+    const nomeTipado = `${item.produto.nome} ${tipoTag}`
+    return formatarLinhaProduto(nomeTipado, item.pesoUnit, item.quantidade, item.quantidade * item.valorUnit)
+  })
 
   const cupomLines = [
     SEP_DOUBLE,

@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
 import { Trash2 } from "lucide-react"
 import { calcularValorPesoVariavel } from "@/lib/pedido-utils"
+import { TIPO_BADGE } from "@/lib/produto-utils"
 
 export interface ItemLocal {
   produtoId: string
   nome: string
+  tipo?: string
   pesoUnit: number    // peso padrão do saco (kg)
   valorUnit: number   // preço por saco
   quantidade: number  // número de sacos inteiros
@@ -45,7 +47,14 @@ export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePe
 
   return (
     <tr className="border-b">
-      <td className="py-2 pr-3 text-sm">{item.nome}</td>
+      <td className="py-2 pr-3 text-sm">
+        <span className="flex items-center gap-1.5">
+          {item.nome}
+          {item.tipo && TIPO_BADGE[item.tipo] && (
+            <span className={`text-[10px] px-1 py-0 rounded font-medium ${TIPO_BADGE[item.tipo].className}`}>{TIPO_BADGE[item.tipo].label}</span>
+          )}
+        </span>
+      </td>
       <td className="py-2 pr-3 text-sm text-right text-gray-600">
         {item.pesoVariavel && item.pesoKg != null ? `${item.pesoKg} kg` : `${item.pesoUnit} kg/saco`}
       </td>

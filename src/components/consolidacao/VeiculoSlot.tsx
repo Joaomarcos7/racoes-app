@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils"
 import type { VeiculoDTO, PedidoDTO } from "@/types/api"
 import { PedidoCard } from "./PedidoCard"
 import { aggregateProdutosAlocados } from "@/lib/consolidacao-utils"
+import { TIPO_BADGE } from "@/lib/produto-utils"
 
 interface VeiculoSlotProps {
   veiculo: VeiculoDTO
@@ -36,7 +37,12 @@ export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, onRegist
           <div className="space-y-1">
             {produtosAgregados.map((p) => (
               <div key={p.nome} className="flex justify-between text-xs gap-2">
-                <span className="text-slate-700 flex-1 truncate">{p.nome}</span>
+                <span className="text-slate-700 flex-1 truncate flex items-center gap-1">
+                  {p.nome}
+                  {p.tipo && TIPO_BADGE[p.tipo] && (
+                    <span className={`text-[10px] px-1 py-0 rounded font-medium shrink-0 ${TIPO_BADGE[p.tipo].className}`}>{TIPO_BADGE[p.tipo].label}</span>
+                  )}
+                </span>
                 <span className="text-slate-500 whitespace-nowrap">{p.pesoTotal.toFixed(1)} kg</span>
                 <span className="font-medium text-slate-800 whitespace-nowrap">{p.quantidade} un</span>
               </div>

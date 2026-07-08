@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { TIPO_BADGE } from "@/lib/produto-utils"
 import { Printer } from "lucide-react"
 
 const entregaConfig: Record<string, { label: string; className: string }> = {
@@ -86,7 +87,14 @@ export default function PedidoDetailPage() {
           <tbody>
             {pedido.itens.map((item) => (
               <tr key={item.id} className="border-b">
-                <td className="py-2">{item.produto.nome}</td>
+                <td className="py-2">
+                  <span className="flex items-center gap-1.5">
+                    {item.produto.nome}
+                    {TIPO_BADGE[item.produto.tipo] && (
+                      <span className={`text-[10px] px-1 py-0 rounded font-medium ${TIPO_BADGE[item.produto.tipo].className}`}>{TIPO_BADGE[item.produto.tipo].label}</span>
+                    )}
+                  </span>
+                </td>
                 <td className="py-2 text-right text-gray-600">{item.pesoUnit}kg</td>
                 <td className="py-2 text-right">{item.quantidade}</td>
                 <td className="py-2 text-right">

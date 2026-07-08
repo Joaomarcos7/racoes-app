@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -35,8 +35,8 @@ const METODOS: { value: string; label: string }[] = [
   { value: "PIX_TERCEIROS", label: "Pix Terceiros" },
   { value: "BOLETO", label: "Boleto" },
   { value: "CHEQUE", label: "Cheque" },
-  { value: "CARTAO_CREDITO", label: "Cartão de Crédito" },
-  { value: "CARTAO_DEBITO", label: "Cartão de Débito" },
+  { value: "CARTAO_CREDITO", label: "CartÃ£o de CrÃ©dito" },
+  { value: "CARTAO_DEBITO", label: "CartÃ£o de DÃ©bito" },
 ]
 
 export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFormProps) {
@@ -62,7 +62,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
     setItens((prev) => {
       const existing = prev.find((i) => i.produtoId === p.id)
       if (existing) return prev.map((i) => i.produtoId === p.id ? { ...i, quantidade: i.quantidade + 1 } : i)
-      return [...prev, { produtoId: p.id, nome: p.nome, pesoUnit: p.peso, valorUnit: p.valorUnitario, quantidade: 1, pesoVariavel: false }]
+      return [...prev, { produtoId: p.id, nome: p.nome, tipo: p.tipo, pesoUnit: p.peso, valorUnit: p.valorUnitario, quantidade: 1, pesoVariavel: false }]
     })
   }
 
@@ -182,7 +182,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
         </div>
         {statusPagamento !== "FIADO" && (
           <div className="space-y-1">
-            <Label>Método de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
+            <Label>MÃ©todo de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
             <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
               <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
               <SelectContent>
@@ -200,13 +200,13 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
               <Select value={tipoFiado} onValueChange={(v) => setTipoFiado(v as TipoFiado)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="INTEGRAL">Integral — tudo em aberto</SelectItem>
-                  <SelectItem value="PARCIAL">Parcial — pagou parte agora</SelectItem>
+                  <SelectItem value="INTEGRAL">Integral â€” tudo em aberto</SelectItem>
+                  <SelectItem value="PARCIAL">Parcial â€” pagou parte agora</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Data máxima de pagamento *</Label>
+              <Label>Data mÃ¡xima de pagamento *</Label>
               <Input type="date" value={dataVencimentoFiado} onChange={(e) => setDataVencimentoFiado(e.target.value)} required />
             </div>
           </div>
@@ -226,7 +226,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
         </div>
       )}
       <div className="space-y-1">
-        <Label>Observações</Label>
+        <Label>ObservaÃ§Ãµes</Label>
         <Input value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
       </div>
       <div className="flex gap-2 justify-end">

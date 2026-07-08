@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { useProdutos } from "@/hooks/use-produtos"
 import { formatCurrency } from "@/lib/utils"
+import { TIPO_BADGE } from "@/lib/produto-utils"
 import type { ProdutoDTO } from "@/types/api"
 
 interface ProdutoSearchInputProps {
@@ -55,7 +56,12 @@ export function ProdutoSearchInput({ onSelect }: ProdutoSearchInputProps) {
               className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex justify-between"
               onMouseDown={() => handleSelect(p)}
             >
-              <span>{p.nome}</span>
+              <span className="flex items-center gap-1.5">
+                {p.nome}
+                {TIPO_BADGE[p.tipo] && (
+                  <span className={`text-[10px] px-1 py-0 rounded font-medium ${TIPO_BADGE[p.tipo].className}`}>{TIPO_BADGE[p.tipo].label}</span>
+                )}
+              </span>
               <span className="text-gray-500">{p.peso}kg · {formatCurrency(p.valorUnitario)}</span>
             </button>
           ))}

@@ -10,3 +10,8 @@ const TIPO_LABELS: Record<string, string> = Object.fromEntries(
 export function labelTipoProduto(tipo: string): string {
   return TIPO_LABELS[tipo] ?? tipo
 }
+
+export const TIPO_BADGE: Record<string, { label: string; className: string }> = {
+  CONSUMIDOR_FINAL: { label: "CF", className: "bg-gray-100 text-gray-600" },
+  ATACADO:          { label: "AT", className: "bg-blue-100 text-blue-700" },
+}
