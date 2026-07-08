@@ -109,6 +109,25 @@ export function useReabrirRota(rotaId: string) {
   })
 }
 
+export function useRegistrarFalta(rotaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ pedidoId, faltas }: { pedidoId: string; faltas: { itemPedidoId: string; quantidadeFalta: number }[] }) => {
+      const res = await fetch(`/api/consolidacao/${rotaId}/falta`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pedidoId, faltas }),
+      })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Erro ao registrar falta") }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["consolidacoes", rotaId] })
+      toast.success("Falta registrada.")
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
 export function useFecharRota(rotaId: string) {
   const qc = useQueryClient()
   return useMutation({

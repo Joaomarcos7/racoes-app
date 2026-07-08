@@ -5,11 +5,12 @@ import type { ConsolidacaoRotaDTO, PedidoDTO } from "@/types/api"
 interface PainelVeiculosProps {
   rota: ConsolidacaoRotaDTO
   onDesalocar?: (pedidoId: string) => void
+  onRegistrarFalta?: (pedidoId: string, faltas: { itemPedidoId: string; quantidadeFalta: number }[]) => void
   loadingId?: string
   isFechada?: boolean
 }
 
-export function PainelVeiculos({ rota, onDesalocar, loadingId, isFechada }: PainelVeiculosProps) {
+export function PainelVeiculos({ rota, onDesalocar, onRegistrarFalta, loadingId, isFechada }: PainelVeiculosProps) {
   const pedidosAlocados: PedidoDTO[] = rota.itens.map((ci) => ci.pedido)
   return (
     <div className="border rounded-lg bg-gray-50 p-4 h-full overflow-y-auto">
@@ -22,6 +23,7 @@ export function PainelVeiculos({ rota, onDesalocar, loadingId, isFechada }: Pain
         pedidos={pedidosAlocados}
         pesoAtual={rota.pesoTotal}
         onDesalocar={isFechada ? undefined : onDesalocar}
+        onRegistrarFalta={isFechada ? undefined : onRegistrarFalta}
         loadingId={loadingId}
       />
     </div>

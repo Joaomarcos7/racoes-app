@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { PainelPedidos } from "@/components/consolidacao/PainelPedidos"
 import { PainelVeiculos } from "@/components/consolidacao/PainelVeiculos"
-import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota } from "@/hooks/use-consolidacao"
+import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta } from "@/hooks/use-consolidacao"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/utils"
@@ -17,6 +17,7 @@ export default function ConsolidacaoDetailPage() {
   const desalocarMutation = useDesalocarPedido(id)
   const fecharMutation = useFecharRota(id)
   const reabrirMutation = useReabrirRota(id)
+  const faltaMutation = useRegistrarFalta(id)
   const [loadingPedidoId, setLoadingPedidoId] = useState<string | undefined>()
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
@@ -67,7 +68,12 @@ export default function ConsolidacaoDetailPage() {
             onAlocar={handleAlocar}
             loadingId={loadingPedidoId}
           />
-          <PainelVeiculos rota={data} onDesalocar={handleDesalocar} loadingId={loadingPedidoId} />
+          <PainelVeiculos
+            rota={data}
+            onDesalocar={handleDesalocar}
+            onRegistrarFalta={(pedidoId, faltas) => faltaMutation.mutate({ pedidoId, faltas })}
+            loadingId={loadingPedidoId}
+          />
         </div>
       )}
     </div>

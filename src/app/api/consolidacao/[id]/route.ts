@@ -23,7 +23,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!rota) return NextResponse.json({ error: "Rota não encontrada" }, { status: 404 })
 
   const pedidosDisponiveis = await prisma.pedido.findMany({
-    where: { statusEntrega: "AGUARDANDO", consolidacoes: { none: {} } },
+    where: {
+      statusEntrega: { in: ["AGUARDANDO", "ENTREGA_PARCIAL"] },
+      NOT: { consolidacoes: { some: { rota: { status: "ABERTA" } } } },
+    },
     include: { cliente: true, itens: { include: { produto: true } } },
     orderBy: [{ cliente: { cidade: "asc" } }, { dataPedido: "asc" }],
   })

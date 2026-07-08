@@ -69,6 +69,7 @@ export interface ItemPedidoDTO {
   quantidade: number
   pesoUnit: number
   valorUnit: number
+  quantidadeFalta: number
 }
 
 export interface HistoricoStatusPedidoDTO {

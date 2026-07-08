@@ -12,7 +12,8 @@ import { Printer } from "lucide-react"
 const entregaConfig: Record<string, { label: string; className: string }> = {
   AGUARDANDO: { label: "Aguardando", className: "bg-gray-100 text-gray-700" },
   EM_ROTA: { label: "Em Rota", className: "bg-blue-100 text-blue-700" },
-  ENTREGUE: { label: "Entregue", className: "bg-blue-100 text-blue-700" },
+  ENTREGA_PARCIAL: { label: "Entrega Parcial", className: "bg-amber-100 text-amber-700" },
+  ENTREGUE: { label: "Entregue", className: "bg-green-100 text-green-700" },
 }
 
 const METODO_LABELS: Record<string, string> = {
@@ -77,6 +78,7 @@ export default function PedidoDetailPage() {
               <th className="text-left pb-1">Produto</th>
               <th className="text-right pb-1">Peso/un</th>
               <th className="text-right pb-1">Qtd</th>
+              <th className="text-right pb-1">Em Falta</th>
               <th className="text-right pb-1">Valor/un</th>
               <th className="text-right pb-1">Subtotal</th>
             </tr>
@@ -87,6 +89,13 @@ export default function PedidoDetailPage() {
                 <td className="py-2">{item.produto.nome}</td>
                 <td className="py-2 text-right text-gray-600">{item.pesoUnit}kg</td>
                 <td className="py-2 text-right">{item.quantidade}</td>
+                <td className="py-2 text-right">
+                  {(item.quantidadeFalta ?? 0) > 0 ? (
+                    <span className="text-amber-700 font-medium">{item.quantidadeFalta} un</span>
+                  ) : (
+                    <span className="text-gray-300">—</span>
+                  )}
+                </td>
                 <td className="py-2 text-right">{formatCurrency(item.valorUnit)}</td>
                 <td className="py-2 text-right font-medium">{formatCurrency(item.quantidade * item.valorUnit)}</td>
               </tr>
@@ -182,6 +191,7 @@ export default function PedidoDetailPage() {
                 <SelectContent>
                   <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
                   <SelectItem value="EM_ROTA">Em Rota</SelectItem>
+                  <SelectItem value="ENTREGA_PARCIAL">Entrega Parcial</SelectItem>
                   <SelectItem value="ENTREGUE">Entregue</SelectItem>
                 </SelectContent>
               </Select>

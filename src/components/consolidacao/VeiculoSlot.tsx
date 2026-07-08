@@ -9,10 +9,11 @@ interface VeiculoSlotProps {
   pedidos: PedidoDTO[]
   pesoAtual: number
   onDesalocar?: (pedidoId: string) => void
+  onRegistrarFalta?: (pedidoId: string, faltas: { itemPedidoId: string; quantidadeFalta: number }[]) => void
   loadingId?: string
 }
 
-export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, loadingId }: VeiculoSlotProps) {
+export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, onRegistrarFalta, loadingId }: VeiculoSlotProps) {
   const pct = Math.min(100, (pesoAtual / veiculo.pesoMaximo) * 100)
   const barColor = pct >= 95 ? "bg-red-500" : pct >= 80 ? "bg-yellow-400" : "bg-green-600"
   const produtosAgregados = aggregateProdutosAlocados(pedidos)
@@ -48,7 +49,14 @@ export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, loadingI
       ) : (
         <div className="space-y-2">
           {pedidos.map((p) => (
-            <PedidoCard key={p.id} pedido={p} variant="alocado" onDesalocar={onDesalocar ? () => onDesalocar(p.id) : undefined} loading={loadingId === p.id} />
+            <PedidoCard
+              key={p.id}
+              pedido={p}
+              variant="alocado"
+              onDesalocar={onDesalocar ? () => onDesalocar(p.id) : undefined}
+              onRegistrarFalta={onRegistrarFalta ? (faltas) => onRegistrarFalta(p.id, faltas) : undefined}
+              loading={loadingId === p.id}
+            />
           ))}
         </div>
       )}

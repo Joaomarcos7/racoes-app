@@ -18,12 +18,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!rota) return NextResponse.json({ error: "Rota não encontrada" }, { status: 404 })
   if (rota.status === "FECHADA") return NextResponse.json({ error: "Rota já está fechada" }, { status: 400 })
 
+  const jaAlocado = rota.itens.some((ci) => ci.pedidoId === pedidoId)
+  if (jaAlocado) return NextResponse.json({ error: "Pedido já alocado nesta rota" }, { status: 400 })
+
   const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId }, include: { itens: true } })
   if (!pedido) return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 })
 
+  // Para pedidos com entrega parcial, considerar apenas o peso dos itens restantes
   const pesoAtual = rota.itens.reduce((acc, ci) =>
-    acc + ci.pedido.itens.reduce((s, i) => s + i.quantidade * i.pesoUnit, 0), 0)
-  const pesoPedido = pedido.itens.reduce((s, i) => s + i.quantidade * i.pesoUnit, 0)
+    acc + ci.pedido.itens.reduce((s, i) => s + (i.quantidade - i.quantidadeFalta) * i.pesoUnit, 0), 0)
+  const pesoPedido = pedido.itens.reduce((s, i) => s + (i.quantidade - i.quantidadeFalta) * i.pesoUnit, 0)
 
   if (pesoAtual + pesoPedido > rota.veiculo.pesoMaximo) {
     const disponivel = (rota.veiculo.pesoMaximo - pesoAtual).toFixed(1)

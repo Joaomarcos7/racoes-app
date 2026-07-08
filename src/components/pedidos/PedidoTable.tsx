@@ -11,7 +11,8 @@ import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 const entregaConfig: Record<string, { label: string; className: string }> = {
   AGUARDANDO: { label: "Aguardando", className: "bg-gray-100 text-gray-700" },
   EM_ROTA: { label: "Em Rota", className: "bg-blue-100 text-blue-700" },
-  ENTREGUE: { label: "Entregue", className: "bg-blue-100 text-blue-700" },
+  ENTREGA_PARCIAL: { label: "Parcial", className: "bg-amber-100 text-amber-700" },
+  ENTREGUE: { label: "Entregue", className: "bg-green-100 text-green-700" },
 }
 
 const pagConfig: Record<string, { label: string; className: string }> = {

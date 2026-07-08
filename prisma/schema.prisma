@@ -105,14 +105,15 @@ model HistoricoStatusPedido {
 }
 
 model ItemPedido {
-  id         String  @id @default(cuid())
-  pedidoId   String
-  pedido     Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  produtoId  String
-  produto    Produto @relation(fields: [produtoId], references: [id])
-  quantidade Int
-  pesoUnit   Float
-  valorUnit  Float
+  id              String  @id @default(cuid())
+  pedidoId        String
+  pedido          Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produtoId       String
+  produto         Produto @relation(fields: [produtoId], references: [id])
+  quantidade      Int
+  pesoUnit        Float
+  valorUnit       Float
+  quantidadeFalta Int     @default(0)
 }
 
 model ConsolidacaoRota {
@@ -129,13 +130,14 @@ model ConsolidacaoItem {
   id                 String           @id @default(cuid())
   consolidacaoRotaId String
   rota               ConsolidacaoRota @relation(fields: [consolidacaoRotaId], references: [id], onDelete: Cascade)
-  pedidoId           String           @unique
+  pedidoId           String
   pedido             Pedido           @relation(fields: [pedidoId], references: [id])
 }
 
 enum StatusEntrega {
   AGUARDANDO
   EM_ROTA
+  ENTREGA_PARCIAL
   ENTREGUE
 }
 

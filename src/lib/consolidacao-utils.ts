@@ -1,6 +1,22 @@
 interface ItemSimples { produto: { nome: string }; quantidade: number; pesoUnit: number }
 interface PedidoSimples { itens: ItemSimples[] }
 
+interface ItemComFalta { quantidade: number; pesoUnit: number; quantidadeFalta: number }
+
+export function calcularStatusEntregaAlocacao(itens: ItemComFalta[]): "EM_ROTA" | "ENTREGA_PARCIAL" {
+  return itens.some((i) => i.quantidadeFalta > 0) ? "ENTREGA_PARCIAL" : "EM_ROTA"
+}
+
+export function calcularPesoFaltante(itens: ItemComFalta[]): number {
+  return itens.reduce((acc, i) => acc + i.quantidadeFalta * i.pesoUnit, 0)
+}
+
+export function validateFalta(quantidade: number, quantidadeFalta: number): string | null {
+  if (quantidadeFalta < 0) return "Quantidade em falta não pode ser negativa"
+  if (quantidadeFalta > quantidade) return "Quantidade em falta não pode exceder a quantidade do item"
+  return null
+}
+
 export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: string; quantidade: number; pesoTotal: number }[] {
   const map = new Map<string, { quantidade: number; pesoTotal: number }>()
   for (const pedido of pedidos) {
