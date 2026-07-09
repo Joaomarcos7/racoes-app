@@ -34,8 +34,8 @@ const METODOS: { value: string; label: string }[] = [
   { value: "PIX_TERCEIROS", label: "Pix Terceiros" },
   { value: "BOLETO", label: "Boleto" },
   { value: "CHEQUE", label: "Cheque" },
-  { value: "CARTAO_CREDITO", label: "CartÃ£o de CrÃ©dito" },
-  { value: "CARTAO_DEBITO", label: "CartÃ£o de DÃ©bito" },
+  { value: "CARTAO_CREDITO", label: "Cartão de Crédito" },
+  { value: "CARTAO_DEBITO", label: "Cartão de Débito" },
 ]
 
 export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntregaFormProps) {
@@ -95,7 +95,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
         />
         {!selectedCliente && (
           <p className="text-xs text-amber-700 flex items-center gap-1 mt-1">
-            Cliente obrigatÃ³rio para pedido de entrega.{" "}
+            Cliente obrigatório para pedido de entrega.{" "}
             <Link href="/clientes/novo" className="underline font-medium" aria-label="Cadastrar cliente">
               Cadastrar cliente
             </Link>
@@ -156,7 +156,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
           </Select>
         </div>
         <div className="space-y-1">
-          <Label>MÃ©todo de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
+          <Label>Método de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
           <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
             <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
             <SelectContent>
@@ -167,12 +167,12 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
       </div>
       {statusPagamento === "FIADO" && (
         <div className="space-y-1">
-          <Label>Data mÃ¡xima de pagamento (Fiado) *</Label>
+          <Label>Data máxima de pagamento (Fiado) *</Label>
           <Input type="date" value={dataVencimentoFiado} onChange={(e) => setDataVencimentoFiado(e.target.value)} required />
         </div>
       )}
       <div className="space-y-1">
-        <Label>ObservaÃ§Ãµes</Label>
+        <Label>Observações</Label>
         <Input value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
       </div>
       <div className="flex gap-2 justify-end">
