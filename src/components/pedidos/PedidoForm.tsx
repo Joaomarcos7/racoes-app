@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -176,8 +176,8 @@ export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
               <Select value={tipoFiado} onValueChange={(v) => setTipoFiado(v as TipoFiado)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value=”INTEGRAL”>Integral — tudo em aberto</SelectItem>
-                  <SelectItem value=”PARCIAL”>Parcial — pagou parte agora</SelectItem>
+                  <SelectItem value="INTEGRAL">Integral — tudo em aberto</SelectItem>
+                  <SelectItem value="PARCIAL">Parcial — pagou parte agora</SelectItem>
                 </SelectContent>
               </Select>
             </div>
