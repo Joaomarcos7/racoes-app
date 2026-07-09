@@ -115,6 +115,25 @@ describe("calcularStatusFechamento", () => {
     const r = calcularStatusFechamento("ENTREGA_PARCIAL", true, [item(5, 10, 0)])
     expect(r).toEqual({ status: "ENTREGUE", resetFalta: true })
   })
+
+  it("pedido EM_ROTA (realocado de ENTREGA_PARCIAL) sem nova falta → ENTREGUE e reset", () => {
+    // statusAposAlocar mudou ENTREGA_PARCIAL → EM_ROTA ao realocar na rota 2
+    // driver não registrou falta na rota 2 = restante entregue
+    const r = calcularStatusFechamento("EM_ROTA", false, [item(5, 10, 2)])
+    expect(r).toEqual({ status: "ENTREGUE", resetFalta: true })
+  })
+
+  it("pedido EM_ROTA (realocado de ENTREGA_PARCIAL) com nova falta → ENTREGA_PARCIAL", () => {
+    // driver registrou nova falta na rota 2 = ainda parcial
+    const r = calcularStatusFechamento("EM_ROTA", true, [item(5, 10, 1)])
+    expect(r).toEqual({ status: "ENTREGA_PARCIAL", resetFalta: false })
+  })
+
+  it("pedido EM_ROTA normal (sem falta anterior) sem falta registrada → EM_ROTA", () => {
+    // pedido comum, nunca teve falta, rota fechando normalmente
+    const r = calcularStatusFechamento("EM_ROTA", false, [item(5, 10, 0)])
+    expect(r).toEqual({ status: "EM_ROTA", resetFalta: false })
+  })
 })
 
 describe("calcularPesoAlocar", () => {

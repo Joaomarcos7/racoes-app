@@ -7,6 +7,10 @@ const pedidoInclude = {
   cliente: true,
   itens: { include: { produto: true } },
   historicoStatus: { orderBy: { criadoEm: "asc" as const } },
+  consolidacoes: {
+    include: { rota: { include: { veiculo: true } } },
+    orderBy: { rota: { data: "asc" as const } },
+  },
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

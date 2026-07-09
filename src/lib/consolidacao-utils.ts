@@ -24,13 +24,15 @@ export function calcularStatusFechamento(
   temFaltaRegistrada: boolean,
   itens: ItemComFalta[]
 ): { status: "EM_ROTA" | "ENTREGA_PARCIAL" | "ENTREGUE"; resetFalta: boolean } {
-  if (statusAtual === "ENTREGA_PARCIAL" && !temFaltaRegistrada) {
+  const temFaltaAnterior = itens.some((i) => i.quantidadeFalta > 0)
+  // Havia falta pendente mas driver não registrou nova nesta rota → entregue
+  if (temFaltaAnterior && !temFaltaRegistrada) {
     return { status: "ENTREGUE", resetFalta: true }
   }
   if (itens.some((i) => i.quantidadeFalta > 0)) {
     return { status: "ENTREGA_PARCIAL", resetFalta: false }
   }
-  if (statusAtual === "ENTREGA_PARCIAL") {
+  if (statusAtual === "ENTREGA_PARCIAL" || temFaltaRegistrada) {
     return { status: "ENTREGUE", resetFalta: true }
   }
   return { status: "EM_ROTA", resetFalta: false }

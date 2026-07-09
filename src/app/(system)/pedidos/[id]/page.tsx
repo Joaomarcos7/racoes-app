@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { TIPO_BADGE } from "@/lib/produto-utils"
-import { Printer } from "lucide-react"
+import { Printer, Truck } from "lucide-react"
+import Link from "next/link"
 
 const entregaConfig: Record<string, { label: string; className: string }> = {
   AGUARDANDO: { label: "Aguardando", className: "bg-gray-100 text-gray-700" },
@@ -186,6 +187,48 @@ export default function PedidoDetailPage() {
               </li>
             ))}
           </ol>
+        </div>
+      )}
+      {pedido.consolidacoes && pedido.consolidacoes.length > 0 && (
+        <div className="bg-white rounded-lg border p-6">
+          <h3 className="font-semibold mb-3 text-gray-700 flex items-center gap-2">
+            <Truck size={16} className="text-blue-600" />
+            Rotas de Entrega
+          </h3>
+          <div className="space-y-3">
+            {pedido.consolidacoes.map((ci, idx) => (
+              <div key={ci.id} className="rounded-md border px-4 py-3 space-y-1">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-500">Rota {idx + 1}</span>
+                    <Link href={`/consolidacao/${ci.rota.id}`} className="font-semibold text-blue-700 hover:underline text-sm">
+                      {ci.rota.veiculo.placa}
+                    </Link>
+                    <span className="text-xs text-gray-500">{ci.rota.veiculo.modelo}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={ci.rota.status === "FECHADA" ? "bg-slate-100 text-slate-600" : "bg-blue-100 text-blue-700"}>
+                      {ci.rota.status === "FECHADA" ? "Fechada" : "Aberta"}
+                    </Badge>
+                    {ci.temFaltaRegistrada && (
+                      <Badge className="bg-amber-100 text-amber-700">Falta registrada</Badge>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400">{formatDate(ci.rota.data)}</p>
+                {ci.temFaltaRegistrada && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium text-amber-700">Itens em falta nesta rota:</p>
+                    {pedido.itens.filter(i => (i.quantidadeFalta ?? 0) > 0).map(i => (
+                      <p key={i.id} className="text-xs text-amber-600 ml-2">
+                        {i.produto.nome}: {i.quantidadeFalta} un ({(i.quantidadeFalta! * i.pesoUnit).toFixed(1)} kg)
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
       <div className="bg-white rounded-lg border p-6">

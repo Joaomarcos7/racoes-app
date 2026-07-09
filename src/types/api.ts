@@ -99,6 +99,11 @@ export interface PedidoDTO {
   valorEmAbertoFiado: number | null
   itens: ItemPedidoDTO[]
   historicoStatus?: HistoricoStatusPedidoDTO[]
+  consolidacoes?: Array<{
+    id: string
+    temFaltaRegistrada: boolean
+    rota: { id: string; data: string; status: "ABERTA" | "FECHADA"; veiculo: VeiculoDTO }
+  }>
   createdAt: string
   updatedAt: string
 }
