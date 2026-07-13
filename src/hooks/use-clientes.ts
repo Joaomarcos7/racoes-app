@@ -4,9 +4,14 @@ import { toast } from "sonner"
 
 interface PagedResult<T> { data: T[]; total: number; page: number; totalPages: number; hasNext: boolean; hasPrev: boolean }
 
-async function fetchClientes(search?: string, page = 1, limit = 15): Promise<PagedResult<ClienteDTO>> {
+interface FetchClientesParams { search?: string; cidade?: string; sortBy?: "nome" | "cidade"; sortDir?: "asc" | "desc"; page?: number; limit?: number }
+
+async function fetchClientes({ search, cidade, sortBy = "nome", sortDir = "asc", page = 1, limit = 15 }: FetchClientesParams = {}): Promise<PagedResult<ClienteDTO>> {
   const params = new URLSearchParams()
   if (search) params.set("search", search)
+  if (cidade) params.set("cidade", cidade)
+  params.set("sortBy", sortBy)
+  params.set("sortDir", sortDir)
   params.set("page", String(page))
   params.set("limit", String(limit))
   const res = await fetch(`/api/clientes?${params}`)
@@ -20,10 +25,10 @@ async function fetchCliente(id: string): Promise<ClienteDTO & { pedidos: PedidoD
   return res.json()
 }
 
-export function useClientes(search?: string, page = 1, limit = 15) {
+export function useClientes(params: FetchClientesParams = {}) {
   return useQuery({
-    queryKey: ["clientes", search, page, limit],
-    queryFn: () => fetchClientes(search, page, limit),
+    queryKey: ["clientes", params],
+    queryFn: () => fetchClientes(params),
   })
 }
 

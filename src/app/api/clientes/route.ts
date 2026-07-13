@@ -8,18 +8,24 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const search = req.nextUrl.searchParams.get("search") ?? ""
+  const cidade = req.nextUrl.searchParams.get("cidade") ?? ""
+  const sortBy = (req.nextUrl.searchParams.get("sortBy") ?? "nome") as "nome" | "cidade"
+  const sortDir = (req.nextUrl.searchParams.get("sortDir") ?? "asc") as "asc" | "desc"
   const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
 
   const where = {
     ativo: true,
     nome: search ? { contains: search } : undefined,
+    cidade: cidade ? { contains: cidade } : undefined,
   }
+
+  const orderBy = sortBy === "cidade" || sortBy === "nome" ? { [sortBy]: sortDir } : { nome: "asc" as const }
 
   const [total, clientes] = await Promise.all([
     prisma.cliente.count({ where }),
     prisma.cliente.findMany({
       where,
-      orderBy: { nome: "asc" },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
       include: {

@@ -25,7 +25,7 @@ export function ClienteSearchInput({ onSelect, onClear, selected, placeholder = 
     return () => clearTimeout(t)
   }, [query])
 
-  const { data: result } = useClientes(debouncedQuery || undefined, 1, 20)
+  const { data: result } = useClientes({ search: debouncedQuery || undefined, page: 1, limit: 20 })
   const filtered = debouncedQuery ? (result?.data ?? []) : []
 
   useEffect(() => {

@@ -49,7 +49,7 @@ export function PedidoForm({ onSubmit, onCancel, loading }: PedidoFormProps) {
   const [valorAdiantadoMasked, setValorAdiantadoMasked] = useState("0,00")
   const [adiantadoError, setAdiantadoError] = useState<string | null>(null)
   const [descontoMasked, setDescontoMasked] = useState("0,00")
-  const { data: result } = useClientes(undefined, 1, 100)
+  const { data: result } = useClientes({ page: 1, limit: 100 })
   const clientes = result?.data ?? []
 
   const total = itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
