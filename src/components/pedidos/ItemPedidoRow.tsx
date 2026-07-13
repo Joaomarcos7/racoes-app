@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
+import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
 import { Trash2 } from "lucide-react"
 import { calcularValorPesoVariavel } from "@/lib/pedido-utils"
 import { TIPO_BADGE } from "@/lib/produto-utils"
@@ -12,7 +13,8 @@ export interface ItemLocal {
   nome: string
   tipo?: string
   pesoUnit: number    // peso padrão do saco (kg)
-  valorUnit: number   // preço por saco
+  valorUnit: number   // preço original por saco
+  valorUnitOverride?: number  // preço negociado (desconto por unidade)
   quantidade: number  // número de sacos inteiros
   pesoVariavel: boolean
   pesoKg?: number     // peso digitado em modo variável (kg)
@@ -23,12 +25,15 @@ interface ItemPedidoRowProps {
   onChange: (id: string, quantidade: number) => void
   onTogglePesoVariavel?: (id: string) => void
   onChangePesoKg?: (id: string, pesoKg: number | undefined) => void
+  onChangeValorUnit?: (id: string, valor: number | undefined) => void
   onRemove: (id: string) => void
   allowPesoVariavel?: boolean
 }
 
-export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePesoKg, onRemove, allowPesoVariavel }: ItemPedidoRowProps) {
+export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePesoKg, onChangeValorUnit, onRemove, allowPesoVariavel }: ItemPedidoRowProps) {
   const [pesoInput, setPesoInput] = useState(item.pesoKg != null ? String(item.pesoKg) : "")
+  const valorEfetivo = item.valorUnitOverride ?? item.valorUnit
+  const [valorInput, setValorInput] = useState(formatMoneyInput(String(valorEfetivo.toFixed(2)).replace(".", ",")))
 
   // Sync local string when mode is toggled off externally
   useEffect(() => {
@@ -36,8 +41,8 @@ export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePe
   }, [item.pesoVariavel])
 
   const subtotal = item.pesoVariavel && item.pesoKg != null
-    ? calcularValorPesoVariavel(item.pesoKg, item.valorUnit, item.pesoUnit)
-    : item.quantidade * item.valorUnit
+    ? calcularValorPesoVariavel(item.pesoKg, valorEfetivo, item.pesoUnit)
+    : item.quantidade * valorEfetivo
 
   function handlePesoChange(raw: string) {
     setPesoInput(raw)
@@ -58,7 +63,29 @@ export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePe
       <td className="py-2 pr-3 text-sm text-right text-gray-600">
         {item.pesoVariavel && item.pesoKg != null ? `${item.pesoKg} kg` : `${item.pesoUnit} kg/saco`}
       </td>
-      <td className="py-2 pr-3 text-sm text-right">{formatCurrency(item.valorUnit)}</td>
+      <td className="py-2 pr-3 text-sm text-right">
+        {onChangeValorUnit ? (
+          <div className="flex flex-col items-end gap-0.5">
+            <Input
+              aria-label="Valor por unidade"
+              inputMode="numeric"
+              value={valorInput}
+              onChange={(e) => {
+                const masked = formatMoneyInput(e.target.value)
+                setValorInput(masked)
+                const parsed = parseMaskedMoney(masked)
+                onChangeValorUnit(item.produtoId, parsed > 0 ? parsed : undefined)
+              }}
+              className={`w-24 h-7 text-right text-sm ${item.valorUnitOverride != null && item.valorUnitOverride < item.valorUnit ? "border-amber-400 bg-amber-50" : ""}`}
+            />
+            {item.valorUnitOverride != null && item.valorUnitOverride < item.valorUnit && (
+              <span className="text-[10px] text-amber-700 line-through">{formatCurrency(item.valorUnit)}</span>
+            )}
+          </div>
+        ) : (
+          formatCurrency(valorEfetivo)
+        )}
+      </td>
       <td className="py-2 pr-3">
         {item.pesoVariavel ? (
           <Input

@@ -53,7 +53,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
   const [adiantadoError, setAdiantadoError] = useState<string | null>(null)
   const [descontoMasked, setDescontoMasked] = useState("0,00")
 
-  const total = itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
+  const total = itens.reduce((acc, i) => acc + i.quantidade * (i.valorUnitOverride ?? i.valorUnit), 0)
   const pesoTotal = itens.reduce((acc, i) => acc + i.quantidade * i.pesoUnit, 0)
 
   function handleAddProduto(p: ProdutoDTO) {
@@ -66,6 +66,10 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
 
   function handleChangeQtd(produtoId: string, quantidade: number) {
     setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, quantidade: Math.max(1, quantidade) } : i))
+  }
+
+  function handleChangeValorUnit(produtoId: string, valor: number | undefined) {
+    setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, valorUnitOverride: valor } : i))
   }
 
   function handleRemove(produtoId: string) {
@@ -84,7 +88,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
     onSubmit({
       tipoPedido: "ENTREGA",
       clienteId: selectedCliente.id,
-      itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade })),
+      itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, valorUnitOverride: i.valorUnitOverride })),
       statusPagamento,
       metodoPagamento: statusPagamento === "FIADO" ? undefined : (metodoPagamento || undefined),
       observacoes: observacoes || undefined,
@@ -135,7 +139,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
             </thead>
             <tbody>
               {itens.map((item) => (
-                <ItemPedidoRow key={item.produtoId} item={item} onChange={handleChangeQtd} onRemove={handleRemove} />
+                <ItemPedidoRow key={item.produtoId} item={item} onChange={handleChangeQtd} onChangeValorUnit={handleChangeValorUnit} onRemove={handleRemove} />
               ))}
             </tbody>
           </table>

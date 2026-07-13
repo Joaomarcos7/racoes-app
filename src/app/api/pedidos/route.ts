@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado } from "@/lib/pedido-utils"
+import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem } from "@/lib/pedido-utils"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
 const pedidoInclude = {
@@ -87,12 +87,13 @@ export async function POST(req: NextRequest) {
   }
 
   // pre-compute item values to calculate totalPedido for fiado
-  const itensComValor = itens.map((item: { produtoId: string; quantidade: number; pesoVariavelKg?: number }) => {
+  const itensComValor = itens.map((item: { produtoId: string; quantidade: number; pesoVariavelKg?: number; valorUnitOverride?: number }) => {
     const produto = produtoMap.get(item.produtoId)!
+    const valorBase = resolverValorUnitItem(produto.valorUnitario, item.valorUnitOverride)
     if (item.pesoVariavelKg != null) {
-      return { ...item, valorUnit: calcularValorPesoVariavel(item.pesoVariavelKg, produto.valorUnitario, produto.peso), pesoUnit: item.pesoVariavelKg, quantidadeFinal: 1 }
+      return { ...item, valorUnit: calcularValorPesoVariavel(item.pesoVariavelKg, valorBase, produto.peso), pesoUnit: item.pesoVariavelKg, quantidadeFinal: 1 }
     }
-    return { ...item, valorUnit: produto.valorUnitario, pesoUnit: produto.peso, quantidadeFinal: item.quantidade }
+    return { ...item, valorUnit: valorBase, pesoUnit: produto.peso, quantidadeFinal: item.quantidade }
   })
   const descontoVal = typeof desconto === "number" && desconto > 0 ? desconto : 0
   const subtotal = itensComValor.reduce((acc: number, i: { quantidadeFinal: number; valorUnit: number }) => acc + i.quantidadeFinal * i.valorUnit, 0)

@@ -31,6 +31,18 @@ export function calcularValorEmAberto(total: number, tipoFiado: string, valorAdi
   return Math.max(0, total - (valorAdiantado ?? 0))
 }
 
+export function resolverValorUnitItem(valorUnitario: number, override: number | undefined): number {
+  if (override == null || override <= 0) return valorUnitario
+  return override
+}
+
+export function validarValorUnitOverride(override: number | undefined, valorUnitario: number): string | null {
+  if (override == null) return null
+  if (override <= 0) return "Valor por unidade deve ser maior que zero"
+  if (override > valorUnitario) return "Valor por unidade não pode ser maior que o preço original"
+  return null
+}
+
 export function validarAdiantadoFiado(valorAdiantado: number, totalPedido: number): string | null {
   if (valorAdiantado >= totalPedido) return "Valor adiantado deve ser menor que o total do pedido"
   return null

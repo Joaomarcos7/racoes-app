@@ -53,8 +53,9 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
   const [descontoMasked, setDescontoMasked] = useState("0,00")
 
   const total = itens.reduce((acc, i) => {
-    if (i.pesoVariavel && i.pesoKg != null) return acc + calcularValorPesoVariavel(i.pesoKg, i.valorUnit, i.pesoUnit)
-    return acc + i.quantidade * i.valorUnit
+    const v = i.valorUnitOverride ?? i.valorUnit
+    if (i.pesoVariavel && i.pesoKg != null) return acc + calcularValorPesoVariavel(i.pesoKg, v, i.pesoUnit)
+    return acc + i.quantidade * v
   }, 0)
   const pesoTotal = itens.reduce((acc, i) => acc + (i.pesoVariavel && i.pesoKg != null ? i.pesoKg : i.quantidade * i.pesoUnit), 0)
 
@@ -78,6 +79,10 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
     setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, pesoKg } : i))
   }
 
+  function handleChangeValorUnit(produtoId: string, valor: number | undefined) {
+    setItens((prev) => prev.map((i) => i.produtoId === produtoId ? { ...i, valorUnitOverride: valor } : i))
+  }
+
   function handleRemove(produtoId: string) {
     setItens((prev) => prev.filter((i) => i.produtoId !== produtoId))
   }
@@ -97,6 +102,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
         produtoId: i.produtoId,
         quantidade: i.quantidade,
         pesoVariavelKg: i.pesoVariavel ? i.pesoKg : undefined,
+        valorUnitOverride: i.valorUnitOverride,
       })),
       statusPagamento,
       metodoPagamento: statusPagamento === "FIADO" ? undefined : (metodoPagamento || undefined),
@@ -144,6 +150,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
                   onChange={handleChangeQtd}
                   onTogglePesoVariavel={handleTogglePesoVariavel}
                   onChangePesoKg={handleChangePesoKg}
+                  onChangeValorUnit={handleChangeValorUnit}
                   onRemove={handleRemove}
                   allowPesoVariavel
                 />

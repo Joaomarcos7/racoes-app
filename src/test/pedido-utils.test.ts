@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -110,6 +110,46 @@ describe("calcularValorEmAberto", () => {
 
   it("PARCIAL clamps to zero if adiantado exceeds total", () => {
     expect(calcularValorEmAberto(100, "PARCIAL", 150)).toBe(0)
+  })
+})
+
+describe("resolverValorUnitItem", () => {
+  it("uses produto valorUnitario when no override", () => {
+    expect(resolverValorUnitItem(100, undefined)).toBe(100)
+  })
+
+  it("uses override when provided and valid", () => {
+    expect(resolverValorUnitItem(100, 80)).toBe(80)
+  })
+
+  it("uses produto valorUnitario when override is zero", () => {
+    expect(resolverValorUnitItem(100, 0)).toBe(100)
+  })
+
+  it("uses produto valorUnitario when override is negative", () => {
+    expect(resolverValorUnitItem(100, -5)).toBe(100)
+  })
+})
+
+describe("validarValorUnitOverride", () => {
+  it("returns null when override is undefined", () => {
+    expect(validarValorUnitOverride(undefined, 100)).toBeNull()
+  })
+
+  it("returns null when override is positive and below original", () => {
+    expect(validarValorUnitOverride(80, 100)).toBeNull()
+  })
+
+  it("returns error when override exceeds original price", () => {
+    expect(validarValorUnitOverride(120, 100)).not.toBeNull()
+  })
+
+  it("returns error when override equals zero", () => {
+    expect(validarValorUnitOverride(0, 100)).not.toBeNull()
+  })
+
+  it("returns null when override equals original (no discount = ok)", () => {
+    expect(validarValorUnitOverride(100, 100)).toBeNull()
   })
 })
 
