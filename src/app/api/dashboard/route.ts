@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates } from "@/lib/dashboard-utils"
+import { aggregateSaidasPorTipo, calcularSaldoLiquido } from "@/lib/saida-utils"
 
 const weekdays = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"]
 const months = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
@@ -59,6 +60,8 @@ export async function GET(req: NextRequest) {
     orderBy: { dataPedido: "desc" },
   })
 
+  const saidas = await prisma.saida.findMany({ where: { data: { gte: start, lte: end } } })
+
   const [totalClientes, novosClientes] = await Promise.all([
     prisma.cliente.count({ where: { ativo: true } }),
     prisma.cliente.count({ where: { ativo: true, createdAt: { gte: start, lte: end } } }),
@@ -102,5 +105,9 @@ export async function GET(req: NextRequest) {
     total: p.itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0),
   }))
 
-  return NextResponse.json({ vendasTotal, numeroPedidos, ticketMedio, totalFiado, pesoVendido, clientesComFiado: clientesFiado.length, totalClientes, novosClientes, pedidosEntrega: pedidosEntrega.length, pedidosBalcao: pedidosBalcao.length, vendasEntrega, vendasBalcao, entregasRealizadas, metodosPagamento, topClientes, grafico, ultimosPedidos, clientesFiado })
+  const totalSaidas = saidas.reduce((acc, s) => acc + s.valor, 0)
+  const saldoLiquido = calcularSaldoLiquido(vendasTotal, totalSaidas)
+  const topSaidasPorTipo = aggregateSaidasPorTipo(saidas)
+
+  return NextResponse.json({ vendasTotal, numeroPedidos, ticketMedio, totalFiado, pesoVendido, clientesComFiado: clientesFiado.length, totalClientes, novosClientes, pedidosEntrega: pedidosEntrega.length, pedidosBalcao: pedidosBalcao.length, vendasEntrega, vendasBalcao, entregasRealizadas, metodosPagamento, topClientes, grafico, ultimosPedidos, clientesFiado, totalSaidas, saldoLiquido, topSaidasPorTipo })
 }

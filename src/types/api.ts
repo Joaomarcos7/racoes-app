@@ -1,3 +1,30 @@
+export type TipoSaida =
+  | "PAGAMENTO_FUNCIONARIO"
+  | "DIESEL"
+  | "VIAGEM_MOTORISTA"
+  | "OFICINA"
+  | "PRODUCAO_TERCEIRIZADA"
+  | "DESPACHO_VIAGEM"
+  | "OUTRO"
+
+export interface SaidaDTO {
+  id: string
+  data: string
+  tipo: TipoSaida
+  descricao: string | null
+  valor: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SaidasListDTO {
+  data: SaidaDTO[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export type TipoProduto = "CONSUMIDOR_FINAL" | "ATACADO"
 
 export interface ProdutoDTO {
@@ -138,4 +165,7 @@ export interface DashboardKPIsDTO {
   grafico: Array<{ label: string; valor: number }>
   ultimosPedidos: PedidoDTO[]
   clientesFiado: ClienteDTO[]
+  totalSaidas: number
+  saldoLiquido: number
+  topSaidasPorTipo: Array<{ tipo: string; total: number }>
 }

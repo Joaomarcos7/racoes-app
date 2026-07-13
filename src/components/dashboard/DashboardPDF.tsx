@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
 import type { DashboardKPIsDTO } from "@/types/api"
+import { labelTipoSaida } from "@/lib/saida-utils"
 
 const s = StyleSheet.create({
   page: { padding: 32, fontFamily: "Helvetica" },
@@ -31,10 +32,16 @@ export function DashboardPDF({ data, periodo }: { data: DashboardKPIsDTO; period
         <Text style={s.title}>Comercial Ouriques — Dashboard</Text>
         <Text style={s.subtitle}>Período: {periodoLabel[periodo] ?? periodo} · Gerado em {new Date().toLocaleDateString("pt-BR")}</Text>
         <View style={s.row}>
-          <View style={s.kpi}><Text style={s.kpiLabel}>Vendas</Text><Text style={s.kpiValue}>{fmtBRL(data.vendasTotal)}</Text></View>
+          <View style={s.kpi}><Text style={s.kpiLabel}>Vendas (Entradas)</Text><Text style={s.kpiValue}>{fmtBRL(data.vendasTotal)}</Text></View>
+          <View style={s.kpi}><Text style={s.kpiLabel}>Total Saídas</Text><Text style={[s.kpiValue, { color: "#DC2626" }]}>{fmtBRL(data.totalSaidas)}</Text></View>
+          <View style={s.kpi}><Text style={s.kpiLabel}>Saldo Líquido</Text><Text style={[s.kpiValue, { color: data.saldoLiquido >= 0 ? "#15803D" : "#DC2626" }]}>{fmtBRL(data.saldoLiquido)}</Text></View>
+          <View style={s.kpi}><Text style={s.kpiLabel}>Fiado</Text><Text style={[s.kpiValue, { color: "#e67e22" }]}>{fmtBRL(data.totalFiado)}</Text></View>
+        </View>
+        <View style={s.row}>
           <View style={s.kpi}><Text style={s.kpiLabel}>Pedidos</Text><Text style={s.kpiValue}>{data.numeroPedidos}</Text></View>
           <View style={s.kpi}><Text style={s.kpiLabel}>Ticket Médio</Text><Text style={s.kpiValue}>{fmtBRL(data.ticketMedio)}</Text></View>
-          <View style={s.kpi}><Text style={s.kpiLabel}>Fiado</Text><Text style={[s.kpiValue, { color: "#e67e22" }]}>{fmtBRL(data.totalFiado)}</Text></View>
+          <View style={s.kpi}><Text style={s.kpiLabel}>Entregas</Text><Text style={s.kpiValue}>{data.pedidosEntrega}</Text></View>
+          <View style={s.kpi}><Text style={s.kpiLabel}>Balcão</Text><Text style={s.kpiValue}>{data.pedidosBalcao}</Text></View>
         </View>
         <Text style={s.sectionTitle}>Últimos Pedidos</Text>
         <View style={s.tableHeader}>
@@ -49,6 +56,21 @@ export function DashboardPDF({ data, periodo }: { data: DashboardKPIsDTO; period
             <Text style={[s.td, s.col2]}>{p.statusPagamento}</Text>
           </View>
         ))}
+        {data.topSaidasPorTipo && data.topSaidasPorTipo.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>Maiores Custos por Tipo</Text>
+            <View style={s.tableHeader}>
+              <Text style={[s.th, s.col1]}>Tipo</Text>
+              <Text style={[s.th, s.col2]}>Total</Text>
+            </View>
+            {data.topSaidasPorTipo.map((s2, i) => (
+              <View key={s2.tipo} style={[s.tableRow, { backgroundColor: i % 2 === 0 ? "#fff" : "#f9f9f9" }]}>
+                <Text style={[s.td, s.col1]}>{labelTipoSaida(s2.tipo)}</Text>
+                <Text style={[s.td, s.col2]}>{fmtBRL(s2.total)}</Text>
+              </View>
+            ))}
+          </>
+        )}
         {data.clientesFiado.length > 0 && (
           <>
             <Text style={s.sectionTitle}>Clientes com Fiado</Text>

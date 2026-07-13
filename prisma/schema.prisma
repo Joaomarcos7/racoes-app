@@ -163,6 +163,26 @@ enum StatusRota {
   FECHADA
 }
 
+model Saida {
+  id        String     @id @default(cuid())
+  data      DateTime   @default(now())
+  tipo      TipoSaida
+  descricao String?
+  valor     Float
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+enum TipoSaida {
+  PAGAMENTO_FUNCIONARIO
+  DIESEL
+  VIAGEM_MOTORISTA
+  OFICINA
+  PRODUCAO_TERCEIRIZADA
+  DESPACHO_VIAGEM
+  OUTRO
+}
+
 model Notificacao {
   id        String          @id @default(cuid())
   tipo      TipoNotificacao

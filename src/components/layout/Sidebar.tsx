@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Package, Users, ShoppingCart,
-  Truck, ClipboardList, LogOut, Menu, X
+  Truck, ClipboardList, LogOut, Menu, X, TrendingDown
 } from "lucide-react"
 import { NotificacaoBell } from "@/components/layout/NotificacaoBell"
 
@@ -17,6 +17,7 @@ const links = [
   { href: "/produtos", label: "Produtos", icon: Package },
   { href: "/veiculos", label: "Veículos", icon: Truck },
   { href: "/consolidacao", label: "Consolidação", icon: ClipboardList },
+  { href: "/saidas", label: "Saídas", icon: TrendingDown },
 ]
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {

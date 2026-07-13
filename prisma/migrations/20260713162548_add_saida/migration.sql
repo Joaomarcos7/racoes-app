@@ -1,0 +1,10 @@
+-- CreateTable
+CREATE TABLE "Saida" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "data" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "tipo" TEXT NOT NULL,
+    "descricao" TEXT,
+    "valor" REAL NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
