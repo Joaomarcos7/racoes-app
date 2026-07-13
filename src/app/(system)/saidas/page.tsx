@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/Pagination"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { labelTipoSaida, TIPOS_SAIDA } from "@/lib/saida-utils"
 import { Trash2, Pencil } from "lucide-react"
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
 export default function SaidasPage() {
   const [dataInicio, setDataInicio] = useState("")
@@ -109,15 +110,16 @@ export default function SaidasPage() {
                         <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
                           <Link href={`/saidas/${s.id}`}><Pencil size={13} /></Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-red-600 hover:text-red-700"
-                          disabled={deleteMutation.isPending}
-                          onClick={() => { if (confirm("Excluir esta saída?")) deleteMutation.mutate(s.id) }}
-                        >
-                          <Trash2 size={13} />
-                        </Button>
+                        <ConfirmDeleteDialog onConfirm={() => deleteMutation.mutate(s.id)} description="Esta saída será excluída permanentemente.">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-red-600 hover:text-red-700"
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash2 size={13} />
+                          </Button>
+                        </ConfirmDeleteDialog>
                       </div>
                     </td>
                   </tr>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
 import { labelTipoSaida } from "@/lib/saida-utils"
 import { Trash2 } from "lucide-react"
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
 export default function SaidaDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -19,21 +20,21 @@ export default function SaidaDetailPage() {
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!saida) return <p className="text-sm text-red-500">Saída não encontrada.</p>
 
-  function handleDelete() {
-    if (!confirm("Excluir esta saída?")) return
-    deleteMutation.mutate(id, { onSuccess: () => router.push("/saidas") })
-  }
-
   return (
     <div className="max-w-xl space-y-4">
       <PageHeader
         title="Detalhe da Saída"
         description={new Date(saida.data).toLocaleString("pt-BR", { dateStyle: "long", timeStyle: "short" })}
         action={
-          <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" onClick={handleDelete} disabled={deleteMutation.isPending}>
-            <Trash2 size={14} className="mr-1.5" />
-            Excluir
-          </Button>
+          <ConfirmDeleteDialog
+            onConfirm={() => deleteMutation.mutate(id, { onSuccess: () => router.push("/saidas") })}
+            description="Esta saída será excluída permanentemente."
+          >
+            <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" disabled={deleteMutation.isPending}>
+              <Trash2 size={14} className="mr-1.5" />
+              Excluir
+            </Button>
+          </ConfirmDeleteDialog>
         }
       />
       <div className="bg-white rounded-lg border p-6 space-y-4">
