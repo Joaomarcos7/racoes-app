@@ -11,7 +11,8 @@ import { ClienteSearchInput } from "./ClienteSearchInput"
 import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
 import { formatCurrency } from "@/lib/utils"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
-import type { ClienteDTO, ProdutoDTO } from "@/types/api"
+import { validarAdiantadoFiado } from "@/lib/pedido-utils"
+import type { ClienteDTO, ProdutoDTO, TipoFiado } from "@/types/api"
 
 interface PedidoEntregaFormProps {
   onSubmit: (data: {
@@ -22,6 +23,8 @@ interface PedidoEntregaFormProps {
     metodoPagamento?: string
     observacoes?: string
     dataVencimentoFiado?: string
+    tipoFiado?: TipoFiado
+    valorAdiantadoFiado?: number
     desconto?: number
   }) => void
   onCancel: () => void
@@ -45,6 +48,9 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
   const [metodoPagamento, setMetodoPagamento] = useState("")
   const [observacoes, setObservacoes] = useState("")
   const [dataVencimentoFiado, setDataVencimentoFiado] = useState("")
+  const [tipoFiado, setTipoFiado] = useState<TipoFiado>("INTEGRAL")
+  const [valorAdiantadoMasked, setValorAdiantadoMasked] = useState("0,00")
+  const [adiantadoError, setAdiantadoError] = useState<string | null>(null)
   const [descontoMasked, setDescontoMasked] = useState("0,00")
 
   const total = itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
@@ -69,14 +75,22 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedCliente) return
+    if (statusPagamento === "FIADO" && tipoFiado === "PARCIAL") {
+      const totalFinal = Math.max(0, total - parseMaskedMoney(descontoMasked))
+      const err = validarAdiantadoFiado(parseMaskedMoney(valorAdiantadoMasked), totalFinal)
+      if (err) { setAdiantadoError(err); return }
+    }
+    setAdiantadoError(null)
     onSubmit({
       tipoPedido: "ENTREGA",
       clienteId: selectedCliente.id,
       itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade })),
       statusPagamento,
-      metodoPagamento: metodoPagamento || undefined,
+      metodoPagamento: statusPagamento === "FIADO" ? undefined : (metodoPagamento || undefined),
       observacoes: observacoes || undefined,
       dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? dataVencimentoFiado : undefined,
+      tipoFiado: statusPagamento === "FIADO" ? tipoFiado : undefined,
+      valorAdiantadoFiado: statusPagamento === "FIADO" && tipoFiado === "PARCIAL" ? parseMaskedMoney(valorAdiantadoMasked) : undefined,
       desconto: parseMaskedMoney(descontoMasked) || undefined,
     })
   }
@@ -143,11 +157,11 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
           </div>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className={statusPagamento === "FIADO" ? "space-y-1" : "grid grid-cols-2 gap-3"}>
         <div className="space-y-1">
-          <Label>Status Pagamento</Label>
+          <Label htmlFor="status-pagamento-entrega">Status Pagamento</Label>
           <Select value={statusPagamento} onValueChange={setStatusPagamento}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger id="status-pagamento-entrega" aria-label="Status Pagamento"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="PENDENTE">Pendente</SelectItem>
               <SelectItem value="PAGO">Pago</SelectItem>
@@ -155,20 +169,50 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <Label>Método de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
-          <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
-            <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-            <SelectContent>
-              {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+        {statusPagamento !== "FIADO" && (
+          <div className="space-y-1">
+            <Label>Método de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
+            <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
+              <SelectTrigger aria-label="Método de Pagamento"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectContent>
+                {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
       {statusPagamento === "FIADO" && (
-        <div className="space-y-1">
-          <Label>Data máxima de pagamento (Fiado) *</Label>
-          <Input type="date" value={dataVencimentoFiado} onChange={(e) => setDataVencimentoFiado(e.target.value)} required />
+        <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50 p-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="tipo-fiado-entrega">Tipo de Fiado *</Label>
+              <Select value={tipoFiado} onValueChange={(v) => setTipoFiado(v as TipoFiado)}>
+                <SelectTrigger id="tipo-fiado-entrega" aria-label="Tipo de Fiado"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INTEGRAL">Integral — tudo em aberto</SelectItem>
+                  <SelectItem value="PARCIAL">Parcial — pagou parte agora</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="data-vencimento-entrega">Data máxima de pagamento *</Label>
+              <Input id="data-vencimento-entrega" type="date" value={dataVencimentoFiado} onChange={(e) => setDataVencimentoFiado(e.target.value)} required />
+            </div>
+          </div>
+          {tipoFiado === "PARCIAL" && (
+            <div className="space-y-1">
+              <Label htmlFor="valor-adiantado-entrega">Valor pago adiantado (R$) *</Label>
+              <Input
+                id="valor-adiantado-entrega"
+                inputMode="numeric"
+                value={valorAdiantadoMasked}
+                onChange={(e) => { setValorAdiantadoMasked(formatMoneyInput(e.target.value)); setAdiantadoError(null) }}
+                className={adiantadoError ? "border-red-500" : ""}
+                required
+              />
+              {adiantadoError && <p className="text-xs text-red-600">{adiantadoError}</p>}
+            </div>
+          )}
         </div>
       )}
       <div className="space-y-1">

@@ -1,5 +1,10 @@
 import { render, screen, fireEvent } from "@testing-library/react"
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeAll } from "vitest"
+
+beforeAll(() => {
+  Element.prototype.scrollIntoView = vi.fn()
+  window.HTMLElement.prototype.hasPointerCapture = vi.fn()
+})
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PedidoEntregaForm } from "@/components/pedidos/PedidoEntregaForm"
 import type { ClienteDTO } from "@/types/api"
@@ -83,5 +88,39 @@ describe("PedidoEntregaForm", () => {
     render(<PedidoEntregaForm onSubmit={vi.fn()} onCancel={onCancel} />, { wrapper })
     fireEvent.click(screen.getByRole("button", { name: /cancelar/i }))
     expect(onCancel).toHaveBeenCalled()
+  })
+
+  it("shows tipo fiado selector when FIADO selected", () => {
+    render(<PedidoEntregaForm onSubmit={vi.fn()} onCancel={vi.fn()} />, { wrapper })
+    fireEvent.click(screen.getByRole("combobox", { name: /status pagamento/i }))
+    fireEvent.click(screen.getByRole("option", { name: /fiado/i }))
+    expect(screen.getByRole("combobox", { name: /tipo de fiado/i })).toBeInTheDocument()
+  })
+
+  it("shows valor adiantado input when FIADO PARCIAL", () => {
+    render(<PedidoEntregaForm onSubmit={vi.fn()} onCancel={vi.fn()} />, { wrapper })
+    fireEvent.click(screen.getByRole("combobox", { name: /status pagamento/i }))
+    fireEvent.click(screen.getByRole("option", { name: /fiado/i }))
+    fireEvent.click(screen.getByRole("combobox", { name: /tipo de fiado/i }))
+    fireEvent.click(screen.getByRole("option", { name: /parcial/i }))
+    expect(screen.getByLabelText(/valor pago adiantado/i)).toBeInTheDocument()
+  })
+
+  it("hides metodo pagamento when FIADO selected", () => {
+    render(<PedidoEntregaForm onSubmit={vi.fn()} onCancel={vi.fn()} />, { wrapper })
+    fireEvent.click(screen.getByRole("combobox", { name: /status pagamento/i }))
+    fireEvent.click(screen.getByRole("option", { name: /fiado/i }))
+    expect(screen.queryByRole("combobox", { name: /método de pagamento/i })).not.toBeInTheDocument()
+  })
+
+  it("submits tipoFiado INTEGRAL when FIADO INTEGRAL", () => {
+    const onSubmit = vi.fn()
+    render(<PedidoEntregaForm onSubmit={onSubmit} onCancel={vi.fn()} />, { wrapper })
+    fireEvent.click(screen.getByRole("button", { name: /selecionar cliente/i }))
+    fireEvent.click(screen.getByRole("combobox", { name: /status pagamento/i }))
+    fireEvent.click(screen.getByRole("option", { name: /fiado/i }))
+    fireEvent.change(screen.getByLabelText(/data máxima de pagamento/i), { target: { value: "2025-12-31" } })
+    fireEvent.submit(screen.getByRole("form"))
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ tipoFiado: "INTEGRAL", statusPagamento: "FIADO" }))
   })
 })
