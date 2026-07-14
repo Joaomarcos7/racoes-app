@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader"
 import { PainelPedidos } from "@/components/consolidacao/PainelPedidos"
 import { PainelVeiculos } from "@/components/consolidacao/PainelVeiculos"
 import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta, PesoExcedidoError } from "@/hooks/use-consolidacao"
+import { ConfirmActionDialog } from "@/components/ui/ConfirmActionDialog"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +22,7 @@ export default function ConsolidacaoDetailPage() {
   const reabrirMutation = useReabrirRota(id)
   const faltaMutation = useRegistrarFalta(id)
   const [loadingPedidoId, setLoadingPedidoId] = useState<string | undefined>()
+  const [pesoExcedidoState, setPesoExcedidoState] = useState<{ pedidoId: string; excesso: number } | null>(null)
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!data) return <p className="text-sm text-red-500">Rota não encontrada.</p>
@@ -33,10 +35,7 @@ export default function ConsolidacaoDetailPage() {
       await alocarMutation.mutateAsync({ pedidoId, force })
     } catch (err) {
       if (err instanceof PesoExcedidoError) {
-        const confirmado = window.confirm(
-          `⚠️ Peso máximo do veículo ultrapassado em ${err.excesso.toFixed(1)} kg.\n\nDeseja alocar o pedido mesmo assim?`
-        )
-        if (confirmado) await handleAlocar(pedidoId, true)
+        setPesoExcedidoState({ pedidoId, excesso: err.excesso })
       } else {
         toast.error(err instanceof Error ? err.message : "Erro ao alocar pedido")
       }
@@ -51,6 +50,22 @@ export default function ConsolidacaoDetailPage() {
   }
 
   return (
+    <>
+    <ConfirmActionDialog
+      open={!!pesoExcedidoState}
+      onOpenChange={(open) => { if (!open) setPesoExcedidoState(null) }}
+      title="Peso máximo ultrapassado"
+      description={pesoExcedidoState ? `O peso máximo do veículo foi ultrapassado em ${pesoExcedidoState.excesso.toFixed(1)} kg. Deseja alocar o pedido mesmo assim?` : ""}
+      confirmLabel="Alocar mesmo assim"
+      confirmClassName="bg-amber-600 hover:bg-amber-700"
+      onConfirm={() => {
+        if (pesoExcedidoState) {
+          const pedidoId = pesoExcedidoState.pedidoId
+          setPesoExcedidoState(null)
+          handleAlocar(pedidoId, true)
+        }
+      }}
+    />
     <div>
       <PageHeader
         title={`Rota — ${data.veiculo.placa}`}
@@ -98,5 +113,6 @@ export default function ConsolidacaoDetailPage() {
         </div>
       )}
     </div>
+    </>
   )
 }
