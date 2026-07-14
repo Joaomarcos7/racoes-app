@@ -68,6 +68,16 @@ export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: str
   return Array.from(map.entries()).map(([nome, v]) => ({ nome, ...v }))
 }
 
+export function validarPesoAlocacao(
+  pesoAtual: number,
+  pesoPedido: number,
+  pesoMaximo: number
+): { excesso: number } | null {
+  const total = pesoAtual + pesoPedido
+  if (total > pesoMaximo) return { excesso: total - pesoMaximo }
+  return null
+}
+
 export function validateReabrirRota(rota: { status: string }): string | null {
   if (rota.status !== "FECHADA") return "Rota já está aberta"
   return null

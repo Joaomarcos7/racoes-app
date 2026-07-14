@@ -60,22 +60,30 @@ export function useDeleteConsolidacao() {
   })
 }
 
+export class PesoExcedidoError extends Error {
+  excesso: number
+  constructor(message: string, excesso: number) {
+    super(message)
+    this.excesso = excesso
+  }
+}
+
 export function useAlocarPedido(rotaId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (pedidoId: string) => {
+    mutationFn: async ({ pedidoId, force }: { pedidoId: string; force?: boolean }) => {
       const res = await fetch(`/api/consolidacao/${rotaId}/alocar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pedidoId }),
+        body: JSON.stringify({ pedidoId, force }),
       })
       if (!res.ok) {
-        try { const e = await res.json(); throw new Error(e.error ?? "Erro ao alocar pedido") }
-        catch (parseErr) { if (parseErr instanceof Error && parseErr.message !== "Erro ao alocar pedido") throw new Error("Erro ao alocar pedido"); throw parseErr }
+        const e = await res.json().catch(() => ({}))
+        if (e.pesoExcedido) throw new PesoExcedidoError(e.error ?? "Peso excedido", e.excesso ?? 0)
+        throw new Error(e.error ?? "Erro ao alocar pedido")
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["consolidacoes", rotaId] }),
-    onError: (e: Error) => toast.error(e.message),
   })
 }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularPesoAlocar, statusAposAlocar } from "@/lib/consolidacao-utils"
+import { calcularPesoAlocar, statusAposAlocar, validarPesoAlocacao } from "@/lib/consolidacao-utils"
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const { id } = await params
-    const { pedidoId } = await req.json()
+    const { pedidoId, force } = await req.json()
     if (!pedidoId) return NextResponse.json({ error: "pedidoId obrigatório" }, { status: 400 })
 
     const rota = await prisma.consolidacaoRota.findUnique({
@@ -28,11 +28,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const pesoAtual = rota.itens.reduce((acc, ci) => acc + calcularPesoAlocar(ci.pedido.itens), 0)
     const pesoPedido = calcularPesoAlocar(pedido.itens)
+    const overload = validarPesoAlocacao(pesoAtual, pesoPedido, rota.veiculo.pesoMaximo)
 
-    if (pesoAtual + pesoPedido > rota.veiculo.pesoMaximo) {
-      const disponivel = (rota.veiculo.pesoMaximo - pesoAtual).toFixed(1)
+    if (overload && !force) {
       return NextResponse.json(
-        { error: `Peso excede capacidade do veículo (${disponivel} kg disponível)` },
+        { error: `Peso excede capacidade do veículo em ${overload.excesso.toFixed(1)} kg`, pesoExcedido: true, excesso: overload.excesso },
         { status: 400 }
       )
     }

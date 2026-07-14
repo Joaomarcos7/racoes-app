@@ -4,7 +4,8 @@ import { useParams } from "next/navigation"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { PainelPedidos } from "@/components/consolidacao/PainelPedidos"
 import { PainelVeiculos } from "@/components/consolidacao/PainelVeiculos"
-import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta } from "@/hooks/use-consolidacao"
+import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta, PesoExcedidoError } from "@/hooks/use-consolidacao"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/utils"
@@ -25,9 +26,22 @@ export default function ConsolidacaoDetailPage() {
 
   const isFechada = data.status === "FECHADA"
 
-  async function handleAlocar(pedidoId: string) {
+  async function handleAlocar(pedidoId: string, force = false) {
     setLoadingPedidoId(pedidoId)
-    await alocarMutation.mutateAsync(pedidoId).finally(() => setLoadingPedidoId(undefined))
+    try {
+      await alocarMutation.mutateAsync({ pedidoId, force })
+    } catch (err) {
+      if (err instanceof PesoExcedidoError) {
+        const confirmado = window.confirm(
+          `⚠️ Peso máximo do veículo ultrapassado em ${err.excesso.toFixed(1)} kg.\n\nDeseja alocar o pedido mesmo assim?`
+        )
+        if (confirmado) await handleAlocar(pedidoId, true)
+      } else {
+        toast.error(err instanceof Error ? err.message : "Erro ao alocar pedido")
+      }
+    } finally {
+      setLoadingPedidoId(undefined)
+    }
   }
 
   async function handleDesalocar(pedidoId: string) {

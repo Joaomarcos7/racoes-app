@@ -1,5 +1,26 @@
 import { describe, it, expect } from "vitest"
-import { validateReabrirRota, validateFecharRota, aggregateProdutosAlocados } from "@/lib/consolidacao-utils"
+import { validateReabrirRota, validateFecharRota, aggregateProdutosAlocados, validarPesoAlocacao } from "@/lib/consolidacao-utils"
+
+describe("validarPesoAlocacao", () => {
+  it("retorna null quando peso cabe no veículo", () => {
+    expect(validarPesoAlocacao(100, 50, 200)).toBeNull()
+  })
+
+  it("retorna null quando peso é exatamente o máximo", () => {
+    expect(validarPesoAlocacao(150, 50, 200)).toBeNull()
+  })
+
+  it("retorna excesso quando peso ultrapassa o máximo", () => {
+    const result = validarPesoAlocacao(180, 50, 200)
+    expect(result).not.toBeNull()
+    expect(result!.excesso).toBeCloseTo(30)
+  })
+
+  it("calcula excesso correto para valores decimais", () => {
+    const result = validarPesoAlocacao(195.5, 10, 200)
+    expect(result!.excesso).toBeCloseTo(5.5)
+  })
+})
 
 describe("validateReabrirRota", () => {
   it("permite reabrir rota FECHADA", () => {
