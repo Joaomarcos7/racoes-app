@@ -28,6 +28,7 @@ interface PedidoBasico {
   clienteId: string | null
   cliente: { id: string; nome: string; cidade: string } | null
   metodoPagamento: string | null
+  pagamentos?: { metodo: string; valor: number }[]
   itens: ItemBasico[]
 }
 
@@ -48,15 +49,18 @@ export interface TopClienteStat {
 export function groupByMetodoPagamento(pedidos: PedidoBasico[]): MetodoPagamentoStat[] {
   const map = new Map<string, MetodoPagamentoStat>()
 
+  function addEntry(metodo: string, valor: number) {
+    const existing = map.get(metodo)
+    if (existing) { existing.count++; existing.total += valor }
+    else map.set(metodo, { metodo, count: 1, total: valor })
+  }
+
   for (const p of pedidos) {
-    if (!p.metodoPagamento) continue
-    const valor = p.itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
-    const existing = map.get(p.metodoPagamento)
-    if (existing) {
-      existing.count++
-      existing.total += valor
-    } else {
-      map.set(p.metodoPagamento, { metodo: p.metodoPagamento, count: 1, total: valor })
+    if (p.pagamentos && p.pagamentos.length > 0) {
+      for (const pag of p.pagamentos) addEntry(pag.metodo, pag.valor)
+    } else if (p.metodoPagamento) {
+      const valor = p.itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
+      addEntry(p.metodoPagamento, valor)
     }
   }
 

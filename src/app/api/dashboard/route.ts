@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 
   const pedidos = await prisma.pedido.findMany({
     where: { ativo: true, dataPedido: { gte: start, lte: end } },
-    include: { cliente: true, itens: true },
+    include: { cliente: true, itens: true, pagamentos: true },
     orderBy: { dataPedido: "desc" },
   })
 

@@ -72,7 +72,12 @@ export default function PedidoDetailPage() {
             <Badge className={entregaConfig[pedido.statusEntrega].className}>{entregaConfig[pedido.statusEntrega].label}</Badge>
           )}
           <Badge className={pagConfig[pedido.statusPagamento].className}>{pagConfig[pedido.statusPagamento].label}</Badge>
-          {pedido.metodoPagamento && <Badge variant="outline">{METODO_LABELS[pedido.metodoPagamento] ?? pedido.metodoPagamento}</Badge>}
+          {pedido.pagamentos && pedido.pagamentos.length > 0
+            ? pedido.pagamentos.map((pag) => (
+                <Badge key={pag.id} variant="outline">{METODO_LABELS[pag.metodo] ?? pag.metodo}</Badge>
+              ))
+            : pedido.metodoPagamento && <Badge variant="outline">{METODO_LABELS[pedido.metodoPagamento] ?? pedido.metodoPagamento}</Badge>
+          }
         </div>
         <table className="w-full text-sm mb-4">
           <thead>
@@ -126,6 +131,17 @@ export default function PedidoDetailPage() {
             <span className="text-lg font-semibold">Total: {formatCurrency(total)}</span>
           </div>
         </div>
+        {pedido.pagamentos && pedido.pagamentos.length > 0 && (
+          <div className="mt-3 pt-3 border-t space-y-1">
+            <p className="text-xs font-medium text-gray-500 mb-1">Pagamentos</p>
+            {pedido.pagamentos.map((pag) => (
+              <div key={pag.id} className="flex justify-between text-sm">
+                <span className="text-gray-600">{METODO_LABELS[pag.metodo] ?? pag.metodo}</span>
+                <span className="font-medium">{formatCurrency(pag.valor)}</span>
+              </div>
+            ))}
+          </div>
+        )}
         {pedido.observacoes && <p className="text-sm text-gray-500 mt-3">Obs: {pedido.observacoes}</p>}
       </div>
       {pedido.statusPagamento === "FIADO" && (

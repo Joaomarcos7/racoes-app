@@ -69,6 +69,46 @@ describe("groupByMetodoPagamento", () => {
     const result = groupByMetodoPagamento(pedidos)
     expect(result[0].metodo).toBe("PIX")
   })
+
+  it("usa pagamentos[] quando presente, ignorando metodoPagamento", () => {
+    const pedidos = [
+      makePedido({
+        metodoPagamento: null,
+        pagamentos: [
+          { metodo: "PIX", valor: 1400 },
+          { metodo: "CARTAO_CREDITO", valor: 1100 },
+        ],
+      }),
+    ]
+    const result = groupByMetodoPagamento(pedidos)
+    const pix = result.find((r) => r.metodo === "PIX")
+    const cartao = result.find((r) => r.metodo === "CARTAO_CREDITO")
+    expect(pix?.total).toBe(1400)
+    expect(cartao?.total).toBe(1100)
+    expect(pix?.count).toBe(1)
+    expect(cartao?.count).toBe(1)
+  })
+
+  it("mistura legado (metodoPagamento) e multi-pagamento no mesmo conjunto", () => {
+    const pedidos = [
+      makePedido({ id: "a", metodoPagamento: "DINHEIRO", pagamentos: [] }),
+      makePedido({
+        id: "b",
+        metodoPagamento: null,
+        pagamentos: [
+          { metodo: "PIX", valor: 200 },
+          { metodo: "DINHEIRO", valor: 100 },
+        ],
+        itens: [{ quantidade: 1, valorUnit: 300, pesoUnit: 1 }],
+      }),
+    ]
+    const result = groupByMetodoPagamento(pedidos)
+    const dinheiro = result.find((r) => r.metodo === "DINHEIRO")
+    const pix = result.find((r) => r.metodo === "PIX")
+    expect(dinheiro?.count).toBe(2) // legado + multi
+    expect(pix?.count).toBe(1)
+    expect(pix?.total).toBe(200)
+  })
 })
 
 describe("getTopClientes", () => {

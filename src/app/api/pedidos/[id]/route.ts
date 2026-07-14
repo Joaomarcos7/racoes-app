@@ -6,6 +6,7 @@ import { shouldRegistrarHistoricoStatus } from "@/lib/pedido-status-utils"
 const pedidoInclude = {
   cliente: true,
   itens: { include: { produto: true } },
+  pagamentos: true,
   historicoStatus: { orderBy: { criadoEm: "asc" as const } },
   consolidacoes: {
     include: { rota: { include: { veiculo: true } } },
