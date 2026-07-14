@@ -107,6 +107,9 @@ export function useUpdatePedido() {
       statusPagamento?: string
       metodoPagamento?: string | null
       observacoes?: string
+      clienteId?: string
+      desconto?: number
+      itens?: { produtoId: string; quantidade: number; valorUnit: number; pesoUnit: number }[]
     }) => {
       const res = await fetch(`/api/pedidos/${id}`, {
         method: "PUT",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -222,5 +222,27 @@ describe("validarBaixaFiado", () => {
 
   it("retorna erro quando baixa excede valor em aberto", () => {
     expect(validarBaixaFiado(600, 500)).not.toBeNull()
+  })
+})
+
+describe("validarEdicaoPedido", () => {
+  it("retorna null quando payload válido", () => {
+    expect(validarEdicaoPedido({ clienteId: "c1", itens: [{ produtoId: "p1", quantidade: 2, valorUnit: 100 }] })).toBeNull()
+  })
+
+  it("retorna erro quando clienteId ausente em pedido de entrega", () => {
+    expect(validarEdicaoPedido({ clienteId: "", itens: [{ produtoId: "p1", quantidade: 1, valorUnit: 50 }], requireCliente: true })).not.toBeNull()
+  })
+
+  it("retorna erro quando lista de itens vazia", () => {
+    expect(validarEdicaoPedido({ clienteId: "c1", itens: [] })).not.toBeNull()
+  })
+
+  it("retorna erro quando item tem quantidade menor que 1", () => {
+    expect(validarEdicaoPedido({ clienteId: "c1", itens: [{ produtoId: "p1", quantidade: 0, valorUnit: 50 }] })).not.toBeNull()
+  })
+
+  it("retorna erro quando item tem valorUnit menor ou igual a zero", () => {
+    expect(validarEdicaoPedido({ clienteId: "c1", itens: [{ produtoId: "p1", quantidade: 1, valorUnit: 0 }] })).not.toBeNull()
   })
 })

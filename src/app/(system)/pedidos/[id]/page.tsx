@@ -6,9 +6,11 @@ import { usePedido, useUpdatePedido } from "@/hooks/use-pedidos"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { EditarPedidoForm } from "@/components/pedidos/EditarPedidoForm"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { TIPO_BADGE } from "@/lib/produto-utils"
-import { Printer, Truck } from "lucide-react"
+import { Pencil, Printer, Truck } from "lucide-react"
 import Link from "next/link"
 
 const entregaConfig: Record<string, { label: string; className: string }> = {
@@ -41,6 +43,7 @@ export default function PedidoDetailPage() {
   const [statusEntrega, setStatusEntrega] = useState("")
   const [statusPagamento, setStatusPagamento] = useState("")
   const [metodoPagamento, setMetodoPagamento] = useState("")
+  const [editOpen, setEditOpen] = useState(false)
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!pedido) return <p className="text-sm text-red-500">Pedido não encontrado.</p>
@@ -52,15 +55,40 @@ export default function PedidoDetailPage() {
   const isEntrega = pedido.tipoPedido === "ENTREGA"
 
   return (
+    <>
+    <Dialog open={editOpen} onOpenChange={setEditOpen}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Editar Pedido</DialogTitle>
+        </DialogHeader>
+        <EditarPedidoForm
+          pedido={pedido}
+          loading={updateMutation.isPending}
+          onCancel={() => setEditOpen(false)}
+          onSubmit={(data) => {
+            updateMutation.mutate(
+              { id, ...data },
+              { onSuccess: () => setEditOpen(false) }
+            )
+          }}
+        />
+      </DialogContent>
+    </Dialog>
     <div className="max-w-2xl space-y-4">
       <PageHeader
         title={pedido.cliente ? `Pedido — ${pedido.cliente.nome}` : "Venda Balcão"}
         description={`${formatDate(pedido.dataPedido)}${pedido.cliente ? ` · ${pedido.cliente.cidade}` : ""}`}
         action={
-          <Button variant="outline" size="sm" onClick={() => window.open(`/pedidos/${id}/print`, "_blank")}>
-            <Printer size={14} className="mr-1.5" />
-            Imprimir Cupom
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil size={14} className="mr-1.5" />
+              Editar Pedido
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.open(`/pedidos/${id}/print`, "_blank")}>
+              <Printer size={14} className="mr-1.5" />
+              Imprimir Cupom
+            </Button>
+          </div>
         }
       />
       <div className="bg-white rounded-lg border p-6">
@@ -310,5 +338,6 @@ export default function PedidoDetailPage() {
         </Button>
       </div>
     </div>
+    </>
   )
 }

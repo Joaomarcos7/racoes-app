@@ -80,3 +80,16 @@ export function validarBaixaFiado(valorBaixa: number, valorEmAberto: number): st
   if (valorBaixa > valorEmAberto) return "Valor da baixa não pode exceder o valor em aberto"
   return null
 }
+
+interface ItemEdicao { produtoId: string; quantidade: number; valorUnit: number }
+interface EdicaoPedidoInput { clienteId: string; itens: ItemEdicao[]; requireCliente?: boolean }
+
+export function validarEdicaoPedido({ clienteId, itens, requireCliente }: EdicaoPedidoInput): string | null {
+  if (requireCliente && !clienteId) return "Cliente obrigatório"
+  if (itens.length === 0) return "Pedido deve ter ao menos um item"
+  for (const item of itens) {
+    if (item.quantidade < 1) return "Quantidade deve ser maior que zero"
+    if (item.valorUnit <= 0) return "Valor unitário deve ser maior que zero"
+  }
+  return null
+}
