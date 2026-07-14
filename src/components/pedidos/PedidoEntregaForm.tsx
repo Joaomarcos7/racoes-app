@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ProdutoSearchInput } from "./ProdutoSearchInput"
 import { ClienteSearchInput } from "./ClienteSearchInput"
 import { ItemPedidoRow, type ItemLocal } from "./ItemPedidoRow"
+import { PagamentoMultiploInput, type PagamentoItem } from "./PagamentoMultiploInput"
 import { formatCurrency } from "@/lib/utils"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
 import { validarAdiantadoFiado } from "@/lib/pedido-utils"
@@ -21,6 +22,7 @@ interface PedidoEntregaFormProps {
     itens: { produtoId: string; quantidade: number }[]
     statusPagamento: string
     metodoPagamento?: string
+    pagamentos?: { metodo: string; valor: number }[]
     observacoes?: string
     dataVencimentoFiado?: string
     tipoFiado?: TipoFiado
@@ -46,6 +48,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
   const [itens, setItens] = useState<ItemLocal[]>([])
   const [statusPagamento, setStatusPagamento] = useState("PENDENTE")
   const [metodoPagamento, setMetodoPagamento] = useState("")
+  const [pagamentosMultiplos, setPagamentosMultiplos] = useState<PagamentoItem[]>([])
   const [observacoes, setObservacoes] = useState("")
   const [dataVencimentoFiado, setDataVencimentoFiado] = useState("")
   const [tipoFiado, setTipoFiado] = useState<TipoFiado>("INTEGRAL")
@@ -90,7 +93,8 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
       clienteId: selectedCliente.id,
       itens: itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, valorUnitOverride: i.valorUnitOverride })),
       statusPagamento,
-      metodoPagamento: statusPagamento === "FIADO" ? undefined : (metodoPagamento || undefined),
+      metodoPagamento: statusPagamento === "PAGO" && pagamentosMultiplos.length === 0 ? (metodoPagamento || undefined) : undefined,
+      pagamentos: statusPagamento === "PAGO" && pagamentosMultiplos.length > 0 ? pagamentosMultiplos.map((p) => ({ metodo: p.metodo, valor: p.valor })) : undefined,
       observacoes: observacoes || undefined,
       dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? dataVencimentoFiado : undefined,
       tipoFiado: statusPagamento === "FIADO" ? tipoFiado : undefined,
@@ -161,27 +165,50 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
           </div>
         </div>
       )}
-      <div className={statusPagamento === "FIADO" ? "space-y-1" : "grid grid-cols-2 gap-3"}>
-        <div className="space-y-1">
-          <Label htmlFor="status-pagamento-entrega">Status Pagamento</Label>
-          <Select value={statusPagamento} onValueChange={setStatusPagamento}>
-            <SelectTrigger id="status-pagamento-entrega" aria-label="Status Pagamento"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PENDENTE">Pendente</SelectItem>
-              <SelectItem value="PAGO">Pago</SelectItem>
-              <SelectItem value="FIADO">Fiado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {statusPagamento !== "FIADO" && (
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <Label>Método de Pagamento{statusPagamento === "PAGO" && " *"}</Label>
-            <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
-              <SelectTrigger aria-label="Método de Pagamento"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+            <Label htmlFor="status-pagamento-entrega">Status Pagamento</Label>
+            <Select value={statusPagamento} onValueChange={(v) => { setStatusPagamento(v); setPagamentosMultiplos([]) }}>
+              <SelectTrigger id="status-pagamento-entrega" aria-label="Status Pagamento"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                <SelectItem value="PENDENTE">Pendente</SelectItem>
+                <SelectItem value="PAGO">Pago</SelectItem>
+                <SelectItem value="FIADO">Fiado</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          {statusPagamento === "PAGO" && pagamentosMultiplos.length === 0 && (
+            <div className="space-y-1">
+              <Label>Método de Pagamento *</Label>
+              <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
+                <SelectTrigger aria-label="Método de Pagamento"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>
+                  {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {statusPagamento === "PENDENTE" && (
+            <div className="space-y-1">
+              <Label>Método de Pagamento</Label>
+              <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
+                <SelectTrigger aria-label="Método de Pagamento"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>
+                  {METODOS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+        {statusPagamento === "PAGO" && (
+          <div className="space-y-1">
+            <Label className="text-xs text-gray-500">Métodos de pagamento</Label>
+            <PagamentoMultiploInput
+              pagamentos={pagamentosMultiplos}
+              onChange={setPagamentosMultiplos}
+              total={Math.max(0, total - parseMaskedMoney(descontoMasked))}
+            />
           </div>
         )}
       </div>

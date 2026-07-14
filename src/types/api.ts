@@ -88,6 +88,14 @@ export interface VeiculoDTO {
   ativo: boolean
 }
 
+export type MetodoPagamentoValue = "DINHEIRO" | "PIX" | "PIX_TERCEIROS" | "BOLETO" | "CHEQUE" | "CARTAO_CREDITO" | "CARTAO_DEBITO"
+
+export interface PagamentoPedidoDTO {
+  id: string
+  metodo: MetodoPagamentoValue
+  valor: number
+}
+
 export interface ItemPedidoDTO {
   id: string
   pedidoId: string
@@ -117,7 +125,8 @@ export interface PedidoDTO {
   dataPedido: string
   statusEntrega: "AGUARDANDO" | "EM_ROTA" | "ENTREGUE" | null
   statusPagamento: "PENDENTE" | "PAGO" | "FIADO"
-  metodoPagamento: "DINHEIRO" | "PIX" | "PIX_TERCEIROS" | "BOLETO" | "CHEQUE" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | null
+  metodoPagamento: MetodoPagamentoValue | null
+  pagamentos?: PagamentoPedidoDTO[]
   observacoes: string | null
   desconto: number
   dataVencimentoFiado: string | null

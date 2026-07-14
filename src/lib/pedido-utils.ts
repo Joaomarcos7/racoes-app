@@ -31,6 +31,25 @@ export function calcularValorEmAberto(total: number, tipoFiado: string, valorAdi
   return Math.max(0, total - (valorAdiantado ?? 0))
 }
 
+export function somarPagamentos(pagamentos: { valor: number }[]): number {
+  return pagamentos.reduce((acc, p) => acc + p.valor, 0)
+}
+
+export function validarPagamentosMultiplos(
+  pagamentos: { metodo: string; valor: number }[],
+  totalEsperado: number
+): string | null {
+  if (pagamentos.length === 0) return null
+  for (const p of pagamentos) {
+    if (p.valor <= 0) return "Todos os valores de pagamento devem ser maiores que zero"
+  }
+  const metodos = pagamentos.map((p) => p.metodo)
+  if (new Set(metodos).size !== metodos.length) return "Método de pagamento duplicado"
+  const soma = somarPagamentos(pagamentos)
+  if (Math.abs(soma - totalEsperado) > 0.01) return `Soma dos pagamentos (${soma.toFixed(2)}) deve ser igual ao total do pedido (${totalEsperado.toFixed(2)})`
+  return null
+}
+
 export function resolverValorUnitItem(valorUnitario: number, override: number | undefined): number {
   if (override == null || override <= 0) return valorUnitario
   return override

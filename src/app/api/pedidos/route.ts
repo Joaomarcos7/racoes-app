@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem } from "@/lib/pedido-utils"
+import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarPagamentosMultiplos } from "@/lib/pedido-utils"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
 
 const pedidoInclude = {
   cliente: true,
   itens: { include: { produto: true } },
+  pagamentos: true,
 }
 
 export async function GET(req: NextRequest) {
@@ -43,13 +44,16 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const body = await req.json()
-  const { tipoPedido = "ENTREGA", itens, statusPagamento, metodoPagamento, observacoes, dataVencimentoFiado, desconto, tipoFiado, valorAdiantadoFiado } = body
+  const { tipoPedido = "ENTREGA", itens, statusPagamento, metodoPagamento, pagamentos: pagamentosBody, observacoes, dataVencimentoFiado, desconto, tipoFiado, valorAdiantadoFiado } = body
+  // pagamentosBody: [{ metodo: string, valor: number }] — multi-method; takes precedence over metodoPagamento
 
   if (!itens || itens.length === 0) {
     return NextResponse.json({ error: "Ao menos um item é obrigatório" }, { status: 400 })
   }
 
-  if (statusPagamento === "PAGO" && !metodoPagamento) {
+  const usandoPagamentosMultiplos = Array.isArray(pagamentosBody) && pagamentosBody.length > 0
+
+  if (statusPagamento === "PAGO" && !usandoPagamentosMultiplos && !metodoPagamento) {
     return NextResponse.json({ error: "Método de pagamento obrigatório ao marcar como PAGO" }, { status: 400 })
   }
 
@@ -103,7 +107,13 @@ export async function POST(req: NextRequest) {
     if (adiantadoErr) return NextResponse.json({ error: adiantadoErr }, { status: 400 })
   }
 
+  if (usandoPagamentosMultiplos && statusPagamento === "PAGO") {
+    const pagErr = validarPagamentosMultiplos(pagamentosBody, totalPedido)
+    if (pagErr) return NextResponse.json({ error: pagErr }, { status: 400 })
+  }
+
   const resolvedValorEmAberto = statusPagamento === "FIADO" ? calcularValorEmAberto(totalPedido, tipoFiado, valorAdiantadoFiado ?? 0) : null
+  const metodoPagamentoFinal = usandoPagamentosMultiplos || statusPagamento === "FIADO" ? null : (metodoPagamento ?? null)
 
   try {
     const pedido = await prisma.pedido.create({
@@ -112,7 +122,7 @@ export async function POST(req: NextRequest) {
         clienteId,
         statusEntrega: tipoPedido === "ENTREGA" ? "AGUARDANDO" : null,
         statusPagamento: statusPagamento ?? "PENDENTE",
-        metodoPagamento: statusPagamento === "FIADO" ? null : (metodoPagamento ?? null),
+        metodoPagamento: metodoPagamentoFinal,
         observacoes: observacoes ?? null,
         dataVencimentoFiado: statusPagamento === "FIADO" && dataVencimentoFiado ? new Date(dataVencimentoFiado) : null,
         tipoFiado: statusPagamento === "FIADO" ? tipoFiado : null,
@@ -127,6 +137,14 @@ export async function POST(req: NextRequest) {
             valorUnit: item.valorUnit,
           })),
         },
+        ...(usandoPagamentosMultiplos && {
+          pagamentos: {
+            create: (pagamentosBody as { metodo: string; valor: number }[]).map((p) => ({
+              metodo: p.metodo,
+              valor: p.valor,
+            })),
+          },
+        }),
       },
       include: pedidoInclude,
     })

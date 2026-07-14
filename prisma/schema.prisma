@@ -93,6 +93,15 @@ model Pedido {
   itens                ItemPedido[]
   consolidacoes        ConsolidacaoItem[]
   historicoStatus      HistoricoStatusPedido[]
+  pagamentos           PagamentoPedido[]
+}
+
+model PagamentoPedido {
+  id       String          @id @default(cuid())
+  pedidoId String
+  pedido   Pedido          @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  metodo   MetodoPagamento
+  valor    Float
 }
 
 model HistoricoStatusPedido {
