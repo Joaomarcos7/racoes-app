@@ -32,6 +32,7 @@ interface ItemPedidoRowProps {
 
 export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePesoKg, onChangeValorUnit, onRemove, allowPesoVariavel }: ItemPedidoRowProps) {
   const [pesoInput, setPesoInput] = useState(item.pesoKg != null ? String(item.pesoKg) : "")
+  const [qtdInput, setQtdInput] = useState(String(item.quantidade))
   const valorEfetivo = item.valorUnitOverride ?? item.valorUnit
   const [valorInput, setValorInput] = useState(formatMoneyInput(String(valorEfetivo.toFixed(2)).replace(".", ",")))
 
@@ -101,8 +102,16 @@ export function ItemPedidoRow({ item, onChange, onTogglePesoVariavel, onChangePe
           <Input
             type="number"
             min="1"
-            value={item.quantidade}
-            onChange={(e) => onChange(item.produtoId, Number(e.target.value))}
+            value={qtdInput}
+            onChange={(e) => {
+              setQtdInput(e.target.value)
+              const n = parseInt(e.target.value, 10)
+              if (!isNaN(n) && n >= 1) onChange(item.produtoId, n)
+            }}
+            onBlur={() => {
+              const n = parseInt(qtdInput, 10)
+              if (isNaN(n) || n < 1) setQtdInput(String(item.quantidade))
+            }}
             className="w-20 text-right"
           />
         )}
