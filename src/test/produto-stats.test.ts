@@ -18,7 +18,16 @@ const makeItem = (overrides: Partial<ItemComPedido> & { pedidoId: string }): Ite
 describe("calcProdutoStats", () => {
   it("retorna zeros para lista vazia", () => {
     const result = calcProdutoStats([])
-    expect(result).toEqual({ totalPedidos: 0, kgBalcao: 0, kgEntrega: 0, kgTotal: 0 })
+    expect(result).toEqual({ totalPedidos: 0, kgBalcao: 0, kgEntrega: 0, kgTotal: 0, totalUnidades: 0 })
+  })
+
+  it("soma total de unidades vendidas", () => {
+    const itens = [
+      makeItem({ pedidoId: "p1", quantidade: 3 }),
+      makeItem({ pedidoId: "p2", quantidade: 5 }),
+      makeItem({ pedidoId: "p3", quantidade: 2 }),
+    ]
+    expect(calcProdutoStats(itens).totalUnidades).toBe(10)
   })
 
   it("conta pedidos distintos (não itens)", () => {

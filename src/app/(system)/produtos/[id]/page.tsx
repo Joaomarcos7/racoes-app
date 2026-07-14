@@ -91,8 +91,9 @@ export default function ProdutoDetailPage() {
           {loadingStats ? (
             <p className="text-xs text-gray-400">Carregando...</p>
           ) : stats ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               <StatCard label="Pedidos" value={String(stats.totalPedidos)} />
+              <StatCard label="Unidades" value={String(stats.totalUnidades)} />
               <StatCard label="Total kg" value={`${stats.kgTotal.toFixed(1)} kg`} />
               <StatCard label="kg Entrega" value={`${stats.kgEntrega.toFixed(1)} kg`} />
               <StatCard label="kg Balcão" value={`${stats.kgBalcao.toFixed(1)} kg`} />
