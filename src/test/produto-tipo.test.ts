@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { labelTipoProduto, TIPOS_PRODUTO } from "@/lib/produto-utils"
+import { labelTipoProduto, TIPOS_PRODUTO, tipoProdutoParaPedido } from "@/lib/produto-utils"
 
 describe("labelTipoProduto", () => {
   it("returns label for CONSUMIDOR_FINAL", () => {
@@ -12,6 +12,16 @@ describe("labelTipoProduto", () => {
 
   it("returns the key itself for unknown type", () => {
     expect(labelTipoProduto("DESCONHECIDO")).toBe("DESCONHECIDO")
+  })
+})
+
+describe("tipoProdutoParaPedido", () => {
+  it("ENTREGA retorna ATACADO", () => {
+    expect(tipoProdutoParaPedido("ENTREGA")).toBe("ATACADO")
+  })
+
+  it("BALCAO retorna CONSUMIDOR_FINAL", () => {
+    expect(tipoProdutoParaPedido("BALCAO")).toBe("CONSUMIDOR_FINAL")
   })
 })
 

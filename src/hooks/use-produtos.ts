@@ -4,9 +4,10 @@ import { toast } from "sonner"
 
 interface PagedResult<T> { data: T[]; total: number; page: number; totalPages: number; hasNext: boolean; hasPrev: boolean }
 
-async function fetchProdutos(search?: string, page = 1, limit = 15): Promise<PagedResult<ProdutoDTO>> {
+async function fetchProdutos(search?: string, page = 1, limit = 15, tipo?: string): Promise<PagedResult<ProdutoDTO>> {
   const params = new URLSearchParams()
   if (search) params.set("search", search)
+  if (tipo) params.set("tipo", tipo)
   params.set("page", String(page))
   params.set("limit", String(limit))
   const res = await fetch(`/api/produtos?${params}`)
@@ -26,10 +27,10 @@ export function useProduto(id: string) {
   })
 }
 
-export function useProdutos(search?: string, page = 1, limit = 15) {
+export function useProdutos(search?: string, page = 1, limit = 15, tipo?: string) {
   return useQuery({
-    queryKey: ["produtos", search, page, limit],
-    queryFn: () => fetchProdutos(search, page, limit),
+    queryKey: ["produtos", search, page, limit, tipo],
+    queryFn: () => fetchProdutos(search, page, limit, tipo),
   })
 }
 

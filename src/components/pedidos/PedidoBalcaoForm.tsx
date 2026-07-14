@@ -131,7 +131,7 @@ export function PedidoBalcaoForm({ onSubmit, onCancel, loading }: PedidoBalcaoFo
       </div>
       <div className="space-y-2">
         <Label>Adicionar Produto</Label>
-        <ProdutoSearchInput onSelect={handleAddProduto} />
+        <ProdutoSearchInput onSelect={handleAddProduto} tipoProduto="CONSUMIDOR_FINAL" />
       </div>
       {itens.length > 0 && (
         <div>

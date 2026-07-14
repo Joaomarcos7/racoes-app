@@ -11,6 +11,10 @@ export function labelTipoProduto(tipo: string): string {
   return TIPO_LABELS[tipo] ?? tipo
 }
 
+export function tipoProdutoParaPedido(tipoPedido: "ENTREGA" | "BALCAO"): "ATACADO" | "CONSUMIDOR_FINAL" {
+  return tipoPedido === "ENTREGA" ? "ATACADO" : "CONSUMIDOR_FINAL"
+}
+
 export const TIPO_BADGE: Record<string, { label: string; className: string }> = {
   CONSUMIDOR_FINAL: { label: "Consumidor Final", className: "bg-gray-100 text-gray-600" },
   ATACADO:          { label: "Atacado",          className: "bg-blue-100 text-blue-700" },

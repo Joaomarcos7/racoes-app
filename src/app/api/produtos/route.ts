@@ -9,11 +9,13 @@ export async function GET(req: NextRequest) {
 
   const search = req.nextUrl.searchParams.get("search") ?? ""
   const ativo = req.nextUrl.searchParams.get("ativo")
+  const tipo = req.nextUrl.searchParams.get("tipo")
   const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
 
   const where = {
     ativo: ativo === "false" ? false : true,
     nome: search ? { contains: search } : undefined,
+    tipo: tipo ?? undefined,
   }
 
   const [total, data] = await Promise.all([

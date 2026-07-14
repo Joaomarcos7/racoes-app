@@ -126,7 +126,7 @@ export function PedidoEntregaForm({ onSubmit, onCancel, loading }: PedidoEntrega
       </div>
       <div className="space-y-2">
         <Label>Adicionar Produto</Label>
-        <ProdutoSearchInput onSelect={handleAddProduto} />
+        <ProdutoSearchInput onSelect={handleAddProduto} tipoProduto="ATACADO" />
       </div>
       {itens.length > 0 && (
         <div>

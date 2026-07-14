@@ -8,9 +8,10 @@ import type { ProdutoDTO } from "@/types/api"
 
 interface ProdutoSearchInputProps {
   onSelect: (produto: ProdutoDTO) => void
+  tipoProduto?: string
 }
 
-export function ProdutoSearchInput({ onSelect }: ProdutoSearchInputProps) {
+export function ProdutoSearchInput({ onSelect, tipoProduto }: ProdutoSearchInputProps) {
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [open, setOpen] = useState(false)
@@ -21,7 +22,7 @@ export function ProdutoSearchInput({ onSelect }: ProdutoSearchInputProps) {
     return () => clearTimeout(t)
   }, [query])
 
-  const { data: result } = useProdutos(debouncedQuery || undefined, 1, 50)
+  const { data: result } = useProdutos(debouncedQuery || undefined, 1, 50, tipoProduto)
   const filtered = debouncedQuery ? (result?.data ?? []) : []
 
   useEffect(() => {
