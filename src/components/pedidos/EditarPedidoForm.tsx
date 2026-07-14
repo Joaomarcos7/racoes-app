@@ -103,8 +103,8 @@ export function EditarPedidoForm({ pedido, onSubmit, onCancel, loading }: Editar
         <ProdutoSearchInput onSelect={handleAddProduto} tipoProduto={tipoProduto} />
       </div>
       {itens.length > 0 && (
-        <div>
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-sm">
             <thead>
               <tr className="text-gray-500 text-xs border-b">
                 <th className="text-left pb-1">Produto</th>
