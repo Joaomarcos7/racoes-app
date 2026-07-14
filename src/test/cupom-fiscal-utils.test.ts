@@ -3,6 +3,7 @@ import {
   padEnd,
   truncate,
   formatarLinhaProduto,
+  formatarLinhaProdutoRota,
   calcularSubtotal,
   calcularTotal,
   formatarDataEmissao,
@@ -121,5 +122,33 @@ describe("gerarScriptImpressao", () => {
     const script = gerarScriptImpressao("/outra-pagina")
     expect(script).toContain("/outra-pagina")
     expect(script).not.toContain("/pedidos")
+  })
+})
+
+describe("formatarLinhaProdutoRota", () => {
+  it("linha tem exatamente LINHA_WIDTH caracteres", () => {
+    const linha = formatarLinhaProdutoRota("Ração 25kg Premiatta", 10, 250)
+    expect(linha.length).toBe(LINHA_WIDTH)
+  })
+
+  it("contém nome do produto", () => {
+    const linha = formatarLinhaProdutoRota("Ração 25kg", 5, 125)
+    expect(linha).toContain("Ra") // início do nome presente
+  })
+
+  it("contém quantidade formatada", () => {
+    const linha = formatarLinhaProdutoRota("Produto X", 20, 400)
+    expect(linha).toContain("20")
+  })
+
+  it("contém peso total formatado em kg", () => {
+    const linha = formatarLinhaProdutoRota("Produto X", 5, 125.5)
+    expect(linha).toContain("125")
+  })
+
+  it("trunca nome longo sem estourar largura", () => {
+    const nomeGrande = "Ração Premium Super Especial 40kg Saco Grande"
+    const linha = formatarLinhaProdutoRota(nomeGrande, 3, 120)
+    expect(linha.length).toBe(LINHA_WIDTH)
   })
 })

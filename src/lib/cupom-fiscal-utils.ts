@@ -26,6 +26,20 @@ export function formatarLinhaProduto(
   return padEnd(truncate(nome, NOME_COL_WIDTH), NOME_COL_WIDTH) + rightSide
 }
 
+// Rota print: NOME(30) + QTD(5) + PESO(7) = 42
+const ROTA_NOME_WIDTH = 30
+const ROTA_QTD_WIDTH = 5
+const ROTA_PESO_WIDTH = LINHA_WIDTH - ROTA_NOME_WIDTH - ROTA_QTD_WIDTH
+
+export function formatarLinhaProdutoRota(nome: string, quantidade: number, pesoTotal: number): string {
+  const nomeCol = padEnd(truncate(nome, ROTA_NOME_WIDTH), ROTA_NOME_WIDTH)
+  const qtdStr = String(quantidade)
+  const qtdCol = " ".repeat(Math.max(0, ROTA_QTD_WIDTH - qtdStr.length)) + qtdStr
+  const pesoStr = `${pesoTotal.toFixed(1)}kg`
+  const pesoCol = " ".repeat(Math.max(0, ROTA_PESO_WIDTH - pesoStr.length)) + pesoStr
+  return nomeCol + qtdCol + pesoCol
+}
+
 export function calcularSubtotal(
   itens: { quantidade: number; valorUnit: number }[]
 ): number {

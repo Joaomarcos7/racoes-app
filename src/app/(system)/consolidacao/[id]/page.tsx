@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/utils"
+import { Printer } from "lucide-react"
 import type { PedidoDTO } from "@/types/api"
 
 export default function ConsolidacaoDetailPage() {
@@ -56,6 +57,12 @@ export default function ConsolidacaoDetailPage() {
         description={`${formatDate(data.data)} · ${data.veiculo.modelo} · ${data.veiculo.pesoMaximo} kg máx`}
         action={
           <div className="flex items-center gap-3">
+            {isFechada && (
+              <Button variant="outline" size="sm" onClick={() => window.open(`/consolidacao/${id}/print`, "_blank")}>
+                <Printer size={14} className="mr-1.5" />
+                Imprimir Cupom
+              </Button>
+            )}
             <Badge className={isFechada ? "bg-blue-100 text-blue-700" : "bg-blue-100 text-blue-700"}>
               {isFechada ? "Fechada" : "Aberta"}
             </Badge>
