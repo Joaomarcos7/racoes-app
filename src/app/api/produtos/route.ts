@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
+import type { TipoProduto } from "@prisma/client"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   const where = {
     ativo: ativo === "false" ? false : true,
     nome: search ? { contains: search } : undefined,
-    tipo: tipo ?? undefined,
+    tipo: tipo ? (tipo as TipoProduto) : undefined,
   }
 
   const [total, data] = await Promise.all([
