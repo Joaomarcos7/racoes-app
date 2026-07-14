@@ -31,7 +31,7 @@ export function calcularValorEmAberto(total: number, tipoFiado: string, valorAdi
   return Math.max(0, total - (valorAdiantado ?? 0))
 }
 
-export function somarPagamentos(pagamentos: { valor: number }[]): number {
+export function somarPagamentos(pagamentos: { metodo?: string; valor: number }[]): number {
   return pagamentos.reduce((acc, p) => acc + p.valor, 0)
 }
 

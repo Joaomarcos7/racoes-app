@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { MetodoPagamento } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarPagamentosMultiplos } from "@/lib/pedido-utils"
 import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
@@ -140,7 +141,7 @@ export async function POST(req: NextRequest) {
         ...(usandoPagamentosMultiplos && {
           pagamentos: {
             create: (pagamentosBody as { metodo: string; valor: number }[]).map((p) => ({
-              metodo: p.metodo,
+              metodo: p.metodo as MetodoPagamento,
               valor: p.valor,
             })),
           },
