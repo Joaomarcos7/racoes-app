@@ -59,6 +59,7 @@ export interface ProdutoStatsDTO {
   kgBalcao: number
   kgEntrega: number
   kgTotal: number
+  totalUnidades: number
 }
 
 export interface ClienteDTO {
