@@ -177,6 +177,22 @@ export default function PedidoDetailPage() {
           </div>
         </div>
       )}
+      {pedido.baixas && pedido.baixas.length > 0 && (
+        <div className="bg-white rounded-lg border p-6">
+          <h3 className="font-semibold mb-3 text-gray-700">Baixas de Fiado</h3>
+          <div className="divide-y">
+            {pedido.baixas.map((b) => (
+              <div key={b.id} className="py-2 flex justify-between items-center text-sm">
+                <div>
+                  <p className="text-gray-600">{METODO_LABELS[b.metodoPagamento] ?? b.metodoPagamento}</p>
+                  <p className="text-xs text-gray-400">{new Date(b.createdAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                </div>
+                <span className="font-semibold text-green-700">+ {formatCurrency(b.valor)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {pedido.historicoStatus && pedido.historicoStatus.length > 0 && (
         <div className="bg-white rounded-lg border p-6">
           <h3 className="font-semibold mb-3 text-gray-700">Histórico de Status</h3>

@@ -7,6 +7,7 @@ const pedidoInclude = {
   cliente: true,
   itens: { include: { produto: true } },
   pagamentos: true,
+  baixas: { orderBy: { createdAt: "desc" as const } },
   historicoStatus: { orderBy: { criadoEm: "asc" as const } },
   consolidacoes: {
     include: { rota: { include: { veiculo: true } } },

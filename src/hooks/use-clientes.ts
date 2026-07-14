@@ -86,6 +86,26 @@ export function useUpdateCliente() {
   })
 }
 
+export function useDarBaixaFiado(clienteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: { pagamentos: { pedidoId: string; valor: number }[]; metodoPagamento: string }) => {
+      const res = await fetch(`/api/clientes/${clienteId}/baixa-fiado`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Erro ao dar baixa") }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clientes", clienteId] })
+      qc.invalidateQueries({ queryKey: ["pedidos"] })
+      toast.success("Baixa registrada com sucesso")
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
 export function useDeleteCliente() {
   const qc = useQueryClient()
   return useMutation({

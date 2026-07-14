@@ -66,3 +66,17 @@ export function validarAdiantadoFiado(valorAdiantado: number, totalPedido: numbe
   if (valorAdiantado >= totalPedido) return "Valor adiantado deve ser menor que o total do pedido"
   return null
 }
+
+export function calcularNovoValorEmAberto(valorAtual: number, valorBaixa: number): number {
+  return Math.max(0, valorAtual - valorBaixa)
+}
+
+export function resolverStatusPosBaixa(novoValorEmAberto: number): "PAGO" | "FIADO" {
+  return novoValorEmAberto < 0.01 ? "PAGO" : "FIADO"
+}
+
+export function validarBaixaFiado(valorBaixa: number, valorEmAberto: number): string | null {
+  if (valorBaixa <= 0) return "Valor da baixa deve ser maior que zero"
+  if (valorBaixa > valorEmAberto) return "Valor da baixa não pode exceder o valor em aberto"
+  return null
+}

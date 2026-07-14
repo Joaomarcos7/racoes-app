@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -168,5 +168,59 @@ describe("validarAdiantadoFiado", () => {
 
   it("returns null when adiantado is zero", () => {
     expect(validarAdiantadoFiado(0, 500)).toBeNull()
+  })
+})
+
+describe("calcularNovoValorEmAberto", () => {
+  it("subtrai baixa do valor em aberto", () => {
+    expect(calcularNovoValorEmAberto(500, 200)).toBe(300)
+  })
+
+  it("zera quando baixa é igual ao valor em aberto", () => {
+    expect(calcularNovoValorEmAberto(500, 500)).toBe(0)
+  })
+
+  it("nunca retorna negativo quando baixa excede valor em aberto", () => {
+    expect(calcularNovoValorEmAberto(500, 600)).toBe(0)
+  })
+
+  it("retorna valor original quando baixa é zero", () => {
+    expect(calcularNovoValorEmAberto(500, 0)).toBe(500)
+  })
+})
+
+describe("resolverStatusPosBaixa", () => {
+  it("retorna PAGO quando valor em aberto é zero", () => {
+    expect(resolverStatusPosBaixa(0)).toBe("PAGO")
+  })
+
+  it("retorna FIADO quando ainda há valor em aberto", () => {
+    expect(resolverStatusPosBaixa(100)).toBe("FIADO")
+  })
+
+  it("retorna PAGO quando valor em aberto é menor que 0.01 (float precision)", () => {
+    expect(resolverStatusPosBaixa(0.001)).toBe("PAGO")
+  })
+})
+
+describe("validarBaixaFiado", () => {
+  it("retorna null quando baixa é válida", () => {
+    expect(validarBaixaFiado(300, 500)).toBeNull()
+  })
+
+  it("retorna null quando baixa é igual ao valor em aberto (quitação total)", () => {
+    expect(validarBaixaFiado(500, 500)).toBeNull()
+  })
+
+  it("retorna erro quando baixa é zero", () => {
+    expect(validarBaixaFiado(0, 500)).not.toBeNull()
+  })
+
+  it("retorna erro quando baixa é negativa", () => {
+    expect(validarBaixaFiado(-100, 500)).not.toBeNull()
+  })
+
+  it("retorna erro quando baixa excede valor em aberto", () => {
+    expect(validarBaixaFiado(600, 500)).not.toBeNull()
   })
 })

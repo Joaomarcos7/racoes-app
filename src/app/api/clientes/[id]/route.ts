@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     where: { id },
     include: {
       pedidos: {
-        include: { itens: { include: { produto: true } } },
+        include: { itens: { include: { produto: true } }, baixas: { orderBy: { createdAt: "desc" } } },
         orderBy: { dataPedido: "desc" },
       },
     },

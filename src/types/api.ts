@@ -90,6 +90,14 @@ export interface VeiculoDTO {
 
 export type MetodoPagamentoValue = "DINHEIRO" | "PIX" | "PIX_TERCEIROS" | "BOLETO" | "CHEQUE" | "CARTAO_CREDITO" | "CARTAO_DEBITO"
 
+export interface BaixaFiadoDTO {
+  id: string
+  pedidoId: string
+  valor: number
+  metodoPagamento: MetodoPagamentoValue
+  createdAt: string
+}
+
 export interface PagamentoPedidoDTO {
   id: string
   metodo: MetodoPagamentoValue
@@ -127,6 +135,7 @@ export interface PedidoDTO {
   statusPagamento: "PENDENTE" | "PAGO" | "FIADO"
   metodoPagamento: MetodoPagamentoValue | null
   pagamentos?: PagamentoPedidoDTO[]
+  baixas?: BaixaFiadoDTO[]
   observacoes: string | null
   desconto: number
   dataVencimentoFiado: string | null
