@@ -24,7 +24,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const pedidosDisponiveis = await prisma.pedido.findMany({
     where: {
-      statusEntrega: { in: ["AGUARDANDO", "ENTREGA_PARCIAL"] },
+      ativo: true,
+      statusEntrega: "AGUARDANDO",
       NOT: { consolidacoes: { some: { rota: { status: "ABERTA" } } } },
     },
     include: { cliente: true, itens: { include: { produto: true } } },
