@@ -68,8 +68,8 @@ export async function GET(req: NextRequest) {
   ])
 
   const clientesComFiadoRaw = await prisma.cliente.findMany({
-    where: { ativo: true, pedidos: { some: { statusPagamento: "FIADO" } } },
-    include: { pedidos: { where: { statusPagamento: "FIADO" } } },
+    where: { ativo: true, pedidos: { some: { statusPagamento: "FIADO", ativo: true } } },
+    include: { pedidos: { where: { statusPagamento: "FIADO", ativo: true } } },
   })
 
   const clientesFiado = clientesComFiadoRaw.map((c) => ({

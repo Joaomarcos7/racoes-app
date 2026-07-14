@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       skip: (page - 1) * limit,
       take: limit,
       include: {
-        pedidos: { where: { statusPagamento: "FIADO" }, select: { id: true } },
+        pedidos: { where: { statusPagamento: "FIADO", ativo: true }, select: { id: true } },
       },
     }),
   ])
