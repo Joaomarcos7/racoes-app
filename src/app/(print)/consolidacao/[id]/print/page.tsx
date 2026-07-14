@@ -4,9 +4,9 @@ import { redirect } from "next/navigation"
 import {
   LINHA_WIDTH,
   formatarLinhaProdutoRota,
+  headerLinhaProdutoRota,
   formatarDataEmissao,
   gerarScriptImpressao,
-  padEnd,
 } from "@/lib/cupom-fiscal-utils"
 import { aggregateProdutosAlocados } from "@/lib/consolidacao-utils"
 
@@ -105,7 +105,7 @@ export default async function RotaPrintPage({
   const totalUnidades = produtos.reduce((acc, p) => acc + p.quantidade, 0)
   const totalPeso = produtos.reduce((acc, p) => acc + p.pesoTotal, 0)
 
-  const headerCol = padEnd("PRODUTO", 30) + padEnd("QTD", 5) + padEnd("PESO", 7)
+  const headerCol = headerLinhaProdutoRota()
 
   const linhasProdutos = produtos.map((p) =>
     formatarLinhaProdutoRota(p.nome, p.quantidade, p.pesoTotal)

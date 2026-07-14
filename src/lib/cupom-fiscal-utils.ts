@@ -26,17 +26,27 @@ export function formatarLinhaProduto(
   return padEnd(truncate(nome, NOME_COL_WIDTH), NOME_COL_WIDTH) + rightSide
 }
 
-// Rota print: NOME(30) + QTD(5) + PESO(7) = 42
-const ROTA_NOME_WIDTH = 30
-const ROTA_QTD_WIDTH = 5
+// Rota print: NOME(24) + QTD(6) + PESO(12) = 42
+const ROTA_NOME_WIDTH = 24
+const ROTA_QTD_WIDTH = 6
 const ROTA_PESO_WIDTH = LINHA_WIDTH - ROTA_NOME_WIDTH - ROTA_QTD_WIDTH
+
+function rotaQtdCol(str: string): string {
+  return " ".repeat(Math.max(0, ROTA_QTD_WIDTH - str.length)) + str
+}
+
+function rotaPesoCol(str: string): string {
+  return " ".repeat(Math.max(0, ROTA_PESO_WIDTH - str.length)) + str
+}
+
+export function headerLinhaProdutoRota(): string {
+  return padEnd("PRODUTO", ROTA_NOME_WIDTH) + rotaQtdCol("QTD") + rotaPesoCol("PESO(kg)")
+}
 
 export function formatarLinhaProdutoRota(nome: string, quantidade: number, pesoTotal: number): string {
   const nomeCol = padEnd(truncate(nome, ROTA_NOME_WIDTH), ROTA_NOME_WIDTH)
-  const qtdStr = String(quantidade)
-  const qtdCol = " ".repeat(Math.max(0, ROTA_QTD_WIDTH - qtdStr.length)) + qtdStr
-  const pesoStr = `${pesoTotal.toFixed(1)}kg`
-  const pesoCol = " ".repeat(Math.max(0, ROTA_PESO_WIDTH - pesoStr.length)) + pesoStr
+  const qtdCol = rotaQtdCol(String(quantidade))
+  const pesoCol = rotaPesoCol(`${pesoTotal.toFixed(1)}kg`)
   return nomeCol + qtdCol + pesoCol
 }
 

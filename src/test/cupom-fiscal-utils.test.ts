@@ -4,6 +4,7 @@ import {
   truncate,
   formatarLinhaProduto,
   formatarLinhaProdutoRota,
+  headerLinhaProdutoRota,
   calcularSubtotal,
   calcularTotal,
   formatarDataEmissao,
@@ -122,6 +123,20 @@ describe("gerarScriptImpressao", () => {
     const script = gerarScriptImpressao("/outra-pagina")
     expect(script).toContain("/outra-pagina")
     expect(script).not.toContain("/pedidos")
+  })
+})
+
+describe("headerLinhaProdutoRota", () => {
+  it("header tem exatamente LINHA_WIDTH caracteres", () => {
+    expect(headerLinhaProdutoRota().length).toBe(LINHA_WIDTH)
+  })
+
+  it("header contém QTD e PESO alinhados às mesmas colunas das linhas", () => {
+    const header = headerLinhaProdutoRota()
+    const linha = formatarLinhaProdutoRota("Ração 25kg", 5, 125)
+    expect(header).toContain("QTD")
+    expect(header).toContain("PESO")
+    expect(header.length).toBe(linha.length)
   })
 })
 
