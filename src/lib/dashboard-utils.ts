@@ -1,5 +1,13 @@
 interface ItemBasico { quantidade: number; valorUnit: number }
 
+interface PedidoVenda { statusPagamento: string; itens: ItemBasico[] }
+
+export function calcularVendasPagas(pedidos: PedidoVenda[]): number {
+  return pedidos
+    .filter((p) => p.statusPagamento === "PAGO")
+    .reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
+}
+
 export function getPeriodoDates(periodo: string): { start: Date; end: Date } {
   const now = new Date()
   const end = new Date(now)

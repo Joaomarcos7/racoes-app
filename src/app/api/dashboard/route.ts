@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates } from "@/lib/dashboard-utils"
+import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates, calcularVendasPagas } from "@/lib/dashboard-utils"
 import { aggregateSaidasPorTipo, calcularSaldoLiquido } from "@/lib/saida-utils"
 
 const weekdays = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"]
@@ -86,8 +86,8 @@ export async function GET(req: NextRequest) {
   const metodosPagamento = groupByMetodoPagamento(pedidos)
   const topClientes = getTopClientes(pedidos, 5)
 
-  const vendasEntrega = pedidosEntrega.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
-  const vendasBalcao = pedidosBalcao.reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
+  const vendasEntrega = calcularVendasPagas(pedidosEntrega)
+  const vendasBalcao = calcularVendasPagas(pedidosBalcao)
   const vendasTotal = vendasEntrega + vendasBalcao
   const numeroPedidos = pedidos.length
   const ticketMedio = numeroPedidos > 0 ? vendasTotal / numeroPedidos : 0
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
 
   const grafico = getGraficoSlots(periodo, start, end).map(({ label, rangeStart, rangeEnd }) => {
     const valor = pedidos
-      .filter((p) => { const d = new Date(p.dataPedido); return d >= rangeStart && d <= rangeEnd })
+      .filter((p) => { const d = new Date(p.dataPedido); return d >= rangeStart && d <= rangeEnd && p.statusPagamento === "PAGO" })
       .reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
     return { label, valor }
   })

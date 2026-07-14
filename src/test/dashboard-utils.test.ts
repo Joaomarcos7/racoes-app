@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates } from "@/lib/dashboard-utils"
+import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates, calcularVendasPagas } from "@/lib/dashboard-utils"
 
 const makePedido = (overrides: Record<string, unknown>) => ({
   id: "p1",
@@ -172,6 +172,29 @@ describe("calcularPesoVendido", () => {
       { itens: [{ quantidade: 3, pesoUnit: 2 }] },
     ]
     expect(calcularPesoVendido(pedidos)).toBe(31)
+  })
+})
+
+describe("calcularVendasPagas", () => {
+  it("retorna 0 para lista vazia", () => {
+    expect(calcularVendasPagas([])).toBe(0)
+  })
+
+  it("soma apenas pedidos com statusPagamento PAGO", () => {
+    const pedidos = [
+      makePedido({ statusPagamento: "PAGO", itens: [{ quantidade: 2, valorUnit: 50, pesoUnit: 1 }] }),
+      makePedido({ statusPagamento: "PENDENTE", itens: [{ quantidade: 1, valorUnit: 200, pesoUnit: 1 }] }),
+      makePedido({ statusPagamento: "FIADO", itens: [{ quantidade: 3, valorUnit: 100, pesoUnit: 1 }] }),
+    ]
+    expect(calcularVendasPagas(pedidos)).toBe(100) // apenas 2 × 50
+  })
+
+  it("soma múltiplos pedidos PAGO", () => {
+    const pedidos = [
+      makePedido({ statusPagamento: "PAGO", itens: [{ quantidade: 1, valorUnit: 100, pesoUnit: 1 }] }),
+      makePedido({ statusPagamento: "PAGO", itens: [{ quantidade: 2, valorUnit: 75, pesoUnit: 1 }] }),
+    ]
+    expect(calcularVendasPagas(pedidos)).toBe(250)
   })
 })
 
