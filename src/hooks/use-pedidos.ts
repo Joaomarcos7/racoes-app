@@ -7,6 +7,8 @@ interface PedidoFilters {
   statusEntrega?: string
   statusPagamento?: string
   tipoPedido?: string
+  cidade?: string
+  sortOrder?: "asc" | "desc"
   page?: number
   limit?: number
 }
@@ -19,6 +21,8 @@ async function fetchPedidos(filters: PedidoFilters = {}): Promise<PagedResult<Pe
   if (filters.statusEntrega) params.set("statusEntrega", filters.statusEntrega)
   if (filters.statusPagamento) params.set("statusPagamento", filters.statusPagamento)
   if (filters.tipoPedido) params.set("tipoPedido", filters.tipoPedido)
+  if (filters.cidade) params.set("cidade", filters.cidade)
+  if (filters.sortOrder) params.set("sortOrder", filters.sortOrder)
   params.set("page", String(filters.page ?? 1))
   params.set("limit", String(filters.limit ?? 15))
   const res = await fetch(`/api/pedidos?${params}`)

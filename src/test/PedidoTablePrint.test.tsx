@@ -27,7 +27,7 @@ describe("PedidoTable print button", () => {
     const openSpy = vi.spyOn(window, "open").mockImplementation(() => null)
 
     const { getAllByLabelText } = render(
-      <PedidoTable pedidos={[makePedido("abc123")]} onDelete={vi.fn()} />
+      <PedidoTable pedidos={[makePedido("abc123")]} onDelete={vi.fn()} selectedIds={new Set()} onSelectionChange={vi.fn()} sortOrder="desc" onSortOrderChange={vi.fn()} />
     )
 
     const printBtn = getAllByLabelText("Imprimir cupom")[0]

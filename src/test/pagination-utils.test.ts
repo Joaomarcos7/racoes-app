@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { buildPaginationMeta, parsePaginationParams, paginateArray } from "@/lib/pagination-utils"
+import { buildPaginationMeta, parsePaginationParams, paginateArray, parseSortOrder } from "@/lib/pagination-utils"
 
 describe("buildPaginationMeta", () => {
   it("calculates totalPages correctly", () => {
@@ -91,5 +91,27 @@ describe("paginateArray", () => {
     expect(data).toEqual([])
     expect(meta.total).toBe(0)
     expect(meta.totalPages).toBe(1)
+  })
+})
+
+describe("parseSortOrder", () => {
+  it("retorna desc quando param é null", () => {
+    expect(parseSortOrder(null)).toBe("desc")
+  })
+
+  it("retorna asc quando param é 'asc'", () => {
+    expect(parseSortOrder("asc")).toBe("asc")
+  })
+
+  it("retorna desc quando param é 'desc'", () => {
+    expect(parseSortOrder("desc")).toBe("desc")
+  })
+
+  it("retorna desc quando param é valor inválido", () => {
+    expect(parseSortOrder("INVALIDO")).toBe("desc")
+  })
+
+  it("retorna desc para string vazia", () => {
+    expect(parseSortOrder("")).toBe("desc")
   })
 })

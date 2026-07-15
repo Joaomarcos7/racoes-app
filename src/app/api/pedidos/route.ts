@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { MetodoPagamento } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import { validateItensPedido, calcularValorPesoVariavel, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarPagamentosMultiplos } from "@/lib/pedido-utils"
-import { parsePaginationParams, buildPaginationMeta } from "@/lib/pagination-utils"
+import { parsePaginationParams, buildPaginationMeta, parseSortOrder } from "@/lib/pagination-utils"
 
 const pedidoInclude = {
   cliente: true,
@@ -19,11 +19,18 @@ export async function GET(req: NextRequest) {
   const statusEntrega = req.nextUrl.searchParams.get("statusEntrega")
   const statusPagamento = req.nextUrl.searchParams.get("statusPagamento")
   const tipoPedido = req.nextUrl.searchParams.get("tipoPedido")
+  const cidade = req.nextUrl.searchParams.get("cidade") ?? ""
+  const sortOrder = parseSortOrder(req.nextUrl.searchParams.get("sortOrder"))
   const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
+
+  const clienteFilter = {
+    ...(search && { nome: { contains: search } }),
+    ...(cidade && { cidade: { contains: cidade } }),
+  }
 
   const where = {
     ativo: true,
-    ...(search && { cliente: { nome: { contains: search } } }),
+    ...(Object.keys(clienteFilter).length > 0 && { cliente: clienteFilter }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(statusEntrega && { statusEntrega: statusEntrega as any }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +41,7 @@ export async function GET(req: NextRequest) {
 
   const [total, data] = await Promise.all([
     prisma.pedido.count({ where }),
-    prisma.pedido.findMany({ where, include: pedidoInclude, orderBy: { dataPedido: "desc" }, skip: (page - 1) * limit, take: limit }),
+    prisma.pedido.findMany({ where, include: pedidoInclude, orderBy: { dataPedido: sortOrder }, skip: (page - 1) * limit, take: limit }),
   ])
 
   return NextResponse.json({ data, ...buildPaginationMeta({ total, page, limit }) })

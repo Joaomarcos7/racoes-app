@@ -27,6 +27,10 @@ export function paginateArray<T>(items: T[], page: number, limit: number): { dat
   return { data, meta }
 }
 
+export function parseSortOrder(param: string | null): "asc" | "desc" {
+  return param === "asc" || param === "desc" ? param : "desc"
+}
+
 export function parsePaginationParams(params: URLSearchParams): { page: number; limit: number } {
   const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1)
   const limit = Math.min(100, Math.max(1, parseInt(params.get("limit") ?? "15", 10) || 15))

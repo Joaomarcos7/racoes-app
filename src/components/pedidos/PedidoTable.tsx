@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import type { PedidoDTO } from "@/types/api"
-import { Plus, Printer, Trash2 } from "lucide-react"
+import { ArrowDown, ArrowUp, ArrowUpDown, Plus, Printer, Trash2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
@@ -27,9 +27,11 @@ interface PedidoTableProps {
   onDelete: (id: string) => void
   selectedIds: Set<string>
   onSelectionChange: (ids: Set<string>) => void
+  sortOrder: "asc" | "desc"
+  onSortOrderChange: (order: "asc" | "desc") => void
 }
 
-export function PedidoTable({ pedidos, onDelete, selectedIds, onSelectionChange }: PedidoTableProps) {
+export function PedidoTable({ pedidos, onDelete, selectedIds, onSelectionChange, sortOrder, onSortOrderChange }: PedidoTableProps) {
   if (pedidos.length === 0) return <p className="text-sm text-gray-500 py-4">Nenhum pedido encontrado.</p>
 
   const allSelected = pedidos.length > 0 && pedidos.every((p) => selectedIds.has(p.id))
@@ -67,7 +69,15 @@ export function PedidoTable({ pedidos, onDelete, selectedIds, onSelectionChange 
                 aria-label="Selecionar todos"
               />
             </th>
-            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data</th>
+            <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+              <button
+                onClick={() => onSortOrderChange(sortOrder === "desc" ? "asc" : "desc")}
+                className="flex items-center gap-1 hover:text-slate-800 transition-colors"
+              >
+                Data
+                {sortOrder === "desc" ? <ArrowDown size={12} /> : sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowUpDown size={12} />}
+              </button>
+            </th>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Tipo</th>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Cliente</th>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Cidade</th>

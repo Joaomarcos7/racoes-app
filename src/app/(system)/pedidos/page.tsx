@@ -14,6 +14,8 @@ export default function PedidosPage() {
   const [tipoPedido, setTipoPedido] = useState("all")
   const [statusEntrega, setStatusEntrega] = useState("all")
   const [statusPagamento, setStatusPagamento] = useState("all")
+  const [cidade, setCidade] = useState("")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(15)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -25,6 +27,8 @@ export default function PedidosPage() {
     tipoPedido: tipoPedido === "all" ? "" : tipoPedido,
     statusEntrega: statusEntrega === "all" ? "" : statusEntrega,
     statusPagamento: statusPagamento === "all" ? "" : statusPagamento,
+    cidade,
+    sortOrder,
     page,
     limit,
   })
@@ -83,6 +87,12 @@ export default function PedidosPage() {
             <SelectItem value="FIADO">Fiado</SelectItem>
           </SelectContent>
         </Select>
+        <Input
+          placeholder="Filtrar por cidade..."
+          value={cidade}
+          onChange={(e) => { setCidade(e.target.value); resetPage() }}
+          className="w-full sm:w-auto sm:max-w-xs"
+        />
       </div>
 
       {hasSelection && (
@@ -133,6 +143,8 @@ export default function PedidosPage() {
             onDelete={(id) => deleteMutation.mutate(id)}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
+            sortOrder={sortOrder}
+            onSortOrderChange={(order) => { setSortOrder(order); resetPage() }}
           />
           {result && (
             <Pagination
