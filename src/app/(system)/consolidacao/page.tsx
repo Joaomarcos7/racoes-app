@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/Pagination"
 import { formatDate } from "@/lib/utils"
-import { Plus, Trash2 } from "lucide-react"
+import { Plus, Printer, Trash2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog"
 
@@ -62,6 +62,21 @@ export default function ConsolidacaoPage() {
                     </td>
                     <td className="px-3 py-3 text-right whitespace-nowrap">
                       <div className="flex gap-1 justify-end">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                aria-label="Imprimir rota"
+                                onClick={() => window.open(`/consolidacao/${r.id}/print`, "_blank")}
+                              >
+                                <Printer size={14} />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Imprimir rota</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
