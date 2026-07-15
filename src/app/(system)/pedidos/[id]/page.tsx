@@ -57,7 +57,7 @@ export default function PedidoDetailPage() {
   return (
     <>
     <Dialog open={editOpen} onOpenChange={setEditOpen}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>Editar Pedido</DialogTitle>
         </DialogHeader>
