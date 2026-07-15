@@ -84,6 +84,30 @@ export function validarBaixaFiado(valorBaixa: number, valorEmAberto: number): st
 interface ItemEdicao { produtoId: string; quantidade: number; valorUnit: number }
 interface EdicaoPedidoInput { clienteId: string; itens: ItemEdicao[]; requireCliente?: boolean }
 
+const VALORES_STATUS_ENTREGA = ["AGUARDANDO", "EM_ROTA", "ENTREGUE", "ENTREGA_PARCIAL"]
+const VALORES_STATUS_PAGAMENTO = ["PENDENTE", "PAGO", "FIADO"]
+
+export function validarBulkUpdatePedidos({
+  ids,
+  action,
+  value,
+}: {
+  ids: string[]
+  action: "statusEntrega" | "statusPagamento"
+  value: string
+}): string | null {
+  if (ids.length === 0) return "Selecione ao menos um pedido"
+  if (action === "statusEntrega") {
+    if (!VALORES_STATUS_ENTREGA.includes(value)) return `Status de entrega inválido: ${value}`
+    return null
+  }
+  if (action === "statusPagamento") {
+    if (!VALORES_STATUS_PAGAMENTO.includes(value)) return `Status de pagamento inválido: ${value}`
+    return null
+  }
+  return "Ação inválida"
+}
+
 export function validarEdicaoPedido({ clienteId, itens, requireCliente }: EdicaoPedidoInput): string | null {
   if (requireCliente && !clienteId) return "Cliente obrigatório"
   if (itens.length === 0) return "Pedido deve ter ao menos um item"

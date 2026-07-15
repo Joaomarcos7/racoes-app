@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -244,5 +244,43 @@ describe("validarEdicaoPedido", () => {
 
   it("retorna erro quando item tem valorUnit menor ou igual a zero", () => {
     expect(validarEdicaoPedido({ clienteId: "c1", itens: [{ produtoId: "p1", quantidade: 1, valorUnit: 0 }] })).not.toBeNull()
+  })
+})
+
+describe("validarBulkUpdatePedidos", () => {
+  it("retorna null para payload válido de statusEntrega", () => {
+    expect(validarBulkUpdatePedidos({ ids: ["id1", "id2"], action: "statusEntrega", value: "ENTREGUE" })).toBeNull()
+  })
+
+  it("retorna null para payload válido de statusPagamento", () => {
+    expect(validarBulkUpdatePedidos({ ids: ["id1"], action: "statusPagamento", value: "PAGO" })).toBeNull()
+  })
+
+  it("retorna erro quando ids está vazio", () => {
+    expect(validarBulkUpdatePedidos({ ids: [], action: "statusEntrega", value: "ENTREGUE" })).not.toBeNull()
+  })
+
+  it("retorna erro quando action é inválida", () => {
+    expect(validarBulkUpdatePedidos({ ids: ["id1"], action: "outraCoisa" as never, value: "ENTREGUE" })).not.toBeNull()
+  })
+
+  it("retorna erro quando value é inválido para statusEntrega", () => {
+    expect(validarBulkUpdatePedidos({ ids: ["id1"], action: "statusEntrega", value: "INVALIDO" })).not.toBeNull()
+  })
+
+  it("retorna erro quando value é inválido para statusPagamento", () => {
+    expect(validarBulkUpdatePedidos({ ids: ["id1"], action: "statusPagamento", value: "INVALIDO" })).not.toBeNull()
+  })
+
+  it("aceita todos os valores válidos de statusEntrega", () => {
+    for (const v of ["AGUARDANDO", "EM_ROTA", "ENTREGUE", "ENTREGA_PARCIAL"]) {
+      expect(validarBulkUpdatePedidos({ ids: ["id1"], action: "statusEntrega", value: v })).toBeNull()
+    }
+  })
+
+  it("aceita todos os valores válidos de statusPagamento", () => {
+    for (const v of ["PENDENTE", "PAGO", "FIADO"]) {
+      expect(validarBulkUpdatePedidos({ ids: ["id1"], action: "statusPagamento", value: v })).toBeNull()
+    }
   })
 })

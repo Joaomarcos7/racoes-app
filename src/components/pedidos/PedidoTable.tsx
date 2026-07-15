@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import type { PedidoDTO } from "@/types/api"
 import { Plus, Printer, Trash2 } from "lucide-react"
@@ -21,16 +22,51 @@ const pagConfig: Record<string, { label: string; className: string }> = {
   FIADO: { label: "Fiado", className: "bg-orange-100 text-orange-700" },
 }
 
-interface PedidoTableProps { pedidos: PedidoDTO[]; onDelete: (id: string) => void }
+interface PedidoTableProps {
+  pedidos: PedidoDTO[]
+  onDelete: (id: string) => void
+  selectedIds: Set<string>
+  onSelectionChange: (ids: Set<string>) => void
+}
 
-export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
+export function PedidoTable({ pedidos, onDelete, selectedIds, onSelectionChange }: PedidoTableProps) {
   if (pedidos.length === 0) return <p className="text-sm text-gray-500 py-4">Nenhum pedido encontrado.</p>
+
+  const allSelected = pedidos.length > 0 && pedidos.every((p) => selectedIds.has(p.id))
+  const someSelected = pedidos.some((p) => selectedIds.has(p.id))
+
+  function toggleAll() {
+    if (allSelected) {
+      const next = new Set(selectedIds)
+      pedidos.forEach((p) => next.delete(p.id))
+      onSelectionChange(next)
+    } else {
+      const next = new Set(selectedIds)
+      pedidos.forEach((p) => next.add(p.id))
+      onSelectionChange(next)
+    }
+  }
+
+  function toggleOne(id: string) {
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    onSelectionChange(next)
+  }
+
   return (
     <div className="rounded-md border overflow-hidden">
       <div className="overflow-x-auto">
-      <table className="text-sm w-full" style={{ minWidth: "720px" }}>
+      <table className="text-sm w-full" style={{ minWidth: "760px" }}>
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
+            <th className="px-3 py-3 w-10">
+              <Checkbox
+                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                onCheckedChange={toggleAll}
+                aria-label="Selecionar todos"
+              />
+            </th>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data</th>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Tipo</th>
             <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Cliente</th>
@@ -44,8 +80,16 @@ export function PedidoTable({ pedidos, onDelete }: PedidoTableProps) {
         <tbody>
           {pedidos.map((p, i) => {
             const total = p.itens.reduce((acc, item) => acc + item.quantidade * item.valorUnit, 0)
+            const isSelected = selectedIds.has(p.id)
             return (
-              <tr key={p.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              <tr key={p.id} className={isSelected ? "bg-blue-50" : i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <td className="px-3 py-3">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleOne(p.id)}
+                    aria-label={`Selecionar pedido ${p.id}`}
+                  />
+                </td>
                 <td className="px-3 py-3 whitespace-nowrap">{formatDate(p.dataPedido)}</td>
                 <td className="px-3 py-3 whitespace-nowrap">
                   <Badge className="bg-blue-100 text-blue-700">

@@ -131,6 +131,29 @@ export function useUpdatePedido() {
   })
 }
 
+export function useBulkUpdatePedidos() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: { ids: string[]; action: "statusEntrega" | "statusPagamento"; value: string }) => {
+      const res = await fetch("/api/pedidos/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? "Erro ao atualizar pedidos")
+      }
+      return res.json() as Promise<{ updated: number }>
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["pedidos"] })
+      toast.success(`${data.updated} pedido(s) atualizado(s)`)
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
 export function useDeletePedido() {
   const qc = useQueryClient()
   return useMutation({
