@@ -3,6 +3,7 @@ import {
   padEnd,
   truncate,
   formatarLinhaProduto,
+  headerLinhaProduto,
   formatarLinhaProdutoRota,
   headerLinhaProdutoRota,
   calcularSubtotal,
@@ -67,6 +68,56 @@ describe("formatarLinhaProduto", () => {
     const linha2 = formatarLinhaProduto("Produto", 5, 1, 9999.99)
     expect(linha1.length).toBe(LINHA_WIDTH)
     expect(linha2.length).toBe(LINHA_WIDTH)
+  })
+
+  it("right-aligns KG column — valores de peso diferentes terminam na mesma posição", () => {
+    const linha1 = formatarLinhaProduto("Produto", 5, 1, 100)
+    const linha2 = formatarLinhaProduto("Produto", 25, 1, 100)
+    const endKg1 = linha1.indexOf("5kg") + "5kg".length
+    const endKg2 = linha2.indexOf("25kg") + "25kg".length
+    expect(endKg1).toBe(endKg2)
+  })
+
+  it("right-aligns QTD column — quantidades diferentes terminam na mesma posição", () => {
+    const linha1 = formatarLinhaProduto("Produto", 25, 1, 100)
+    const linha2 = formatarLinhaProduto("Produto", 25, 99, 100)
+    // find position after the kg column to locate qty
+    const kgEnd1 = linha1.indexOf("25kg") + "25kg".length
+    const kgEnd2 = linha2.indexOf("25kg") + "25kg".length
+    const qtdEnd1 = linha1.indexOf("1", kgEnd1) + 1
+    const qtdEnd2 = linha2.indexOf("99", kgEnd2) + 2
+    expect(qtdEnd1).toBe(qtdEnd2)
+  })
+})
+
+describe("headerLinhaProduto", () => {
+  it("tem exatamente LINHA_WIDTH caracteres", () => {
+    expect(headerLinhaProduto().length).toBe(LINHA_WIDTH)
+  })
+
+  it("contém labels KG, QT e TOTAL", () => {
+    const h = headerLinhaProduto()
+    expect(h).toContain("KG")
+    expect(h).toContain("QT")
+    expect(h).toContain("TOTAL")
+  })
+
+  it("KG do header termina na mesma posição que KG das linhas de dados", () => {
+    const header = headerLinhaProduto()
+    const linha = formatarLinhaProduto("Produto", 5, 1, 100)
+    const headerKgEnd = header.indexOf("KG") + "KG".length
+    const linhaKgEnd = linha.indexOf("5kg") + "5kg".length
+    expect(headerKgEnd).toBe(linhaKgEnd)
+  })
+
+  it("QT do header termina na mesma posição que QTD das linhas de dados", () => {
+    const header = headerLinhaProduto()
+    const linha = formatarLinhaProduto("Produto", 25, 1, 100)
+    const kgEnd = header.indexOf("KG") + "KG".length
+    const headerQtEnd = header.indexOf("QT", kgEnd) + "QT".length
+    const linhaKgEnd = linha.indexOf("25kg") + "25kg".length
+    const linhaQtEnd = linha.indexOf("1", linhaKgEnd) + 1
+    expect(headerQtEnd).toBe(linhaQtEnd)
   })
 })
 

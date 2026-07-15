@@ -12,6 +12,14 @@ export function truncate(str: string, max: number): string {
   return str.length <= max ? str : str.slice(0, max)
 }
 
+const PESO_COL_WIDTH = 5
+const QTD_COL_WIDTH = 3
+
+function padStart(str: string, width: number): string {
+  if (str.length >= width) return str.slice(0, width)
+  return " ".repeat(width - str.length) + str
+}
+
 export function formatarLinhaProduto(
   nome: string,
   pesoKg: number,
@@ -19,11 +27,16 @@ export function formatarLinhaProduto(
   total: number
 ): string {
   const totalStr = `R$${total.toFixed(2).replace(".", ",")}`
-  const totalCol = " ".repeat(Math.max(0, TOTAL_COL_WIDTH - totalStr.length)) + totalStr
+  const totalCol = padStart(totalStr, TOTAL_COL_WIDTH)
   const qtdStr = String(quantidade)
   const pesoStr = `${pesoKg}kg`
-  const rightSide = ` ${padEnd(pesoStr, 5)} ${padEnd(qtdStr, 3)} ${totalCol}`
+  const rightSide = ` ${padStart(pesoStr, PESO_COL_WIDTH)} ${padStart(qtdStr, QTD_COL_WIDTH)} ${totalCol}`
   return padEnd(truncate(nome, NOME_COL_WIDTH), NOME_COL_WIDTH) + rightSide
+}
+
+export function headerLinhaProduto(): string {
+  const rightSide = ` ${padStart("KG", PESO_COL_WIDTH)} ${padStart("QT", QTD_COL_WIDTH)} ${padStart("TOTAL", TOTAL_COL_WIDTH)}`
+  return padEnd("PRODUTO", NOME_COL_WIDTH) + rightSide
 }
 
 // Rota print: NOME(24) + QTD(6) + PESO(12) = 42
