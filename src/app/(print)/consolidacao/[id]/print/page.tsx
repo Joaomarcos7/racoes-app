@@ -47,7 +47,7 @@ const printStyles = `
     font-size: inherit;
     font-weight: bold;
   }
-  th:first-child, td:first-child { text-align: right; }
+  th:first-child, td:first-child { text-align: right; padding-right: 8px; }
   th:last-child, td:last-child { text-align: left; }
   thead { border-bottom: 1px solid #000; }
   .totais {
