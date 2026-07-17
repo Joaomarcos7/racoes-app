@@ -26,8 +26,8 @@ const printStyles = `
     background: white;
   }
   pre {
-    white-space: pre-wrap;
-    word-break: break-word;
+    white-space: pre;
+    overflow-x: hidden;
     margin: 0;
     font-family: inherit;
     font-size: inherit;

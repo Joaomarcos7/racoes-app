@@ -30,37 +30,32 @@ export function formatarLinhaProduto(
   const totalCol = padStart(totalStr, TOTAL_COL_WIDTH)
   const qtdStr = String(quantidade)
   const pesoStr = `${pesoKg}kg`
-  const rightSide = ` ${padStart(pesoStr, PESO_COL_WIDTH)} ${padStart(qtdStr, QTD_COL_WIDTH)} ${totalCol}`
+  const rightSide = `|${padStart(pesoStr, PESO_COL_WIDTH)}|${padStart(qtdStr, QTD_COL_WIDTH)}|${totalCol}`
   return padEnd(truncate(nome, NOME_COL_WIDTH), NOME_COL_WIDTH) + rightSide
 }
 
 export function headerLinhaProduto(): string {
-  const rightSide = ` ${padStart("KG", PESO_COL_WIDTH)} ${padStart("QT", QTD_COL_WIDTH)} ${padStart("TOTAL", TOTAL_COL_WIDTH)}`
+  const rightSide = `|${padStart("KG", PESO_COL_WIDTH)}|${padStart("QT", QTD_COL_WIDTH)}|${padStart("TOTAL", TOTAL_COL_WIDTH)}`
   return padEnd("PRODUTO", NOME_COL_WIDTH) + rightSide
 }
 
-// Rota print: NOME(24) + QTD(6) + PESO(12) = 42
-const ROTA_NOME_WIDTH = 24
+// Rota print: NOME(22) | QTD(6) | PESO(13) = 22+1+6+1+13 = 43... ajuste: NOME(22)|QTD(6)|PESO(12) = 42
+const ROTA_NOME_WIDTH = 22
 const ROTA_QTD_WIDTH = 6
-const ROTA_PESO_WIDTH = LINHA_WIDTH - ROTA_NOME_WIDTH - ROTA_QTD_WIDTH
-
-function rotaQtdCol(str: string): string {
-  return " ".repeat(Math.max(0, ROTA_QTD_WIDTH - str.length)) + str
-}
-
-function rotaPesoCol(str: string): string {
-  return " ".repeat(Math.max(0, ROTA_PESO_WIDTH - str.length)) + str
-}
+const ROTA_PESO_WIDTH = LINHA_WIDTH - ROTA_NOME_WIDTH - 1 - ROTA_QTD_WIDTH - 1 // = 12
 
 export function headerLinhaProdutoRota(): string {
-  return padEnd("PRODUTO", ROTA_NOME_WIDTH) + rotaQtdCol("QTD") + rotaPesoCol("PESO(kg)")
+  const nomeCol = padEnd("PRODUTO", ROTA_NOME_WIDTH)
+  const qtdCol = padStart("QTD", ROTA_QTD_WIDTH)
+  const pesoCol = padStart("PESO(kg)", ROTA_PESO_WIDTH)
+  return `${nomeCol}|${qtdCol}|${pesoCol}`
 }
 
 export function formatarLinhaProdutoRota(nome: string, quantidade: number, pesoTotal: number): string {
   const nomeCol = padEnd(truncate(nome, ROTA_NOME_WIDTH), ROTA_NOME_WIDTH)
-  const qtdCol = rotaQtdCol(String(quantidade))
-  const pesoCol = rotaPesoCol(`${pesoTotal.toFixed(1)}kg`)
-  return nomeCol + qtdCol + pesoCol
+  const qtdCol = padStart(String(quantidade), ROTA_QTD_WIDTH)
+  const pesoCol = padStart(`${pesoTotal.toFixed(1)}kg`, ROTA_PESO_WIDTH)
+  return `${nomeCol}|${qtdCol}|${pesoCol}`
 }
 
 export function calcularSubtotal(

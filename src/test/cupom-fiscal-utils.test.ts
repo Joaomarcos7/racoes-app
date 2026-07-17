@@ -38,31 +38,6 @@ describe("truncate", () => {
 })
 
 describe("formatarLinhaProduto", () => {
-  it("formats product line within 42 chars", () => {
-    const linha = formatarLinhaProduto("Ração Premium", 25, 2, 180)
-    expect(linha.length).toBeLessThanOrEqual(LINHA_WIDTH)
-  })
-
-  it("includes product name, weight, quantity and total", () => {
-    const linha = formatarLinhaProduto("Ração Premium", 25, 2, 180)
-    expect(linha).toContain("25kg")
-    expect(linha).toContain("2")
-    expect(linha).toContain("180")
-  })
-
-  it("truncates long product names to fit in 42 chars", () => {
-    const linha = formatarLinhaProduto("Nome Muito Longo De Produto Especial Super", 10, 1, 50)
-    expect(linha.length).toBeLessThanOrEqual(LINHA_WIDTH)
-  })
-
-  it("keeps KG column at the same position regardless of total amount", () => {
-    const linha1 = formatarLinhaProduto("Produto", 5, 1, 10)
-    const linha2 = formatarLinhaProduto("Produto", 5, 1, 1000)
-    const kgPos1 = linha1.indexOf("5kg")
-    const kgPos2 = linha2.indexOf("5kg")
-    expect(kgPos1).toBe(kgPos2)
-  })
-
   it("produces lines of exactly LINHA_WIDTH chars", () => {
     const linha1 = formatarLinhaProduto("Produto", 5, 1, 10)
     const linha2 = formatarLinhaProduto("Produto", 5, 1, 9999.99)
@@ -70,22 +45,48 @@ describe("formatarLinhaProduto", () => {
     expect(linha2.length).toBe(LINHA_WIDTH)
   })
 
-  it("right-aligns KG column — valores de peso diferentes terminam na mesma posição", () => {
+  it("truncates long product names to fit exactly LINHA_WIDTH", () => {
+    const linha = formatarLinhaProduto("Nome Muito Longo De Produto Especial Super", 10, 1, 50)
+    expect(linha.length).toBe(LINHA_WIDTH)
+  })
+
+  it("includes product weight, quantity and total", () => {
+    const linha = formatarLinhaProduto("Ração Premium", 25, 2, 180)
+    expect(linha).toContain("25kg")
+    expect(linha).toContain("2")
+    expect(linha).toContain("180")
+  })
+
+  it("uses | as column separator", () => {
+    const linha = formatarLinhaProduto("Produto", 25, 3, 100)
+    expect(linha).toContain("|")
+    const pipes = (linha.match(/\|/g) ?? []).length
+    expect(pipes).toBe(3)
+  })
+
+  it("KG column ends at same position regardless of total amount", () => {
+    const linha1 = formatarLinhaProduto("Produto", 5, 1, 10)
+    const linha2 = formatarLinhaProduto("Produto", 5, 1, 1000)
+    const kgPos1 = linha1.indexOf("5kg") + "5kg".length
+    const kgPos2 = linha2.indexOf("5kg") + "5kg".length
+    expect(kgPos1).toBe(kgPos2)
+  })
+
+  it("right-aligns KG — different peso values end at same position", () => {
     const linha1 = formatarLinhaProduto("Produto", 5, 1, 100)
-    const linha2 = formatarLinhaProduto("Produto", 25, 1, 100)
+    const linha2 = formatarLinhaProduto("Produto", 100, 1, 100)
     const endKg1 = linha1.indexOf("5kg") + "5kg".length
-    const endKg2 = linha2.indexOf("25kg") + "25kg".length
+    const endKg2 = linha2.indexOf("100kg") + "100kg".length
     expect(endKg1).toBe(endKg2)
   })
 
-  it("right-aligns QTD column — quantidades diferentes terminam na mesma posição", () => {
+  it("right-aligns QTD — different quantities end at same position", () => {
     const linha1 = formatarLinhaProduto("Produto", 25, 1, 100)
     const linha2 = formatarLinhaProduto("Produto", 25, 99, 100)
-    // find position after the kg column to locate qty
-    const kgEnd1 = linha1.indexOf("25kg") + "25kg".length
-    const kgEnd2 = linha2.indexOf("25kg") + "25kg".length
-    const qtdEnd1 = linha1.indexOf("1", kgEnd1) + 1
-    const qtdEnd2 = linha2.indexOf("99", kgEnd2) + 2
+    const pipe1 = linha1.indexOf("|", linha1.indexOf("25kg"))
+    const pipe2 = linha2.indexOf("|", linha2.indexOf("25kg"))
+    const qtdEnd1 = linha1.indexOf("|", pipe1 + 1)
+    const qtdEnd2 = linha2.indexOf("|", pipe2 + 1)
     expect(qtdEnd1).toBe(qtdEnd2)
   })
 })
@@ -102,7 +103,13 @@ describe("headerLinhaProduto", () => {
     expect(h).toContain("TOTAL")
   })
 
-  it("KG do header termina na mesma posição que KG das linhas de dados", () => {
+  it("usa | como separador de coluna", () => {
+    const h = headerLinhaProduto()
+    const pipes = (h.match(/\|/g) ?? []).length
+    expect(pipes).toBe(3)
+  })
+
+  it("KG do header termina na mesma posição que kg das linhas de dados", () => {
     const header = headerLinhaProduto()
     const linha = formatarLinhaProduto("Produto", 5, 1, 100)
     const headerKgEnd = header.indexOf("KG") + "KG".length
@@ -110,14 +117,12 @@ describe("headerLinhaProduto", () => {
     expect(headerKgEnd).toBe(linhaKgEnd)
   })
 
-  it("QT do header termina na mesma posição que QTD das linhas de dados", () => {
+  it("QT do header alinhado à mesma coluna que QTD das linhas", () => {
     const header = headerLinhaProduto()
     const linha = formatarLinhaProduto("Produto", 25, 1, 100)
-    const kgEnd = header.indexOf("KG") + "KG".length
-    const headerQtEnd = header.indexOf("QT", kgEnd) + "QT".length
-    const linhaKgEnd = linha.indexOf("25kg") + "25kg".length
-    const linhaQtEnd = linha.indexOf("1", linhaKgEnd) + 1
-    expect(headerQtEnd).toBe(linhaQtEnd)
+    const headerPipes = [...header.matchAll(/\|/g)].map((m) => m.index!)
+    const linhaPipes = [...linha.matchAll(/\|/g)].map((m) => m.index!)
+    expect(headerPipes).toEqual(linhaPipes)
   })
 })
 
@@ -182,12 +187,24 @@ describe("headerLinhaProdutoRota", () => {
     expect(headerLinhaProdutoRota().length).toBe(LINHA_WIDTH)
   })
 
-  it("header contém QTD e PESO alinhados às mesmas colunas das linhas", () => {
+  it("header contém QTD e PESO", () => {
     const header = headerLinhaProdutoRota()
-    const linha = formatarLinhaProdutoRota("Ração 25kg", 5, 125)
     expect(header).toContain("QTD")
     expect(header).toContain("PESO")
-    expect(header.length).toBe(linha.length)
+  })
+
+  it("usa | como separador de coluna", () => {
+    const header = headerLinhaProdutoRota()
+    const pipes = (header.match(/\|/g) ?? []).length
+    expect(pipes).toBe(2)
+  })
+
+  it("pipes do header nas mesmas posições que os das linhas de dados", () => {
+    const header = headerLinhaProdutoRota()
+    const linha = formatarLinhaProdutoRota("Ração 25kg", 5, 125)
+    const headerPipes = [...header.matchAll(/\|/g)].map((m) => m.index!)
+    const linhaPipes = [...linha.matchAll(/\|/g)].map((m) => m.index!)
+    expect(headerPipes).toEqual(linhaPipes)
   })
 })
 
@@ -197,9 +214,10 @@ describe("formatarLinhaProdutoRota", () => {
     expect(linha.length).toBe(LINHA_WIDTH)
   })
 
-  it("contém nome do produto", () => {
-    const linha = formatarLinhaProdutoRota("Ração 25kg", 5, 125)
-    expect(linha).toContain("Ra") // início do nome presente
+  it("usa | como separador de coluna", () => {
+    const linha = formatarLinhaProdutoRota("Produto X", 5, 125)
+    const pipes = (linha.match(/\|/g) ?? []).length
+    expect(pipes).toBe(2)
   })
 
   it("contém quantidade formatada", () => {
@@ -210,6 +228,14 @@ describe("formatarLinhaProdutoRota", () => {
   it("contém peso total formatado em kg", () => {
     const linha = formatarLinhaProdutoRota("Produto X", 5, 125.5)
     expect(linha).toContain("125")
+  })
+
+  it("QTD col ends at same position regardless of name length", () => {
+    const linha1 = formatarLinhaProdutoRota("Curto", 5, 100)
+    const linha2 = formatarLinhaProdutoRota("Nome Muito Longo De Produto Especial", 5, 100)
+    const pipe1 = linha1.indexOf("|")
+    const pipe2 = linha2.indexOf("|")
+    expect(pipe1).toBe(pipe2)
   })
 
   it("trunca nome longo sem estourar largura", () => {
