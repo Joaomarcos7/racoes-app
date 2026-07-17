@@ -38,94 +38,104 @@ describe("truncate", () => {
 })
 
 describe("formatarLinhaProduto", () => {
-  it("produces lines of exactly LINHA_WIDTH chars", () => {
-    const linha1 = formatarLinhaProduto("Produto", 5, 1, 10)
-    const linha2 = formatarLinhaProduto("Produto", 5, 1, 9999.99)
-    expect(linha1.length).toBe(LINHA_WIDTH)
-    expect(linha2.length).toBe(LINHA_WIDTH)
+  it("returns 2 lines separated by newline", () => {
+    const result = formatarLinhaProduto("Produto", 25, 3, 100)
+    const lines = result.split("\n")
+    expect(lines).toHaveLength(2)
   })
 
-  it("truncates long product names to fit exactly LINHA_WIDTH", () => {
-    const linha = formatarLinhaProduto("Nome Muito Longo De Produto Especial Super", 10, 1, 50)
-    expect(linha.length).toBe(LINHA_WIDTH)
+  it("line 1 is exactly LINHA_WIDTH chars", () => {
+    const [line1] = formatarLinhaProduto("Produto", 25, 3, 100).split("\n")
+    expect(line1.length).toBe(LINHA_WIDTH)
   })
 
-  it("includes product weight, quantity and total", () => {
-    const linha = formatarLinhaProduto("Ração Premium", 25, 2, 180)
-    expect(linha).toContain("25kg")
-    expect(linha).toContain("2")
-    expect(linha).toContain("180")
+  it("line 2 is exactly LINHA_WIDTH chars", () => {
+    const [, line2] = formatarLinhaProduto("Produto", 25, 3, 100).split("\n")
+    expect(line2.length).toBe(LINHA_WIDTH)
   })
 
-  it("has exactly 2 pipes — one before KG/QT zone, one before TOTAL", () => {
-    const linha = formatarLinhaProduto("Produto", 25, 3, 100)
-    const pipes = (linha.match(/\|/g) ?? []).length
-    expect(pipes).toBe(2)
+  it("line 1 starts with product name", () => {
+    const [line1] = formatarLinhaProduto("Racao", 25, 3, 100).split("\n")
+    expect(line1).toContain("Racao")
   })
 
-  it("uses ' | ' (space-pipe-space) as separator", () => {
-    const linha = formatarLinhaProduto("Produto", 25, 3, 100)
-    expect(linha).toContain(" | ")
-    const count = (linha.match(/ \| /g) ?? []).length
-    expect(count).toBe(2)
+  it("line 1 truncates long names to LINHA_WIDTH", () => {
+    const [line1] = formatarLinhaProduto("Nome Muito Longo De Produto Especial Super Extra", 10, 1, 50).split("\n")
+    expect(line1.length).toBe(LINHA_WIDTH)
   })
 
-  it("TOTAL is flush at extreme right — last char is last char of total value", () => {
-    const linha = formatarLinhaProduto("Produto", 5, 1, 300)
-    expect(linha.endsWith("R$300,00")).toBe(true)
+  it("line 2 TOTAL is flush at extreme right", () => {
+    const [, line2] = formatarLinhaProduto("Produto", 5, 1, 300).split("\n")
+    expect(line2.endsWith("R$300,00")).toBe(true)
   })
 
-  it("PRODUTO starts at position 0 — no leading whitespace", () => {
-    const linha = formatarLinhaProduto("Racao", 5, 1, 100)
-    expect(linha[0]).toBe("R")
+  it("line 2 TOTAL position fixed regardless of KG or QT value", () => {
+    const [, line2a] = formatarLinhaProduto("Produto", 5, 1, 300).split("\n")
+    const [, line2b] = formatarLinhaProduto("Produto", 100, 999, 300).split("\n")
+    expect(line2a.lastIndexOf("R$300,00")).toBe(line2b.lastIndexOf("R$300,00"))
   })
 
-  it("KG ends at same position regardless of name length", () => {
-    const linha1 = formatarLinhaProduto("A", 25, 1, 100)
-    const linha2 = formatarLinhaProduto("Nome Longo Truncado", 25, 1, 100)
-    const end1 = linha1.indexOf("25kg") + "25kg".length
-    const end2 = linha2.indexOf("25kg") + "25kg".length
+  it("line 2 KG ends at same position regardless of product name", () => {
+    const [, line2a] = formatarLinhaProduto("A", 25, 1, 100).split("\n")
+    const [, line2b] = formatarLinhaProduto("Nome Longo Produto Especial", 25, 1, 100).split("\n")
+    const end1 = line2a.indexOf("25kg") + "25kg".length
+    const end2 = line2b.indexOf("25kg") + "25kg".length
     expect(end1).toBe(end2)
   })
 
-  it("second pipe at same position regardless of KG or QT value", () => {
-    const linha1 = formatarLinhaProduto("Produto", 5, 1, 100)
-    const linha2 = formatarLinhaProduto("Produto", 100, 99, 100)
-    const pipe2pos1 = linha1.lastIndexOf("|")
-    const pipe2pos2 = linha2.lastIndexOf("|")
-    expect(pipe2pos1).toBe(pipe2pos2)
+  it("line 2 QT ends at same position regardless of KG value", () => {
+    const [, line2a] = formatarLinhaProduto("Produto", 5, 3, 100).split("\n")
+    const [, line2b] = formatarLinhaProduto("Produto", 100, 3, 100).split("\n")
+    const end1 = line2a.indexOf("3", 10) + 1
+    const end2 = line2b.indexOf("3", 10) + 1
+    expect(end1).toBe(end2)
   })
 })
 
 describe("headerLinhaProduto", () => {
-  it("tem exatamente LINHA_WIDTH caracteres", () => {
-    expect(headerLinhaProduto().length).toBe(LINHA_WIDTH)
+  it("returns 2 lines separated by newline", () => {
+    const lines = headerLinhaProduto().split("\n")
+    expect(lines).toHaveLength(2)
   })
 
-  it("contém labels KG, QT e TOTAL", () => {
-    const h = headerLinhaProduto()
-    expect(h).toContain("KG")
-    expect(h).toContain("QT")
-    expect(h).toContain("TOTAL")
+  it("line 1 is exactly LINHA_WIDTH chars", () => {
+    const [line1] = headerLinhaProduto().split("\n")
+    expect(line1.length).toBe(LINHA_WIDTH)
   })
 
-  it("has exactly 2 ' | ' separators", () => {
-    const h = headerLinhaProduto()
-    const count = (h.match(/ \| /g) ?? []).length
-    expect(count).toBe(2)
+  it("line 2 is exactly LINHA_WIDTH chars", () => {
+    const [, line2] = headerLinhaProduto().split("\n")
+    expect(line2.length).toBe(LINHA_WIDTH)
   })
 
-  it("pipes do header nas mesmas posições que os das linhas de dados", () => {
-    const header = headerLinhaProduto()
-    const linha = formatarLinhaProduto("Produto", 5, 1, 100)
-    const headerPipes = [...header.matchAll(/\|/g)].map((m) => m.index!)
-    const linhaPipes = [...linha.matchAll(/\|/g)].map((m) => m.index!)
-    expect(headerPipes).toEqual(linhaPipes)
+  it("line 2 contém labels KG, QT e TOTAL", () => {
+    const [, line2] = headerLinhaProduto().split("\n")
+    expect(line2).toContain("KG")
+    expect(line2).toContain("QT")
+    expect(line2).toContain("TOTAL")
   })
 
-  it("TOTAL label flush at extreme right", () => {
-    const h = headerLinhaProduto()
-    expect(h.endsWith("TOTAL")).toBe(true)
+  it("line 2 TOTAL label flush at extreme right", () => {
+    const [, line2] = headerLinhaProduto().split("\n")
+    expect(line2.endsWith("TOTAL")).toBe(true)
+  })
+
+  it("KG label ends at same position as KG data", () => {
+    const [, headerLine2] = headerLinhaProduto().split("\n")
+    const [, dataLine2] = formatarLinhaProduto("Produto", 25, 1, 100).split("\n")
+    const headerKgEnd = headerLine2.indexOf("KG") + "KG".length
+    const dataKgEnd = dataLine2.indexOf("25kg") + "25kg".length
+    expect(headerKgEnd).toBe(dataKgEnd)
+  })
+
+  it("QT label ends at same position as QT data", () => {
+    const [, headerLine2] = headerLinhaProduto().split("\n")
+    const [, dataLine2] = formatarLinhaProduto("Produto", 5, 3, 100).split("\n")
+    const kgEnd = headerLine2.indexOf("KG") + "KG".length
+    const headerQtEnd = headerLine2.indexOf("QT", kgEnd) + "QT".length
+    const dataKgEnd = dataLine2.indexOf("5kg") + "5kg".length
+    const dataQtEnd = dataLine2.indexOf("3", dataKgEnd) + 1
+    expect(headerQtEnd).toBe(dataQtEnd)
   })
 })
 
@@ -196,9 +206,9 @@ describe("headerLinhaProdutoRota", () => {
     expect(header).toContain("PESO")
   })
 
-  it("has exactly 2 ' | ' separators", () => {
+  it("uses '  |  ' (double-space each side) as separator", () => {
     const header = headerLinhaProdutoRota()
-    const count = (header.match(/ \| /g) ?? []).length
+    const count = (header.match(/  \|  /g) ?? []).length
     expect(count).toBe(2)
   })
 
@@ -222,9 +232,9 @@ describe("formatarLinhaProdutoRota", () => {
     expect(linha.length).toBe(LINHA_WIDTH)
   })
 
-  it("usa ' | ' como separador de coluna", () => {
+  it("uses '  |  ' (double-space each side) as separator", () => {
     const linha = formatarLinhaProdutoRota("Produto X", 5, 125)
-    const count = (linha.match(/ \| /g) ?? []).length
+    const count = (linha.match(/  \|  /g) ?? []).length
     expect(count).toBe(2)
   })
 
