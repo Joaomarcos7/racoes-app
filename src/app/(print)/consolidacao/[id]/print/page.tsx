@@ -3,8 +3,6 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import {
   LINHA_WIDTH,
-  formatarLinhaProdutoRota,
-  headerLinhaProdutoRota,
   formatarDataEmissao,
   gerarScriptImpressao,
 } from "@/lib/cupom-fiscal-utils"
@@ -32,6 +30,24 @@ const printStyles = `
     font-family: inherit;
     font-size: inherit;
   }
+  table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    margin: 0;
+  }
+  th, td {
+    padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  th:not(:first-child), td:not(:first-child) { text-align: right; }
+  thead { border-bottom: 1px solid #000; }
   .totais {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
@@ -105,13 +121,7 @@ export default async function RotaPrintPage({
   const totalUnidades = produtos.reduce((acc, p) => acc + p.quantidade, 0)
   const totalPeso = produtos.reduce((acc, p) => acc + p.pesoTotal, 0)
 
-  const headerCol = headerLinhaProdutoRota()
-
-  const linhasProdutos = produtos.map((p) =>
-    formatarLinhaProdutoRota(p.nome, p.quantidade, p.pesoTotal)
-  )
-
-  const cupomLines = [
+  const headerLines = [
     SEP_DOUBLE,
     "               COMERCIAL OURIQUES               ",
     SEP_DOUBLE,
@@ -122,17 +132,37 @@ export default async function RotaPrintPage({
     `Veiculo:      ${rota.veiculo.placa} ${rota.veiculo.modelo}`,
     ...(cidades.length > 0 ? [`Cidades:      ${cidades.join(", ")}`] : []),
     SEP,
-    headerCol,
-    SEP,
-    ...linhasProdutos,
-    SEP,
   ]
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
       <script dangerouslySetInnerHTML={{ __html: gerarScriptImpressao("/consolidacao") }} />
-      <pre>{cupomLines.join("\n")}</pre>
+      <pre>{headerLines.join("\n")}</pre>
+      <table>
+        <colgroup>
+          <col style={{ width: "58%" }} />
+          <col style={{ width: "17%" }} />
+          <col style={{ width: "25%" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>PRODUTO</th>
+            <th>QTD</th>
+            <th>PESO</th>
+          </tr>
+        </thead>
+        <tbody>
+          {produtos.map((p, i) => (
+            <tr key={i}>
+              <td>{p.nome}</td>
+              <td>{p.quantidade}</td>
+              <td>{p.pesoTotal.toFixed(1)}kg</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <pre>{SEP}</pre>
       <div className="totais">
         <div className="totais-linha">
           <span>TOTAL UNIDADES:</span>

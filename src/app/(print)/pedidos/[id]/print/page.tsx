@@ -5,8 +5,6 @@ import {
   LINHA_WIDTH,
   calcularSubtotal,
   calcularTotal,
-  formatarLinhaProduto,
-  headerLinhaProduto,
   formatarDataEmissao,
   gerarScriptImpressao,
 } from "@/lib/cupom-fiscal-utils"
@@ -48,6 +46,24 @@ const printStyles = `
     font-family: inherit;
     font-size: inherit;
   }
+  table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    margin: 0;
+  }
+  th, td {
+    padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  th:not(:first-child), td:not(:first-child) { text-align: right; }
+  thead { border-bottom: 1px solid #000; }
   [data-sonner-toaster], header, nav, aside { display: none !important; }
   @media print {
     body { margin: 0; }
@@ -95,11 +111,7 @@ export default async function CupomFiscalPrintPage({
     : ""
   const pagamentoLine = `${STATUS_PAG_LABELS[pedido.statusPagamento] ?? pedido.statusPagamento}${metodoLabel}`
 
-  const linhasItens = pedido.itens.map((item) =>
-    formatarLinhaProduto(item.produto.nome, item.pesoUnit, item.quantidade, item.quantidade * item.valorUnit)
-  )
-
-  const cupomLines = [
+  const headerLines = [
     SEP_DOUBLE,
     "               COMERCIAL OURIQUES               ",
     SEP_DOUBLE,
@@ -109,8 +121,9 @@ export default async function CupomFiscalPrintPage({
     `Pedido: ${clienteInfo}`,
     ...(cidadeInfo ? [`Cidade: ${cidadeInfo}`] : []),
     SEP,
-    headerLinhaProduto(),
-    ...linhasItens,
+  ]
+
+  const footerLines = [
     SEP,
     rightAlign("Subtotal:", formatBRL(subtotal)),
     ...(desconto > 0 ? [rightAlign("Desconto:", `-${formatBRL(desconto)}`)] : []),
@@ -125,7 +138,34 @@ export default async function CupomFiscalPrintPage({
     <>
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
       <script dangerouslySetInnerHTML={{ __html: gerarScriptImpressao("/pedidos") }} />
-      <pre>{cupomLines.join("\n")}</pre>
+      <pre>{headerLines.join("\n")}</pre>
+      <table>
+        <colgroup>
+          <col style={{ width: "58%" }} />
+          <col style={{ width: "13%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "19%" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>PRODUTO</th>
+            <th>KG</th>
+            <th>QT</th>
+            <th>TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pedido.itens.map((item) => (
+            <tr key={item.id}>
+              <td>{item.produto.nome}</td>
+              <td>{item.pesoUnit}kg</td>
+              <td>{item.quantidade}</td>
+              <td>{formatBRL(item.quantidade * item.valorUnit)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <pre>{footerLines.join("\n")}</pre>
     </>
   )
 }
