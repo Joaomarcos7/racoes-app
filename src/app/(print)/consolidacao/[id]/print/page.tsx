@@ -18,7 +18,7 @@ const printStyles = `
   *, *::before, *::after { box-sizing: border-box; }
   body {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 9px;
     width: 72mm;
     margin: 0;
     padding: 0;
@@ -113,7 +113,7 @@ export default async function RotaPrintPage({
 
   const cupomLines = [
     SEP_DOUBLE,
-    "      COMERCIAL OURIQUES      ",
+    "               COMERCIAL OURIQUES               ",
     SEP_DOUBLE,
     "CUPOM NAO FISCAL - ROTA",
     "",
