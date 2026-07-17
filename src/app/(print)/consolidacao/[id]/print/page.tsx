@@ -35,7 +35,8 @@ const printStyles = `
     table-layout: fixed;
     border-collapse: collapse;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 9px;
+    font-size: 11px;
+    font-weight: bold;
     margin: 0;
   }
   th, td {
@@ -44,9 +45,10 @@ const printStyles = `
     overflow: hidden;
     font-family: inherit;
     font-size: inherit;
+    font-weight: bold;
   }
-  th:first-child, td:first-child { text-align: left; }
-  th:not(:first-child), td:not(:first-child) { text-align: right; }
+  th:first-child, td:first-child { text-align: right; }
+  th:last-child, td:last-child { text-align: left; }
   thead { border-bottom: 1px solid #000; }
   .totais {
     font-family: 'Courier New', Courier, monospace;
@@ -141,23 +143,20 @@ export default async function RotaPrintPage({
       <pre>{headerLines.join("\n")}</pre>
       <table>
         <colgroup>
-          <col style={{ width: "58%" }} />
-          <col style={{ width: "17%" }} />
-          <col style={{ width: "25%" }} />
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "80%" }} />
         </colgroup>
         <thead>
           <tr>
-            <th>PRODUTO</th>
             <th>QTD</th>
-            <th>PESO</th>
+            <th>PRODUTO</th>
           </tr>
         </thead>
         <tbody>
           {produtos.map((p, i) => (
             <tr key={i}>
-              <td>{p.nome}</td>
               <td>{p.quantidade}</td>
-              <td>{p.pesoTotal.toFixed(1)}kg</td>
+              <td>{p.nome}</td>
             </tr>
           ))}
         </tbody>
