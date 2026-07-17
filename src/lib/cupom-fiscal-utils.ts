@@ -1,10 +1,9 @@
 export const LINHA_WIDTH = 48
-// Pedido: NOME(17) + ' | '(3) + KG(6) + GAP(5) + QT(5) + ' | '(3) + TOTAL(9) = 48
-const PEDIDO_NOME_WIDTH = 17
+// Fixed column positions: NOME[0..27] KG[28..33] QT[34..38] TOTAL[39..47]
+const PEDIDO_NOME_WIDTH = 28
 const PEDIDO_KG_WIDTH = 6
-const PEDIDO_KG_QT_GAP = 5
 const PEDIDO_QT_WIDTH = 5
-const PEDIDO_TOTAL_WIDTH = 9
+const PEDIDO_TOTAL_WIDTH = LINHA_WIDTH - PEDIDO_NOME_WIDTH - PEDIDO_KG_WIDTH - PEDIDO_QT_WIDTH // = 9
 export const TOTAL_COL_WIDTH = PEDIDO_TOTAL_WIDTH
 export const NOME_COL_WIDTH = PEDIDO_NOME_WIDTH
 
@@ -29,35 +28,42 @@ export function formatarLinhaProduto(
   total: number
 ): string {
   const totalStr = `R$${total.toFixed(2).replace(".", ",")}`
-  const nomeCol = padEnd(truncate(nome, PEDIDO_NOME_WIDTH), PEDIDO_NOME_WIDTH)
-  const kgCol = padStart(`${pesoKg}kg`, PEDIDO_KG_WIDTH)
-  const qtCol = padStart(String(quantidade), PEDIDO_QT_WIDTH)
-  const totalCol = padStart(totalStr, PEDIDO_TOTAL_WIDTH)
-  return `${nomeCol} | ${kgCol}${" ".repeat(PEDIDO_KG_QT_GAP)}${qtCol} | ${totalCol}`
+  return (
+    padEnd(truncate(nome, PEDIDO_NOME_WIDTH), PEDIDO_NOME_WIDTH) +
+    padStart(`${pesoKg}kg`, PEDIDO_KG_WIDTH) +
+    padStart(String(quantidade), PEDIDO_QT_WIDTH) +
+    padStart(totalStr, PEDIDO_TOTAL_WIDTH)
+  )
 }
 
 export function headerLinhaProduto(): string {
-  const nomeCol = padEnd("PRODUTO", PEDIDO_NOME_WIDTH)
-  const kgCol = padStart("KG", PEDIDO_KG_WIDTH)
-  const qtCol = padStart("QT", PEDIDO_QT_WIDTH)
-  const totalCol = padStart("TOTAL", PEDIDO_TOTAL_WIDTH)
-  return `${nomeCol} | ${kgCol}${" ".repeat(PEDIDO_KG_QT_GAP)}${qtCol} | ${totalCol}`
+  return (
+    padEnd("PRODUTO", PEDIDO_NOME_WIDTH) +
+    padStart("KG", PEDIDO_KG_WIDTH) +
+    padStart("QT", PEDIDO_QT_WIDTH) +
+    padStart("TOTAL", PEDIDO_TOTAL_WIDTH)
+  )
 }
 
-// Rota: NOME(22) + '  |  '(5) + QTD(8) + '  |  '(5) + PESO(8) = 48
-const ROTA_NOME_WIDTH = 22
+// Rota fixed columns: NOME[0..27] QTD[28..35] PESO[36..47]
+const ROTA_NOME_WIDTH = 28
 const ROTA_QTD_WIDTH = 8
-const ROTA_PESO_WIDTH = LINHA_WIDTH - ROTA_NOME_WIDTH - 5 - ROTA_QTD_WIDTH - 5 // = 8
+const ROTA_PESO_WIDTH = LINHA_WIDTH - ROTA_NOME_WIDTH - ROTA_QTD_WIDTH // = 12
 
 export function headerLinhaProdutoRota(): string {
-  return `${padEnd("PRODUTO", ROTA_NOME_WIDTH)}  |  ${padStart("QTD", ROTA_QTD_WIDTH)}  |  ${padStart("PESO", ROTA_PESO_WIDTH)}`
+  return (
+    padEnd("PRODUTO", ROTA_NOME_WIDTH) +
+    padStart("QTD", ROTA_QTD_WIDTH) +
+    padStart("PESO", ROTA_PESO_WIDTH)
+  )
 }
 
 export function formatarLinhaProdutoRota(nome: string, quantidade: number, pesoTotal: number): string {
-  const nomeCol = padEnd(truncate(nome, ROTA_NOME_WIDTH), ROTA_NOME_WIDTH)
-  const qtdCol = padStart(String(quantidade), ROTA_QTD_WIDTH)
-  const pesoCol = padStart(`${pesoTotal.toFixed(1)}kg`, ROTA_PESO_WIDTH)
-  return `${nomeCol}  |  ${qtdCol}  |  ${pesoCol}`
+  return (
+    padEnd(truncate(nome, ROTA_NOME_WIDTH), ROTA_NOME_WIDTH) +
+    padStart(String(quantidade), ROTA_QTD_WIDTH) +
+    padStart(`${pesoTotal.toFixed(1)}kg`, ROTA_PESO_WIDTH)
+  )
 }
 
 export function calcularSubtotal(
