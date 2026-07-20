@@ -51,7 +51,8 @@ const printStyles = `
     table-layout: fixed;
     border-collapse: collapse;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 9px;
+    font-size: 11px;
+    font-weight: bold;
     margin: 0;
   }
   th, td {
@@ -60,6 +61,7 @@ const printStyles = `
     overflow: hidden;
     font-family: inherit;
     font-size: inherit;
+    font-weight: bold;
   }
   th:first-child, td:first-child { text-align: left; }
   th:not(:first-child), td:not(:first-child) { text-align: right; }
