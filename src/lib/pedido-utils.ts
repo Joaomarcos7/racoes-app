@@ -108,6 +108,21 @@ export function validarBulkUpdatePedidos({
   return "Ação inválida"
 }
 
+interface FiadoStatusUpdateInput {
+  tipoFiado: string | undefined
+  dataVencimentoFiado: string | undefined
+  valorAdiantadoFiado: number | undefined
+}
+
+export function validarFiadoStatusUpdate({ tipoFiado, dataVencimentoFiado, valorAdiantadoFiado }: FiadoStatusUpdateInput): string | null {
+  if (!tipoFiado || !["INTEGRAL", "PARCIAL"].includes(tipoFiado)) return "Tipo de fiado obrigatório"
+  if (!dataVencimentoFiado) return "Data máxima de pagamento obrigatória"
+  if (tipoFiado === "PARCIAL" && (valorAdiantadoFiado == null || valorAdiantadoFiado <= 0)) {
+    return "Valor adiantado deve ser maior que zero para fiado parcial"
+  }
+  return null
+}
+
 export function validarEdicaoPedido({ clienteId, itens, requireCliente }: EdicaoPedidoInput): string | null {
   if (requireCliente && !clienteId) return "Cliente obrigatório"
   if (itens.length === 0) return "Pedido deve ter ao menos um item"

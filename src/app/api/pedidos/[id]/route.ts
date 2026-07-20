@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { shouldRegistrarHistoricoStatus } from "@/lib/pedido-status-utils"
-import { validarEdicaoPedido } from "@/lib/pedido-utils"
+import { validarEdicaoPedido, validarFiadoStatusUpdate, calcularValorEmAberto, validarAdiantadoFiado } from "@/lib/pedido-utils"
 
 const pedidoInclude = {
   cliente: true,
@@ -32,15 +32,20 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   const body = await req.json()
-  const { statusEntrega, statusPagamento, metodoPagamento, observacoes, clienteId, itens, desconto } = body
+  const { statusEntrega, statusPagamento, metodoPagamento, observacoes, clienteId, itens, desconto, tipoFiado, dataVencimentoFiado, valorAdiantadoFiado } = body
 
   if (statusPagamento === "PAGO" && !metodoPagamento) {
     return NextResponse.json({ error: "Método de pagamento obrigatório ao marcar como PAGO" }, { status: 400 })
   }
 
+  if (statusPagamento === "FIADO") {
+    const erroFiado = validarFiadoStatusUpdate({ tipoFiado, dataVencimentoFiado, valorAdiantadoFiado })
+    if (erroFiado) return NextResponse.json({ error: erroFiado }, { status: 400 })
+  }
+
   const pedidoAtual = await prisma.pedido.findUnique({
     where: { id },
-    select: { statusEntrega: true, tipoPedido: true },
+    select: { statusEntrega: true, tipoPedido: true, itens: { select: { quantidade: true, valorUnit: true } } },
   })
   if (!pedidoAtual) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
 
@@ -76,6 +81,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json(pedido)
   }
 
+  let fiadoData = {}
+  if (statusPagamento === "FIADO") {
+    const totalPedido = (pedidoAtual.itens ?? []).reduce((acc: number, i: { quantidade: number; valorUnit: number }) => acc + i.quantidade * i.valorUnit, 0)
+    if (tipoFiado === "PARCIAL") {
+      const erroAdiantado = validarAdiantadoFiado(valorAdiantadoFiado, totalPedido)
+      if (erroAdiantado) return NextResponse.json({ error: erroAdiantado }, { status: 400 })
+    }
+    const valorEmAbertoFiado = calcularValorEmAberto(totalPedido, tipoFiado, valorAdiantadoFiado)
+    fiadoData = {
+      tipoFiado,
+      dataVencimentoFiado: new Date(dataVencimentoFiado),
+      valorAdiantadoFiado: tipoFiado === "PARCIAL" ? valorAdiantadoFiado : null,
+      valorEmAbertoFiado,
+    }
+  }
+
   const pedido = await prisma.pedido.update({
     where: { id },
     data: {
@@ -83,6 +104,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       ...(statusPagamento && { statusPagamento }),
       ...(metodoPagamento !== undefined && { metodoPagamento }),
       ...(observacoes !== undefined && { observacoes }),
+      ...fiadoData,
     },
     include: pedidoInclude,
   })

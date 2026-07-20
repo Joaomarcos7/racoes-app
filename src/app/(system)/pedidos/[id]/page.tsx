@@ -6,7 +6,10 @@ import { usePedido, useUpdatePedido } from "@/hooks/use-pedidos"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
 import { EditarPedidoForm } from "@/components/pedidos/EditarPedidoForm"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { TIPO_BADGE } from "@/lib/produto-utils"
@@ -43,6 +46,10 @@ export default function PedidoDetailPage() {
   const [statusEntrega, setStatusEntrega] = useState("")
   const [statusPagamento, setStatusPagamento] = useState("")
   const [metodoPagamento, setMetodoPagamento] = useState("")
+  const [tipoFiado, setTipoFiado] = useState<"INTEGRAL" | "PARCIAL">("INTEGRAL")
+  const [dataVencimentoFiado, setDataVencimentoFiado] = useState("")
+  const [valorAdiantadoMasked, setValorAdiantadoMasked] = useState("")
+  const [adiantadoError, setAdiantadoError] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
@@ -329,10 +336,66 @@ export default function PedidoDetailPage() {
             </Select>
           </div>
         </div>
+        {statusPagamento === "FIADO" && (
+          <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50 p-3 mb-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="tipo-fiado-update">Tipo de Fiado *</Label>
+                <Select value={tipoFiado} onValueChange={(v) => setTipoFiado(v as "INTEGRAL" | "PARCIAL")}>
+                  <SelectTrigger id="tipo-fiado-update"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INTEGRAL">Integral — tudo em aberto</SelectItem>
+                    <SelectItem value="PARCIAL">Parcial — pagou parte agora</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="data-vencimento-update">Data máxima de pagamento *</Label>
+                <Input
+                  id="data-vencimento-update"
+                  type="date"
+                  value={dataVencimentoFiado}
+                  onChange={(e) => setDataVencimentoFiado(e.target.value)}
+                />
+              </div>
+            </div>
+            {tipoFiado === "PARCIAL" && (
+              <div className="space-y-1">
+                <Label htmlFor="valor-adiantado-update">Valor pago adiantado (R$) *</Label>
+                <Input
+                  id="valor-adiantado-update"
+                  inputMode="numeric"
+                  value={valorAdiantadoMasked}
+                  onChange={(e) => { setValorAdiantadoMasked(formatMoneyInput(e.target.value)); setAdiantadoError(null) }}
+                  className={adiantadoError ? "border-red-500" : ""}
+                />
+                {adiantadoError && <p className="text-xs text-red-600">{adiantadoError}</p>}
+              </div>
+            )}
+          </div>
+        )}
         <Button
           className="bg-blue-700 hover:bg-blue-600"
-          disabled={updateMutation.isPending || (!statusEntrega && !statusPagamento && !metodoPagamento)}
-          onClick={() => updateMutation.mutate({ id, statusEntrega: statusEntrega || undefined, statusPagamento: statusPagamento || undefined, metodoPagamento: metodoPagamento || undefined })}
+          disabled={
+            updateMutation.isPending ||
+            (!statusEntrega && !statusPagamento && !metodoPagamento) ||
+            (statusPagamento === "FIADO" && !dataVencimentoFiado) ||
+            (statusPagamento === "FIADO" && tipoFiado === "PARCIAL" && !valorAdiantadoMasked)
+          }
+          onClick={() => {
+            const fiadoPayload = statusPagamento === "FIADO" ? {
+              tipoFiado,
+              dataVencimentoFiado,
+              valorAdiantadoFiado: tipoFiado === "PARCIAL" ? parseMaskedMoney(valorAdiantadoMasked) : undefined,
+            } : {}
+            updateMutation.mutate({
+              id,
+              statusEntrega: statusEntrega || undefined,
+              statusPagamento: statusPagamento || undefined,
+              metodoPagamento: metodoPagamento || undefined,
+              ...fiadoPayload,
+            })
+          }}
         >
           {updateMutation.isPending ? "Salvando..." : "Salvar Status"}
         </Button>

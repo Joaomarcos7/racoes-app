@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos, validarFiadoStatusUpdate } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -244,6 +244,44 @@ describe("validarEdicaoPedido", () => {
 
   it("retorna erro quando item tem valorUnit menor ou igual a zero", () => {
     expect(validarEdicaoPedido({ clienteId: "c1", itens: [{ produtoId: "p1", quantidade: 1, valorUnit: 0 }] })).not.toBeNull()
+  })
+})
+
+describe("validarFiadoStatusUpdate", () => {
+  it("retorna null para INTEGRAL com data válida", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "INTEGRAL", dataVencimentoFiado: "2026-08-01", valorAdiantadoFiado: undefined })).toBeNull()
+  })
+
+  it("retorna null para PARCIAL com data e valor adiantado positivo", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "PARCIAL", dataVencimentoFiado: "2026-08-01", valorAdiantadoFiado: 100 })).toBeNull()
+  })
+
+  it("retorna erro quando tipoFiado ausente", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: undefined, dataVencimentoFiado: "2026-08-01", valorAdiantadoFiado: undefined })).not.toBeNull()
+  })
+
+  it("retorna erro quando tipoFiado inválido", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "OUTRO", dataVencimentoFiado: "2026-08-01", valorAdiantadoFiado: undefined })).not.toBeNull()
+  })
+
+  it("retorna erro quando dataVencimentoFiado ausente", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "INTEGRAL", dataVencimentoFiado: undefined, valorAdiantadoFiado: undefined })).not.toBeNull()
+  })
+
+  it("retorna erro quando dataVencimentoFiado string vazia", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "INTEGRAL", dataVencimentoFiado: "", valorAdiantadoFiado: undefined })).not.toBeNull()
+  })
+
+  it("retorna erro quando PARCIAL sem valorAdiantadoFiado", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "PARCIAL", dataVencimentoFiado: "2026-08-01", valorAdiantadoFiado: undefined })).not.toBeNull()
+  })
+
+  it("retorna erro quando PARCIAL com valorAdiantadoFiado zero", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "PARCIAL", dataVencimentoFiado: "2026-08-01", valorAdiantadoFiado: 0 })).not.toBeNull()
+  })
+
+  it("retorna erro quando PARCIAL com valorAdiantadoFiado negativo", () => {
+    expect(validarFiadoStatusUpdate({ tipoFiado: "PARCIAL", dataVencimentoFiado: "2026-08-01", valorAdiantadoFiado: -50 })).not.toBeNull()
   })
 })
 
