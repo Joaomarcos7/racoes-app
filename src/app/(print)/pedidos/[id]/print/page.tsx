@@ -162,7 +162,7 @@ export default async function CupomFiscalPrintPage({
               <td>{item.produto.nome}</td>
               <td>{item.pesoUnit}kg</td>
               <td>{item.quantidade}</td>
-              <td>{formatBRL(item.quantidade * item.valorUnit)}</td>
+              <td>{(item.quantidade * item.valorUnit).toFixed(2).replace(".", ",")}</td>
             </tr>
           ))}
         </tbody>
