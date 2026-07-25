@@ -64,7 +64,7 @@ const printStyles = `
     font-weight: bold;
   }
   th:first-child, td:first-child { text-align: left; }
-  th:nth-child(2), td:nth-child(2) { text-align: right; }
+  th:nth-child(2), td:nth-child(2) { text-align: right; padding-right: 6px; }
   th:nth-child(3), td:nth-child(3) { text-align: left; }
   th:last-child, td:last-child { text-align: right; }
   thead { border-bottom: 1px solid #000; }
