@@ -64,7 +64,9 @@ const printStyles = `
     font-weight: bold;
   }
   th:first-child, td:first-child { text-align: left; }
-  th:not(:first-child), td:not(:first-child) { text-align: right; }
+  th:nth-child(2), td:nth-child(2) { text-align: right; }
+  th:nth-child(3), td:nth-child(3) { text-align: left; }
+  th:last-child, td:last-child { text-align: right; }
   thead { border-bottom: 1px solid #000; }
   [data-sonner-toaster], header, nav, aside { display: none !important; }
   @media print {
@@ -143,25 +145,25 @@ export default async function CupomFiscalPrintPage({
       <pre>{headerLines.join("\n")}</pre>
       <table>
         <colgroup>
-          <col style={{ width: "58%" }} />
-          <col style={{ width: "13%" }} />
           <col style={{ width: "10%" }} />
+          <col style={{ width: "13%" }} />
+          <col style={{ width: "58%" }} />
           <col style={{ width: "19%" }} />
         </colgroup>
         <thead>
           <tr>
-            <th>PRODUTO</th>
+            <th>QTD</th>
             <th>KG</th>
-            <th>QT</th>
+            <th>PRODUTO</th>
             <th>TOTAL</th>
           </tr>
         </thead>
         <tbody>
           {pedido.itens.map((item) => (
             <tr key={item.id}>
-              <td>{item.produto.nome}</td>
-              <td>{item.pesoUnit}kg</td>
               <td>{item.quantidade}</td>
+              <td>{item.pesoUnit}kg</td>
+              <td>{item.produto.nome}</td>
               <td>{(item.quantidade * item.valorUnit).toFixed(2).replace(".", ",")}</td>
             </tr>
           ))}
