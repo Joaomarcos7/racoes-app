@@ -35,7 +35,7 @@ const printStyles = `
     table-layout: fixed;
     border-collapse: collapse;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 15px;
     font-weight: bold;
     margin: 0;
   }
