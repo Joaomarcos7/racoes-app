@@ -148,7 +148,7 @@ export default async function RotaPrintPage({
       <script dangerouslySetInnerHTML={{ __html: gerarScriptImpressao("/consolidacao") }} />
       <pre>{headerLines.join("\n")}</pre>
       {cidades.length > 0 && (
-        <div className="cidades">{`Cidades:      ${cidades.join(", ")}`}</div>
+        <div className="cidades">{`Cidades: ${cidades.join(", ")}`}</div>
       )}
       <pre>{SEP}</pre>
       <table>
