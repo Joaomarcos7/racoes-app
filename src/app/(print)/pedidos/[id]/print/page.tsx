@@ -32,7 +32,7 @@ const printStyles = `
   *, *::before, *::after { box-sizing: border-box; }
   body {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 9px;
+    font-size: 12px;
     width: 72mm;
     margin: 0;
     padding: 0;
@@ -46,12 +46,19 @@ const printStyles = `
     font-family: inherit;
     font-size: inherit;
   }
+  .destaque {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: inherit;
+    font-weight: bold;
+    margin: 0;
+    white-space: pre;
+  }
   table {
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: bold;
     margin: 0;
   }
@@ -64,10 +71,15 @@ const printStyles = `
     font-weight: bold;
   }
   th:first-child, td:first-child { text-align: left; }
-  th:nth-child(2), td:nth-child(2) { text-align: right; padding-right: 6px; }
-  th:nth-child(3), td:nth-child(3) { text-align: left; }
+  th:nth-child(2), td:nth-child(2) { text-align: left; }
   th:last-child, td:last-child { text-align: right; }
   thead { border-bottom: 1px solid #000; }
+  .peso-total {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 2px 0 0 0;
+  }
   [data-sonner-toaster], header, nav, aside { display: none !important; }
   @media print {
     body { margin: 0; }
@@ -115,16 +127,18 @@ export default async function CupomFiscalPrintPage({
     : ""
   const pagamentoLine = `${STATUS_PAG_LABELS[pedido.statusPagamento] ?? pedido.statusPagamento}${metodoLabel}`
 
-  const headerLines = [
+  const pesoTotal = pedido.itens.reduce(
+    (acc, item) => acc + item.pesoUnit * item.quantidade,
+    0
+  )
+
+  const topLines = [
     SEP_DOUBLE,
     "               COMERCIAL OURIQUES               ",
     SEP_DOUBLE,
-    "CUPOM NAO FISCAL",
+    "PEDIDO",
     "",
     `Data emissao: ${dataEmissao}`,
-    `Pedido: ${clienteInfo}`,
-    ...(cidadeInfo ? [`Cidade: ${cidadeInfo}`] : []),
-    SEP,
   ]
 
   const footerLines = [
@@ -142,18 +156,19 @@ export default async function CupomFiscalPrintPage({
     <>
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
       <script dangerouslySetInnerHTML={{ __html: gerarScriptImpressao("/pedidos") }} />
-      <pre>{headerLines.join("\n")}</pre>
+      <pre>{topLines.join("\n")}</pre>
+      <div className="destaque">{`Pedido: ${clienteInfo}`}</div>
+      {cidadeInfo && <div className="destaque">{`Cidade:  ${cidadeInfo}`}</div>}
+      <pre>{SEP}</pre>
       <table>
         <colgroup>
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "13%" }} />
-          <col style={{ width: "58%" }} />
-          <col style={{ width: "19%" }} />
+          <col style={{ width: "12%" }} />
+          <col style={{ width: "68%" }} />
+          <col style={{ width: "20%" }} />
         </colgroup>
         <thead>
           <tr>
             <th>QTD</th>
-            <th>KG</th>
             <th>PRODUTO</th>
             <th>TOTAL</th>
           </tr>
@@ -162,13 +177,13 @@ export default async function CupomFiscalPrintPage({
           {pedido.itens.map((item) => (
             <tr key={item.id}>
               <td>{item.quantidade}</td>
-              <td>{item.pesoUnit}kg</td>
               <td>{item.produto.nome}</td>
               <td>{(item.quantidade * item.valorUnit).toFixed(2).replace(".", ",")}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="peso-total">{`PESO TOTAL: ${pesoTotal.toFixed(1)} kg`}</div>
       <pre>{footerLines.join("\n")}</pre>
     </>
   )

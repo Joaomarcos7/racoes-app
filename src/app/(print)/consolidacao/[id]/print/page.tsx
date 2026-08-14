@@ -50,6 +50,13 @@ const printStyles = `
   th:first-child, td:first-child { text-align: left; padding-right: 16px; }
   th:last-child, td:last-child { text-align: left; }
   thead { border-bottom: 1px solid #000; }
+  .cidades {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+  }
   .totais {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
@@ -132,8 +139,6 @@ export default async function RotaPrintPage({
     `Data emissao: ${dataEmissao}`,
     `Data rota:    ${dataRota}`,
     `Veiculo:      ${rota.veiculo.placa} ${rota.veiculo.modelo}`,
-    ...(cidades.length > 0 ? [`Cidades:      ${cidades.join(", ")}`] : []),
-    SEP,
   ]
 
   return (
@@ -141,6 +146,10 @@ export default async function RotaPrintPage({
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
       <script dangerouslySetInnerHTML={{ __html: gerarScriptImpressao("/consolidacao") }} />
       <pre>{headerLines.join("\n")}</pre>
+      {cidades.length > 0 && (
+        <div className="cidades">{`Cidades:      ${cidades.join(", ")}`}</div>
+      )}
+      <pre>{SEP}</pre>
       <table>
         <colgroup>
           <col style={{ width: "20%" }} />
