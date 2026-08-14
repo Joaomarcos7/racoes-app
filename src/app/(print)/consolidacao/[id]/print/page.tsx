@@ -28,7 +28,7 @@ const printStyles = `
     overflow-x: hidden;
     margin: 0;
     font-family: inherit;
-    font-size: inherit;
+    font-size: 15px;
   }
   table {
     width: 100%;
@@ -127,7 +127,7 @@ export default async function RotaPrintPage({
     SEP_DOUBLE,
     "               COMERCIAL OURIQUES               ",
     SEP_DOUBLE,
-    "CUPOM NAO FISCAL - ROTA",
+    "Consolidação de Carga",
     "",
     `Data emissao: ${dataEmissao}`,
     `Data rota:    ${dataRota}`,
