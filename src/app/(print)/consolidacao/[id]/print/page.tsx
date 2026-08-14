@@ -53,6 +53,7 @@ const printStyles = `
   .cidades {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
+    font-weight: bold;
     white-space: pre-wrap;
     word-break: break-word;
     margin: 0;
