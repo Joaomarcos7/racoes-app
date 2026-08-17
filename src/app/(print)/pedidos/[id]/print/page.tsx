@@ -69,9 +69,10 @@ const printStyles = `
     font-family: inherit;
     font-size: inherit;
     font-weight: bold;
+    vertical-align: top;
   }
   th:first-child, td:first-child { text-align: left; }
-  th:nth-child(2), td:nth-child(2) { text-align: left; padding-right: 4px; }
+  th:nth-child(2), td:nth-child(2) { text-align: left; padding-right: 4px; white-space: normal; overflow: visible; word-break: break-word; }
   th:nth-child(3), td:nth-child(3) { text-align: right; padding-right: 4px; }
   th:last-child, td:last-child { text-align: right; }
   thead { border-bottom: 1px solid #000; }
