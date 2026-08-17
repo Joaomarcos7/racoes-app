@@ -48,7 +48,7 @@ const printStyles = `
   }
   .destaque {
     font-family: 'Courier New', Courier, monospace;
-    font-size: inherit;
+    font-size: 15px;
     font-weight: bold;
     margin: 0;
     white-space: pre;
@@ -71,12 +71,13 @@ const printStyles = `
     font-weight: bold;
   }
   th:first-child, td:first-child { text-align: left; }
-  th:nth-child(2), td:nth-child(2) { text-align: left; }
+  th:nth-child(2), td:nth-child(2) { text-align: left; padding-right: 4px; }
+  th:nth-child(3), td:nth-child(3) { text-align: right; padding-right: 4px; }
   th:last-child, td:last-child { text-align: right; }
   thead { border-bottom: 1px solid #000; }
   .peso-total {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: bold;
     margin: 2px 0 0 0;
   }
@@ -162,14 +163,16 @@ export default async function CupomFiscalPrintPage({
       <pre>{SEP}</pre>
       <table>
         <colgroup>
-          <col style={{ width: "12%" }} />
-          <col style={{ width: "68%" }} />
-          <col style={{ width: "20%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "50%" }} />
+          <col style={{ width: "21%" }} />
+          <col style={{ width: "19%" }} />
         </colgroup>
         <thead>
           <tr>
             <th>QTD</th>
             <th>PRODUTO</th>
+            <th>V.UNIT</th>
             <th>TOTAL</th>
           </tr>
         </thead>
@@ -178,6 +181,7 @@ export default async function CupomFiscalPrintPage({
             <tr key={item.id}>
               <td>{item.quantidade}</td>
               <td>{item.produto.nome}</td>
+              <td>{item.valorUnit.toFixed(2).replace(".", ",")}</td>
               <td>{(item.quantidade * item.valorUnit).toFixed(2).replace(".", ",")}</td>
             </tr>
           ))}
