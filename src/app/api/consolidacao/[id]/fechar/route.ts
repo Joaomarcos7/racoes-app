@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularStatusFechamento } from "@/lib/consolidacao-utils"
+import { calcularStatusFechamentoV2 } from "@/lib/consolidacao-utils"
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -23,18 +23,23 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     await tx.consolidacaoRota.update({ where: { id }, data: { status: "FECHADA" } })
 
     for (const ci of rota.itens) {
-      const { status, resetFalta } = calcularStatusFechamento(
-        ci.pedido.statusEntrega,
-        ci.temFaltaRegistrada,
-        ci.pedido.itens
-      )
-      await tx.pedido.update({ where: { id: ci.pedidoId }, data: { statusEntrega: status } })
-      if (resetFalta) {
-        await tx.itemPedido.updateMany({
-          where: { pedidoId: ci.pedidoId },
-          data: { quantidadeFalta: 0 },
-        })
+      let totalRestante = ci.pedido.itens.reduce((acc, i) => acc + i.quantidadeRestante, 0)
+
+      // Absorb delivery falta into quantidadeRestante, reset quantidadeFalta
+      if (ci.temFaltaRegistrada) {
+        for (const item of ci.pedido.itens) {
+          if (item.quantidadeFalta > 0) {
+            await tx.itemPedido.update({
+              where: { id: item.id },
+              data: { quantidadeRestante: item.quantidadeRestante + item.quantidadeFalta, quantidadeFalta: 0 },
+            })
+            totalRestante += item.quantidadeFalta
+          }
+        }
       }
+
+      const status = calcularStatusFechamentoV2(ci.pedido.statusEntrega, totalRestante)
+      await tx.pedido.update({ where: { id: ci.pedidoId }, data: { statusEntrega: status } })
     }
   })
 

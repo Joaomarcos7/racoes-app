@@ -68,14 +68,16 @@ export class PesoExcedidoError extends Error {
   }
 }
 
+export interface AlocacaoItem { itemPedidoId: string; quantidadeAlocada: number }
+
 export function useAlocarPedido(rotaId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ pedidoId, force }: { pedidoId: string; force?: boolean }) => {
+    mutationFn: async ({ pedidoId, alocacoes, force }: { pedidoId: string; alocacoes: AlocacaoItem[]; force?: boolean }) => {
       const res = await fetch(`/api/consolidacao/${rotaId}/alocar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pedidoId, force }),
+        body: JSON.stringify({ pedidoId, alocacoes, force }),
       })
       if (!res.ok) {
         const e = await res.json().catch(() => ({}))

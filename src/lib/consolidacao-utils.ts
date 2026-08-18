@@ -1,4 +1,4 @@
-interface ItemSimples { produto: { nome: string; tipo?: string }; quantidade: number; pesoUnit: number; quantidadeFalta?: number }
+interface ItemSimples { produto: { nome: string; tipo?: string }; quantidade: number; pesoUnit: number; quantidadeFalta?: number; quantidadeAlocada?: number }
 interface PedidoSimples { itens: ItemSimples[] }
 
 interface ItemComFalta { quantidade: number; pesoUnit: number; quantidadeFalta: number }
@@ -56,8 +56,7 @@ export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: str
     for (const item of pedido.itens) {
       const prev = map.get(item.produto.nome) ?? { quantidade: 0, pesoTotal: 0 }
       const falta = item.quantidadeFalta ?? 0
-      const isParcial = falta > 0
-      const qtd = isParcial ? falta : item.quantidade
+      const qtd = item.quantidadeAlocada ?? (falta > 0 ? falta : item.quantidade)
       map.set(item.produto.nome, {
         tipo: item.produto.tipo,
         quantidade: prev.quantidade + qtd,
@@ -75,6 +74,34 @@ export function validarPesoAlocacao(
 ): { excesso: number } | null {
   const total = pesoAtual + pesoPedido
   if (total > pesoMaximo) return { excesso: total - pesoMaximo }
+  return null
+}
+
+export function calcularStatusAlocacao(
+  statusAtual: string | null,
+  isAlocacaoParcial: boolean
+): "ENTREGA_PARCIAL" | "EM_ROTA" | null {
+  if (isAlocacaoParcial) return "ENTREGA_PARCIAL"
+  if (statusAtual === "ENTREGA_PARCIAL") return "EM_ROTA"
+  return null
+}
+
+export function calcularStatusFechamentoV2(
+  statusAtual: string | null,
+  finalQuantidadeRestante: number
+): "EM_ROTA" | "ENTREGA_PARCIAL" | "ENTREGUE" {
+  if (finalQuantidadeRestante > 0) return "ENTREGA_PARCIAL"
+  if (statusAtual === "ENTREGA_PARCIAL" || statusAtual === "EM_ROTA") return "ENTREGUE"
+  return "EM_ROTA"
+}
+
+export function calcularPesoAlocado(detalhes: { quantidadeAlocada: number; pesoUnit: number }[]): number {
+  return detalhes.reduce((acc, d) => acc + d.quantidadeAlocada * d.pesoUnit, 0)
+}
+
+export function validateFaltaAlocada(quantidadeAlocada: number, quantidadeFalta: number): string | null {
+  if (quantidadeFalta < 0) return "Quantidade em falta não pode ser negativa"
+  if (quantidadeFalta > quantidadeAlocada) return "Quantidade em falta não pode exceder a quantidade alocada nesta rota"
   return null
 }
 

@@ -18,7 +18,7 @@ const makePedido = (overrides: Partial<PedidoDTO> = {}): PedidoDTO => ({
   tipoFiado: null,
   valorAdiantadoFiado: null,
   valorEmAbertoFiado: null,
-  itens: [{ id: "i1", pedidoId: "p1", produtoId: "pr1", produto: { id: "pr1", nome: "Ração", peso: 25, valorUnitario: 100, custo: null, tipo: "CONSUMIDOR_FINAL" as const, ativo: true, createdAt: "" }, quantidade: 1, pesoUnit: 25, valorUnit: 100, quantidadeFalta: 0 }],
+  itens: [{ id: "i1", pedidoId: "p1", produtoId: "pr1", produto: { id: "pr1", nome: "Ração", peso: 25, valorUnitario: 100, custo: null, tipo: "CONSUMIDOR_FINAL" as const, ativo: true, createdAt: "" }, quantidade: 1, pesoUnit: 25, valorUnit: 100, quantidadeFalta: 0, quantidadeRestante: 0 }],
   createdAt: "",
   updatedAt: "",
   ...overrides,

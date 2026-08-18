@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularPesoAlocar, statusAposAlocar, validarPesoAlocacao } from "@/lib/consolidacao-utils"
+import { calcularStatusAlocacao, calcularPesoAlocado, validarPesoAlocacao } from "@/lib/consolidacao-utils"
+
+interface AlocacaoItem { itemPedidoId: string; quantidadeAlocada: number }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -9,12 +11,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const { id } = await params
-    const { pedidoId, force } = await req.json()
+    const { pedidoId, alocacoes, force } = await req.json() as { pedidoId: string; alocacoes: AlocacaoItem[]; force?: boolean }
+
     if (!pedidoId) return NextResponse.json({ error: "pedidoId obrigatório" }, { status: 400 })
+    if (!Array.isArray(alocacoes) || alocacoes.length === 0)
+      return NextResponse.json({ error: "alocacoes obrigatório" }, { status: 400 })
 
     const rota = await prisma.consolidacaoRota.findUnique({
       where: { id },
-      include: { veiculo: true, itens: { include: { pedido: { include: { itens: true } } } } },
+      include: {
+        veiculo: true,
+        itens: { include: { detalhes: { include: { itemPedido: true } } } },
+      },
     })
 
     if (!rota) return NextResponse.json({ error: "Rota não encontrada" }, { status: 404 })
@@ -26,10 +34,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId }, include: { itens: true } })
     if (!pedido) return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 })
 
-    const pesoAtual = rota.itens.reduce((acc, ci) => acc + calcularPesoAlocar(ci.pedido.itens), 0)
-    const pesoPedido = calcularPesoAlocar(pedido.itens)
-    const overload = validarPesoAlocacao(pesoAtual, pesoPedido, rota.veiculo.pesoMaximo)
+    // Validate alocacoes against available quantities
+    for (const aloc of alocacoes) {
+      const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)
+      if (!item) return NextResponse.json({ error: `Item ${aloc.itemPedidoId} não encontrado no pedido` }, { status: 400 })
+      const available = item.quantidadeRestante > 0 ? item.quantidadeRestante : item.quantidade
+      if (aloc.quantidadeAlocada < 1 || aloc.quantidadeAlocada > available)
+        return NextResponse.json({ error: `Quantidade inválida para item ${item.id}: deve ser entre 1 e ${available}` }, { status: 400 })
+    }
 
+    // Calculate peso from alocacoes
+    const alocacoesComPeso = alocacoes.map((aloc) => {
+      const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)!
+      return { quantidadeAlocada: aloc.quantidadeAlocada, pesoUnit: item.pesoUnit }
+    })
+    const pesoPedido = calcularPesoAlocado(alocacoesComPeso)
+
+    // Calculate current route peso from existing detalhes
+    const pesoAtual = rota.itens.reduce((acc, ci) => {
+      return acc + calcularPesoAlocado(ci.detalhes.map((d) => ({ quantidadeAlocada: d.quantidadeAlocada, pesoUnit: d.itemPedido.pesoUnit })))
+    }, 0)
+
+    const overload = validarPesoAlocacao(pesoAtual, pesoPedido, rota.veiculo.pesoMaximo)
     if (overload && !force) {
       return NextResponse.json(
         { error: `Peso excede capacidade do veículo em ${overload.excesso.toFixed(1)} kg`, pesoExcedido: true, excesso: overload.excesso },
@@ -37,11 +63,38 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       )
     }
 
-    const novoStatus = statusAposAlocar(pedido.statusEntrega)
-    await prisma.$transaction([
-      prisma.consolidacaoItem.create({ data: { consolidacaoRotaId: id, pedidoId } }),
-      ...(novoStatus ? [prisma.pedido.update({ where: { id: pedidoId }, data: { statusEntrega: novoStatus } })] : []),
-    ])
+    // Determine if allocation is partial
+    const isAlocacaoParcial = alocacoes.some((aloc) => {
+      const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)!
+      const available = item.quantidadeRestante > 0 ? item.quantidadeRestante : item.quantidade
+      return aloc.quantidadeAlocada < available
+    })
+
+    const novoStatus = calcularStatusAlocacao(pedido.statusEntrega, isAlocacaoParcial)
+
+    await prisma.$transaction(async (tx) => {
+      const ci = await tx.consolidacaoItem.create({ data: { consolidacaoRotaId: id, pedidoId } })
+
+      // Create detalhes and update quantidadeRestante per item
+      for (const aloc of alocacoes) {
+        const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)!
+        const available = item.quantidadeRestante > 0 ? item.quantidadeRestante : item.quantidade
+        const novoRestante = available - aloc.quantidadeAlocada
+
+        await tx.consolidacaoItemDetalhe.create({
+          data: { consolidacaoItemId: ci.id, itemPedidoId: aloc.itemPedidoId, quantidadeAlocada: aloc.quantidadeAlocada },
+        })
+
+        if (novoRestante !== item.quantidadeRestante) {
+          await tx.itemPedido.update({ where: { id: aloc.itemPedidoId }, data: { quantidadeRestante: novoRestante } })
+        }
+      }
+
+      if (novoStatus) {
+        await tx.pedido.update({ where: { id: pedidoId }, data: { statusEntrega: novoStatus } })
+      }
+    })
+
     return NextResponse.json({ ok: true })
   } catch (e) {
     console.error("[POST /api/consolidacao/alocar]", e)

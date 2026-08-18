@@ -124,15 +124,17 @@ model HistoricoStatusPedido {
 }
 
 model ItemPedido {
-  id              String  @id @default(cuid())
-  pedidoId        String
-  pedido          Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  produtoId       String
-  produto         Produto @relation(fields: [produtoId], references: [id])
-  quantidade      Int
-  pesoUnit        Float
-  valorUnit       Float
-  quantidadeFalta Int     @default(0)
+  id                 String                    @id @default(cuid())
+  pedidoId           String
+  pedido             Pedido                    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produtoId          String
+  produto            Produto                   @relation(fields: [produtoId], references: [id])
+  quantidade         Int
+  pesoUnit           Float
+  valorUnit          Float
+  quantidadeFalta    Int                       @default(0)
+  quantidadeRestante Int                       @default(0)
+  detalhesAlocacao   ConsolidacaoItemDetalhe[]
 }
 
 model ConsolidacaoRota {
@@ -146,12 +148,22 @@ model ConsolidacaoRota {
 }
 
 model ConsolidacaoItem {
-  id                 String           @id @default(cuid())
+  id                 String                    @id @default(cuid())
   consolidacaoRotaId String
-  rota               ConsolidacaoRota @relation(fields: [consolidacaoRotaId], references: [id], onDelete: Cascade)
+  rota               ConsolidacaoRota          @relation(fields: [consolidacaoRotaId], references: [id], onDelete: Cascade)
   pedidoId           String
-  pedido             Pedido           @relation(fields: [pedidoId], references: [id])
-  temFaltaRegistrada Boolean          @default(false)
+  pedido             Pedido                    @relation(fields: [pedidoId], references: [id])
+  temFaltaRegistrada Boolean                   @default(false)
+  detalhes           ConsolidacaoItemDetalhe[]
+}
+
+model ConsolidacaoItemDetalhe {
+  id                 String           @id @default(cuid())
+  consolidacaoItemId String
+  consolidacaoItem   ConsolidacaoItem @relation(fields: [consolidacaoItemId], references: [id], onDelete: Cascade)
+  itemPedidoId       String
+  itemPedido         ItemPedido       @relation(fields: [itemPedidoId], references: [id])
+  quantidadeAlocada  Int
 }
 
 enum StatusEntrega {

@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { PainelPedidos } from "@/components/consolidacao/PainelPedidos"
 import { PainelVeiculos } from "@/components/consolidacao/PainelVeiculos"
-import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta, PesoExcedidoError } from "@/hooks/use-consolidacao"
+import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta, PesoExcedidoError, AlocacaoItem } from "@/hooks/use-consolidacao"
 import { ConfirmActionDialog } from "@/components/ui/ConfirmActionDialog"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -22,20 +22,20 @@ export default function ConsolidacaoDetailPage() {
   const reabrirMutation = useReabrirRota(id)
   const faltaMutation = useRegistrarFalta(id)
   const [loadingPedidoId, setLoadingPedidoId] = useState<string | undefined>()
-  const [pesoExcedidoState, setPesoExcedidoState] = useState<{ pedidoId: string; excesso: number } | null>(null)
+  const [pesoExcedidoState, setPesoExcedidoState] = useState<{ pedidoId: string; alocacoes: AlocacaoItem[]; excesso: number } | null>(null)
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!data) return <p className="text-sm text-red-500">Rota não encontrada.</p>
 
   const isFechada = data.status === "FECHADA"
 
-  async function handleAlocar(pedidoId: string, force = false) {
+  async function handleAlocar(pedidoId: string, alocacoes: AlocacaoItem[], force = false) {
     setLoadingPedidoId(pedidoId)
     try {
-      await alocarMutation.mutateAsync({ pedidoId, force })
+      await alocarMutation.mutateAsync({ pedidoId, alocacoes, force })
     } catch (err) {
       if (err instanceof PesoExcedidoError) {
-        setPesoExcedidoState({ pedidoId, excesso: err.excesso })
+        setPesoExcedidoState({ pedidoId, alocacoes, excesso: err.excesso })
       } else {
         toast.error(err instanceof Error ? err.message : "Erro ao alocar pedido")
       }
@@ -60,9 +60,9 @@ export default function ConsolidacaoDetailPage() {
       confirmClassName="bg-amber-600 hover:bg-amber-700"
       onConfirm={() => {
         if (pesoExcedidoState) {
-          const pedidoId = pesoExcedidoState.pedidoId
+          const { pedidoId, alocacoes } = pesoExcedidoState
           setPesoExcedidoState(null)
-          handleAlocar(pedidoId, true)
+          handleAlocar(pedidoId, alocacoes, true)
         }
       }}
     />
@@ -101,7 +101,7 @@ export default function ConsolidacaoDetailPage() {
         <div className="grid grid-cols-2 gap-4" style={{ height: "calc(100vh - 200px)" }}>
           <PainelPedidos
             pedidos={(data.pedidosDisponiveis ?? []) as PedidoDTO[]}
-            onAlocar={handleAlocar}
+            onAlocar={(pedidoId, alocacoes) => handleAlocar(pedidoId, alocacoes)}
             loadingId={loadingPedidoId}
           />
           <PainelVeiculos

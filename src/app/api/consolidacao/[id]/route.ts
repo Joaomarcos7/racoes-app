@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularPesoAlocar } from "@/lib/consolidacao-utils"
+import { calcularPesoAlocado, calcularPesoAlocar } from "@/lib/consolidacao-utils"
 
-function calcPesoTotal(itens: { pedido: { itens: { quantidade: number; pesoUnit: number; quantidadeFalta: number }[] } }[]): number {
-  return itens.reduce((acc, ci) => acc + calcularPesoAlocar(ci.pedido.itens), 0)
+function calcPesoTotal(
+  itens: {
+    detalhes: { quantidadeAlocada: number; itemPedido: { pesoUnit: number } }[]
+    pedido: { itens: { quantidade: number; pesoUnit: number; quantidadeFalta: number }[] }
+  }[]
+): number {
+  return itens.reduce((acc, ci) => {
+    if (ci.detalhes.length > 0) {
+      return acc + calcularPesoAlocado(ci.detalhes.map((d) => ({ quantidadeAlocada: d.quantidadeAlocada, pesoUnit: d.itemPedido.pesoUnit })))
+    }
+    // Fallback for items created before this feature
+    return acc + calcularPesoAlocar(ci.pedido.itens)
+  }, 0)
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -16,7 +27,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     where: { id },
     include: {
       veiculo: true,
-      itens: { include: { pedido: { include: { cliente: true, itens: { include: { produto: true } } } } } },
+      itens: {
+        include: {
+          pedido: { include: { cliente: true, itens: { include: { produto: true } } } },
+          detalhes: { include: { itemPedido: true } },
+        },
+      },
     },
   })
 
@@ -25,7 +41,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const pedidosDisponiveis = await prisma.pedido.findMany({
     where: {
       ativo: true,
-      statusEntrega: "AGUARDANDO",
+      OR: [
+        { statusEntrega: "AGUARDANDO" },
+        { statusEntrega: "ENTREGA_PARCIAL", itens: { some: { quantidadeRestante: { gt: 0 } } } },
+      ],
       NOT: { consolidacoes: { some: { rota: { status: "ABERTA" } } } },
     },
     include: { cliente: true, itens: { include: { produto: true } } },

@@ -1,23 +1,44 @@
 "use client"
 import { cn } from "@/lib/utils"
-import type { VeiculoDTO, PedidoDTO } from "@/types/api"
+import type { VeiculoDTO, ConsolidacaoRotaDTO, ConsolidacaoItemDetalheDTO } from "@/types/api"
 import { PedidoCard } from "./PedidoCard"
 import { aggregateProdutosAlocados } from "@/lib/consolidacao-utils"
 import { TIPO_BADGE } from "@/lib/produto-utils"
 
+type RotaItem = ConsolidacaoRotaDTO["itens"][number]
+
 interface VeiculoSlotProps {
   veiculo: VeiculoDTO
-  pedidos: PedidoDTO[]
+  rotaItens: RotaItem[]
   pesoAtual: number
   onDesalocar?: (pedidoId: string) => void
   onRegistrarFalta?: (pedidoId: string, faltas: { itemPedidoId: string; quantidadeFalta: number }[]) => void
   loadingId?: string
 }
 
-export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, onRegistrarFalta, loadingId }: VeiculoSlotProps) {
+export function VeiculoSlot({ veiculo, rotaItens, pesoAtual, onDesalocar, onRegistrarFalta, loadingId }: VeiculoSlotProps) {
   const pct = Math.min(100, (pesoAtual / veiculo.pesoMaximo) * 100)
   const barColor = pct >= 95 ? "bg-red-500" : pct >= 80 ? "bg-yellow-400" : "bg-green-600"
-  const produtosAgregados = aggregateProdutosAlocados(pedidos)
+
+  const pedidosEnriquecidos = rotaItens.map((ci) => ({
+    ...ci.pedido,
+    itens: ci.pedido.itens.map((item) => {
+      const detalhe = ci.detalhes.find((d) => d.itemPedidoId === item.id)
+      return { ...item, quantidadeAlocada: detalhe?.quantidadeAlocada }
+    }),
+  }))
+
+  const produtosAgregados = aggregateProdutosAlocados(
+    pedidosEnriquecidos.map((p) => ({
+      itens: p.itens.map((i) => ({
+        produto: { nome: i.produto.nome, tipo: i.produto.tipo },
+        quantidade: i.quantidade,
+        pesoUnit: i.pesoUnit,
+        quantidadeFalta: i.quantidadeFalta,
+        quantidadeAlocada: (i as { quantidadeAlocada?: number }).quantidadeAlocada,
+      })),
+    }))
+  )
 
   return (
     <div className="border rounded-lg p-4 bg-white space-y-3">
@@ -50,18 +71,19 @@ export function VeiculoSlot({ veiculo, pedidos, pesoAtual, onDesalocar, onRegist
           </div>
         </div>
       )}
-      {pedidos.length === 0 ? (
+      {rotaItens.length === 0 ? (
         <p className="text-xs text-gray-400 text-center py-2">Nenhum pedido alocado</p>
       ) : (
         <div className="space-y-2">
-          {pedidos.map((p) => (
+          {rotaItens.map((ci) => (
             <PedidoCard
-              key={p.id}
-              pedido={p}
+              key={ci.pedido.id}
+              pedido={ci.pedido}
+              detalhes={ci.detalhes}
               variant="alocado"
-              onDesalocar={onDesalocar ? () => onDesalocar(p.id) : undefined}
-              onRegistrarFalta={onRegistrarFalta ? (faltas) => onRegistrarFalta(p.id, faltas) : undefined}
-              loading={loadingId === p.id}
+              onDesalocar={onDesalocar ? () => onDesalocar(ci.pedido.id) : undefined}
+              onRegistrarFalta={onRegistrarFalta ? (faltas) => onRegistrarFalta(ci.pedido.id, faltas) : undefined}
+              loading={loadingId === ci.pedido.id}
             />
           ))}
         </div>

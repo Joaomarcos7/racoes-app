@@ -5,21 +5,28 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
 import { calcularPesoFaltante } from "@/lib/consolidacao-utils"
-import type { PedidoDTO, ItemPedidoDTO } from "@/types/api"
+import type { PedidoDTO, ItemPedidoDTO, ConsolidacaoItemDetalheDTO } from "@/types/api"
 import { ArrowRight, X, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react"
 import { TIPO_BADGE } from "@/lib/produto-utils"
 
 interface PedidoCardProps {
   pedido: PedidoDTO
   variant: "disponivel" | "alocado"
-  rotaId?: string
+  detalhes?: ConsolidacaoItemDetalheDTO[]
   onAlocar?: () => void
   onDesalocar?: () => void
   onRegistrarFalta?: (faltas: { itemPedidoId: string; quantidadeFalta: number }[]) => void
   loading?: boolean
 }
 
-function ItemFaltaRow({ item, value, onChange }: { item: ItemPedidoDTO; value: number; onChange: (v: number) => void }) {
+interface ItemFaltaRowProps {
+  item: ItemPedidoDTO
+  maxFalta: number
+  value: number
+  onChange: (v: number) => void
+}
+
+function ItemFaltaRow({ item, maxFalta, value, onChange }: ItemFaltaRowProps) {
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="flex-1 truncate text-slate-700 flex items-center gap-1">
@@ -28,15 +35,15 @@ function ItemFaltaRow({ item, value, onChange }: { item: ItemPedidoDTO; value: n
           <span className={`text-[10px] px-1 py-0 rounded font-medium shrink-0 ${TIPO_BADGE[item.produto.tipo].className}`}>{TIPO_BADGE[item.produto.tipo].label}</span>
         )}
       </span>
-      <span className="text-slate-400 whitespace-nowrap">{item.quantidade} un</span>
+      <span className="text-slate-400 whitespace-nowrap">{maxFalta} alocado</span>
       <div className="flex items-center gap-1 whitespace-nowrap">
         <span className="text-slate-500">falta:</span>
         <Input
           type="number"
           min={0}
-          max={item.quantidade}
+          max={maxFalta}
           value={value}
-          onChange={(e) => onChange(Math.min(item.quantidade, Math.max(0, Number(e.target.value))))}
+          onChange={(e) => onChange(Math.min(maxFalta, Math.max(0, Number(e.target.value))))}
           className="h-6 w-14 text-xs text-right px-1"
         />
         <span className="text-slate-400">un</span>
@@ -45,7 +52,7 @@ function ItemFaltaRow({ item, value, onChange }: { item: ItemPedidoDTO; value: n
   )
 }
 
-export function PedidoCard({ pedido, variant, onAlocar, onDesalocar, onRegistrarFalta, loading }: PedidoCardProps) {
+export function PedidoCard({ pedido, variant, detalhes, onAlocar, onDesalocar, onRegistrarFalta, loading }: PedidoCardProps) {
   const [showFalta, setShowFalta] = useState(false)
   const [faltaMap, setFaltaMap] = useState<Record<string, number>>(() =>
     Object.fromEntries(pedido.itens.map((i) => [i.id, i.quantidadeFalta ?? 0]))
@@ -55,8 +62,14 @@ export function PedidoCard({ pedido, variant, onAlocar, onDesalocar, onRegistrar
     pedido.itens.map((i) => ({ quantidade: i.quantidade, pesoUnit: i.pesoUnit, quantidadeFalta: faltaMap[i.id] ?? 0 }))
   )
   const temFaltaRegistrada = pedido.itens.some((i) => (i.quantidadeFalta ?? 0) > 0)
+  const temRestante = pedido.itens.some((i) => (i.quantidadeRestante ?? 0) > 0)
   const peso = pedido.itens.reduce((acc, i) => acc + i.quantidade * i.pesoUnit, 0)
   const total = pedido.itens.reduce((acc, i) => acc + i.quantidade * i.valorUnit, 0)
+
+  function getMaxFalta(item: ItemPedidoDTO): number {
+    const detalhe = detalhes?.find((d) => d.itemPedidoId === item.id)
+    return detalhe?.quantidadeAlocada ?? item.quantidade
+  }
 
   function handleSalvarFalta() {
     const faltas = pedido.itens.map((i) => ({ itemPedidoId: i.id, quantidadeFalta: faltaMap[i.id] ?? 0 }))
@@ -69,7 +82,7 @@ export function PedidoCard({ pedido, variant, onAlocar, onDesalocar, onRegistrar
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-1.5">
           <span className="font-medium">{pedido.cliente?.nome ?? "—"}</span>
-          {temFaltaRegistrada && (
+          {(temFaltaRegistrada || temRestante) && (
             <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0 h-4">
               <AlertTriangle size={9} className="mr-0.5" /> Parcial
             </Badge>
@@ -80,6 +93,11 @@ export function PedidoCard({ pedido, variant, onAlocar, onDesalocar, onRegistrar
       <div className="text-gray-500 text-xs">{pedido.cliente?.cidade ?? "—"} · {formatCurrency(total)}</div>
       {temFaltaRegistrada && (
         <div className="text-xs text-amber-600">{pesoFaltante.toFixed(1)} kg em falta</div>
+      )}
+      {temRestante && !temFaltaRegistrada && (
+        <div className="text-xs text-amber-600">
+          {pedido.itens.filter(i => i.quantidadeRestante > 0).map(i => `${i.quantidadeRestante} ${i.produto.nome} restante`).join(", ")}
+        </div>
       )}
       <div className="pt-1 space-y-1">
         {variant === "disponivel" && onAlocar && (
@@ -109,6 +127,7 @@ export function PedidoCard({ pedido, variant, onAlocar, onDesalocar, onRegistrar
                     <ItemFaltaRow
                       key={item.id}
                       item={item}
+                      maxFalta={getMaxFalta(item)}
                       value={faltaMap[item.id] ?? 0}
                       onChange={(v) => setFaltaMap((prev) => ({ ...prev, [item.id]: v }))}
                     />

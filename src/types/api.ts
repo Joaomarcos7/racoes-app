@@ -114,6 +114,13 @@ export interface ItemPedidoDTO {
   pesoUnit: number
   valorUnit: number
   quantidadeFalta: number
+  quantidadeRestante: number
+}
+
+export interface ConsolidacaoItemDetalheDTO {
+  id: string
+  itemPedidoId: string
+  quantidadeAlocada: number
 }
 
 export interface HistoricoStatusPedidoDTO {
@@ -160,7 +167,7 @@ export interface ConsolidacaoRotaDTO {
   veiculoId: string
   veiculo: VeiculoDTO
   status: "ABERTA" | "FECHADA"
-  itens: Array<{ id: string; pedidoId: string; pedido: PedidoDTO }>
+  itens: Array<{ id: string; pedidoId: string; pedido: PedidoDTO; detalhes: ConsolidacaoItemDetalheDTO[] }>
   pesoTotal: number
   createdAt: string
 }

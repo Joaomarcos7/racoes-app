@@ -89,7 +89,10 @@ export default async function RotaPrintPage({
     include: {
       veiculo: true,
       itens: {
-        include: { pedido: { include: { cliente: true, itens: { include: { produto: true } } } } },
+        include: {
+          pedido: { include: { cliente: true, itens: { include: { produto: true } } } },
+          detalhes: true,
+        },
         orderBy: { pedido: { cliente: { cidade: "asc" } } },
       },
     },
@@ -119,12 +122,16 @@ export default async function RotaPrintPage({
   )]
 
   const pedidosSimples = rota.itens.map((ci) => ({
-    itens: ci.pedido.itens.map((i) => ({
-      produto: { nome: i.produto.nome, tipo: i.produto.tipo },
-      quantidade: i.quantidade,
-      pesoUnit: i.pesoUnit,
-      quantidadeFalta: i.quantidadeFalta ?? 0,
-    })),
+    itens: ci.pedido.itens.map((i) => {
+      const detalhe = ci.detalhes.find((d) => d.itemPedidoId === i.id)
+      return {
+        produto: { nome: i.produto.nome, tipo: i.produto.tipo },
+        quantidade: i.quantidade,
+        pesoUnit: i.pesoUnit,
+        quantidadeFalta: i.quantidadeFalta ?? 0,
+        quantidadeAlocada: detalhe?.quantidadeAlocada,
+      }
+    }),
   }))
 
   const produtos = aggregateProdutosAlocados(pedidosSimples)
