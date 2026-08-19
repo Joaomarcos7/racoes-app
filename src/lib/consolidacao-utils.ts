@@ -114,6 +114,14 @@ export function validateFaltaAlocada(quantidadeAlocada: number, quantidadeFalta:
   return null
 }
 
+export function filtrarItensAlocadosNaRota<T extends { id: string }>(
+  itens: T[],
+  detalhes: { itemPedidoId: string }[]
+): T[] {
+  if (detalhes.length === 0) return itens
+  return itens.filter((item) => detalhes.some((d) => d.itemPedidoId === item.id))
+}
+
 export function validateReabrirRota(rota: { status: string }): string | null {
   if (rota.status !== "FECHADA") return "Rota já está aberta"
   return null

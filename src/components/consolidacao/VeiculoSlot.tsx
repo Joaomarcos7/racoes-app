@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils"
 import type { VeiculoDTO, ConsolidacaoRotaDTO, ConsolidacaoItemDetalheDTO } from "@/types/api"
 import { PedidoCard } from "./PedidoCard"
-import { aggregateProdutosAlocados } from "@/lib/consolidacao-utils"
+import { aggregateProdutosAlocados, filtrarItensAlocadosNaRota } from "@/lib/consolidacao-utils"
 import { TIPO_BADGE } from "@/lib/produto-utils"
 
 type RotaItem = ConsolidacaoRotaDTO["itens"][number]
@@ -22,7 +22,7 @@ export function VeiculoSlot({ veiculo, rotaItens, pesoAtual, onDesalocar, onRegi
 
   const pedidosEnriquecidos = rotaItens.map((ci) => ({
     ...ci.pedido,
-    itens: ci.pedido.itens.map((item) => {
+    itens: filtrarItensAlocadosNaRota(ci.pedido.itens, ci.detalhes).map((item) => {
       const detalhe = ci.detalhes.find((d) => d.itemPedidoId === item.id)
       return { ...item, quantidadeAlocada: detalhe?.quantidadeAlocada }
     }),

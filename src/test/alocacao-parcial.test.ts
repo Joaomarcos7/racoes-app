@@ -5,6 +5,7 @@ import {
   calcularPesoAlocado,
   validateFaltaAlocada,
   calcularDisponivelParaAlocacao,
+  filtrarItensAlocadosNaRota,
 } from "@/lib/consolidacao-utils"
 
 describe("calcularStatusAlocacao", () => {
@@ -114,5 +115,29 @@ describe("validateFaltaAlocada", () => {
 
   it("retorna erro quando falta excede o alocado nesta rota", () => {
     expect(validateFaltaAlocada(20, 21)).toBe("Quantidade em falta não pode exceder a quantidade alocada nesta rota")
+  })
+})
+
+describe("filtrarItensAlocadosNaRota", () => {
+  it("sem detalhes: retorna todos os itens (comportamento legado)", () => {
+    const itens = [{ id: "i1" }, { id: "i2" }]
+    expect(filtrarItensAlocadosNaRota(itens, [])).toEqual(itens)
+  })
+
+  it("com detalhes: retorna apenas itens que tem detalhe na rota atual", () => {
+    const itens = [{ id: "i1" }, { id: "i2" }, { id: "i3" }]
+    const detalhes = [{ itemPedidoId: "i1" }, { itemPedidoId: "i3" }]
+    const result = filtrarItensAlocadosNaRota(itens, detalhes)
+    expect(result).toHaveLength(2)
+    expect(result.map((i) => i.id)).toEqual(["i1", "i3"])
+  })
+
+  it("item sem detalhe (ja entregue em rota anterior) nao aparece", () => {
+    const itens = [{ id: "itemA" }, { id: "itemB" }]
+    // itemB foi totalmente alocado na rota 1, nao tem detalhe na rota 2
+    const detalhes = [{ itemPedidoId: "itemA" }]
+    const result = filtrarItensAlocadosNaRota(itens, detalhes)
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe("itemA")
   })
 })
