@@ -6,6 +6,7 @@ import {
   validateFaltaAlocada,
   calcularDisponivelParaAlocacao,
   filtrarItensAlocadosNaRota,
+  calcularStatusDesalocacao,
 } from "@/lib/consolidacao-utils"
 
 describe("calcularStatusAlocacao", () => {
@@ -139,5 +140,29 @@ describe("filtrarItensAlocadosNaRota", () => {
     const result = filtrarItensAlocadosNaRota(itens, detalhes)
     expect(result).toHaveLength(1)
     expect(result[0].id).toBe("itemA")
+  })
+})
+
+describe("calcularStatusDesalocacao", () => {
+  it("ENTREGA_PARCIAL totalmente alocado (EM_ROTA) desalocado → restaura ENTREGA_PARCIAL", () => {
+    // Pedido era ENTREGA_PARCIAL, foi totalmente alocado na rota 2 → virou EM_ROTA
+    // Ao desalocar: deve voltar para ENTREGA_PARCIAL para aparecer na lista
+    expect(calcularStatusDesalocacao("EM_ROTA", true)).toBe("ENTREGA_PARCIAL")
+  })
+
+  it("AGUARDANDO desalocado → sem mudanca de status", () => {
+    expect(calcularStatusDesalocacao("AGUARDANDO", true)).toBeNull()
+  })
+
+  it("ENTREGA_PARCIAL (parcialmente alocado) desalocado → sem mudanca (ja e ENTREGA_PARCIAL)", () => {
+    expect(calcularStatusDesalocacao("ENTREGA_PARCIAL", true)).toBeNull()
+  })
+
+  it("EM_ROTA sem detalhes (legado, pre-feature) → sem mudanca", () => {
+    expect(calcularStatusDesalocacao("EM_ROTA", false)).toBeNull()
+  })
+
+  it("status null → sem mudanca", () => {
+    expect(calcularStatusDesalocacao(null, true)).toBeNull()
   })
 })

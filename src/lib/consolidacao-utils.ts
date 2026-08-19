@@ -114,6 +114,15 @@ export function validateFaltaAlocada(quantidadeAlocada: number, quantidadeFalta:
   return null
 }
 
+export function calcularStatusDesalocacao(
+  statusAtual: string | null,
+  temDetalhes: boolean
+): "ENTREGA_PARCIAL" | null {
+  if (!temDetalhes || statusAtual === "AGUARDANDO" || statusAtual === null) return null
+  if (statusAtual === "EM_ROTA") return "ENTREGA_PARCIAL"
+  return null
+}
+
 export function filtrarItensAlocadosNaRota<T extends { id: string }>(
   itens: T[],
   detalhes: { itemPedidoId: string }[]
