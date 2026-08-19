@@ -139,7 +139,7 @@ export interface PedidoDTO {
   clienteId: string | null
   cliente: ClienteDTO | null
   dataPedido: string
-  statusEntrega: "AGUARDANDO" | "EM_ROTA" | "ENTREGUE" | null
+  statusEntrega: "AGUARDANDO" | "EM_ROTA" | "ENTREGUE" | "ENTREGA_PARCIAL" | null
   statusPagamento: "PENDENTE" | "PAGO" | "FIADO"
   metodoPagamento: MetodoPagamentoValue | null
   pagamentos?: PagamentoPedidoDTO[]
