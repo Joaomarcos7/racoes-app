@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight } from "lucide-react"
 import { TIPO_BADGE } from "@/lib/produto-utils"
+import { calcularDisponivelParaAlocacao } from "@/lib/consolidacao-utils"
 import type { PedidoDTO, ItemPedidoDTO } from "@/types/api"
 import type { AlocacaoItem } from "@/hooks/use-consolidacao"
 
@@ -17,24 +18,27 @@ interface AlocarPedidoDialogProps {
   loading?: boolean
 }
 
-function getAvailable(item: ItemPedidoDTO): number {
-  return item.quantidadeRestante > 0 ? item.quantidadeRestante : item.quantidade
+function getAvailable(pedido: PedidoDTO, item: ItemPedidoDTO): number {
+  return calcularDisponivelParaAlocacao(pedido.statusEntrega, item.quantidade, item.quantidadeRestante)
 }
 
 export function AlocarPedidoDialog({ pedido, open, onOpenChange, onConfirm, loading }: AlocarPedidoDialogProps) {
+  // Only items with available > 0
+  const itensDisponiveis = pedido.itens.filter((i) => getAvailable(pedido, i) > 0)
+
   const [qtdMap, setQtdMap] = useState<Record<string, number>>(() =>
-    Object.fromEntries(pedido.itens.map((i) => [i.id, getAvailable(i)]))
+    Object.fromEntries(itensDisponiveis.map((i) => [i.id, getAvailable(pedido, i)]))
   )
 
-  const isRestante = pedido.itens.some((i) => i.quantidadeRestante > 0)
-  const pesoEstimado = pedido.itens.reduce((acc, i) => {
-    return acc + (qtdMap[i.id] ?? getAvailable(i)) * i.pesoUnit
+  const isRestante = pedido.statusEntrega === "ENTREGA_PARCIAL"
+  const pesoEstimado = itensDisponiveis.reduce((acc, i) => {
+    return acc + (qtdMap[i.id] ?? getAvailable(pedido, i)) * i.pesoUnit
   }, 0)
 
   function handleConfirm() {
-    const alocacoes: AlocacaoItem[] = pedido.itens.map((i) => ({
+    const alocacoes: AlocacaoItem[] = itensDisponiveis.map((i) => ({
       itemPedidoId: i.id,
-      quantidadeAlocada: qtdMap[i.id] ?? getAvailable(i),
+      quantidadeAlocada: qtdMap[i.id] ?? getAvailable(pedido, i),
     }))
     onConfirm(alocacoes)
   }
@@ -53,8 +57,8 @@ export function AlocarPedidoDialog({ pedido, open, onOpenChange, onConfirm, load
         </DialogHeader>
 
         <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-          {pedido.itens.map((item) => {
-            const available = getAvailable(item)
+          {itensDisponiveis.map((item) => {
+            const available = getAvailable(pedido, item)
             const val = qtdMap[item.id] ?? available
             return (
               <div key={item.id} className="flex items-center gap-2 text-sm border rounded-md px-3 py-2">
