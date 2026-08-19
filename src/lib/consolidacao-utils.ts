@@ -77,6 +77,15 @@ export function validarPesoAlocacao(
   return null
 }
 
+export function calcularDisponivelParaAlocacao(
+  statusPedido: string | null,
+  quantidade: number,
+  quantidadeRestante: number
+): number {
+  if (statusPedido === "AGUARDANDO" || statusPedido === null) return quantidade
+  return quantidadeRestante
+}
+
 export function calcularStatusAlocacao(
   statusAtual: string | null,
   isAlocacaoParcial: boolean

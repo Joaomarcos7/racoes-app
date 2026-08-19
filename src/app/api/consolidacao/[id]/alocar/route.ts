@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { calcularStatusAlocacao, calcularPesoAlocado, validarPesoAlocacao } from "@/lib/consolidacao-utils"
+import { calcularStatusAlocacao, calcularPesoAlocado, validarPesoAlocacao, calcularDisponivelParaAlocacao } from "@/lib/consolidacao-utils"
 
 interface AlocacaoItem { itemPedidoId: string; quantidadeAlocada: number }
 
@@ -34,11 +34,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const pedido = await prisma.pedido.findUnique({ where: { id: pedidoId }, include: { itens: true } })
     if (!pedido) return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 })
 
-    // Validate alocacoes against available quantities
+    // Validate alocacoes against available quantities using status-aware logic
     for (const aloc of alocacoes) {
       const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)
       if (!item) return NextResponse.json({ error: `Item ${aloc.itemPedidoId} não encontrado no pedido` }, { status: 400 })
-      const available = item.quantidadeRestante > 0 ? item.quantidadeRestante : item.quantidade
+      const available = calcularDisponivelParaAlocacao(pedido.statusEntrega, item.quantidade, item.quantidadeRestante)
+      if (available === 0)
+        return NextResponse.json({ error: `Item ${item.id} já entregue integralmente — não pode ser alocado novamente` }, { status: 400 })
       if (aloc.quantidadeAlocada < 1 || aloc.quantidadeAlocada > available)
         return NextResponse.json({ error: `Quantidade inválida para item ${item.id}: deve ser entre 1 e ${available}` }, { status: 400 })
     }
@@ -63,12 +65,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       )
     }
 
-    // Determine if allocation is partial
-    const isAlocacaoParcial = alocacoes.some((aloc) => {
-      const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)!
-      const available = item.quantidadeRestante > 0 ? item.quantidadeRestante : item.quantidade
-      return aloc.quantidadeAlocada < available
-    })
+    // Determine if allocation is partial (some item allocated < its available)
+    // Also check if there are items with available > 0 not included in alocacoes
+    const itensComRestante = pedido.itens.filter((item) =>
+      calcularDisponivelParaAlocacao(pedido.statusEntrega, item.quantidade, item.quantidadeRestante) > 0
+    )
+    const isAlocacaoParcial =
+      itensComRestante.some((item) => !alocacoes.find((a) => a.itemPedidoId === item.id)) ||
+      alocacoes.some((aloc) => {
+        const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)!
+        const available = calcularDisponivelParaAlocacao(pedido.statusEntrega, item.quantidade, item.quantidadeRestante)
+        return aloc.quantidadeAlocada < available
+      })
 
     const novoStatus = calcularStatusAlocacao(pedido.statusEntrega, isAlocacaoParcial)
 
@@ -78,16 +86,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       // Create detalhes and update quantidadeRestante per item
       for (const aloc of alocacoes) {
         const item = pedido.itens.find((i) => i.id === aloc.itemPedidoId)!
-        const available = item.quantidadeRestante > 0 ? item.quantidadeRestante : item.quantidade
+        const available = calcularDisponivelParaAlocacao(pedido.statusEntrega, item.quantidade, item.quantidadeRestante)
         const novoRestante = available - aloc.quantidadeAlocada
 
         await tx.consolidacaoItemDetalhe.create({
           data: { consolidacaoItemId: ci.id, itemPedidoId: aloc.itemPedidoId, quantidadeAlocada: aloc.quantidadeAlocada },
         })
 
-        if (novoRestante !== item.quantidadeRestante) {
-          await tx.itemPedido.update({ where: { id: aloc.itemPedidoId }, data: { quantidadeRestante: novoRestante } })
-        }
+        await tx.itemPedido.update({ where: { id: aloc.itemPedidoId }, data: { quantidadeRestante: novoRestante } })
       }
 
       if (novoStatus) {

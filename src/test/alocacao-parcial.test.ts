@@ -4,6 +4,7 @@ import {
   calcularStatusFechamentoV2,
   calcularPesoAlocado,
   validateFaltaAlocada,
+  calcularDisponivelParaAlocacao,
 } from "@/lib/consolidacao-utils"
 
 describe("calcularStatusAlocacao", () => {
@@ -67,6 +68,30 @@ describe("calcularPesoAlocado", () => {
 
   it("único detalhe", () => {
     expect(calcularPesoAlocado([{ quantidadeAlocada: 20, pesoUnit: 50 }])).toBe(1000)
+  })
+})
+
+describe("calcularDisponivelParaAlocacao", () => {
+  it("pedido AGUARDANDO: usa quantidade total independente de quantidadeRestante", () => {
+    expect(calcularDisponivelParaAlocacao("AGUARDANDO", 10, 0)).toBe(10)
+    expect(calcularDisponivelParaAlocacao("AGUARDANDO", 10, 5)).toBe(10)
+  })
+
+  it("pedido ENTREGA_PARCIAL com restante > 0: usa quantidadeRestante", () => {
+    expect(calcularDisponivelParaAlocacao("ENTREGA_PARCIAL", 10, 2)).toBe(2)
+  })
+
+  it("pedido ENTREGA_PARCIAL com restante = 0: item ja entregue, disponivel = 0", () => {
+    // Item B foi alocado 5/5 na rota 1 → restante=0 → nao deve aparecer na rota 2
+    expect(calcularDisponivelParaAlocacao("ENTREGA_PARCIAL", 5, 0)).toBe(0)
+  })
+
+  it("status null (balcao): usa quantidade total", () => {
+    expect(calcularDisponivelParaAlocacao(null, 10, 0)).toBe(10)
+  })
+
+  it("status EM_ROTA com restante > 0: usa quantidadeRestante", () => {
+    expect(calcularDisponivelParaAlocacao("EM_ROTA", 10, 3)).toBe(3)
   })
 })
 
