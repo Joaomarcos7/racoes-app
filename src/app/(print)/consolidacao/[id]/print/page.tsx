@@ -146,7 +146,7 @@ export default async function RotaPrintPage({
     "",
     `Data emissao: ${dataEmissao}`,
     `Data rota:    ${dataRota}`,
-    `Veiculo:      ${rota.veiculo.placa} ${rota.veiculo.modelo}`,
+    `Veiculo:      ${rota.veiculo.modelo}`,
   ]
 
   return (
