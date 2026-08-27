@@ -150,7 +150,7 @@ export default async function CupomFiscalPrintPage({
     rightAlign("TOTAL:   ", formatBRL(total)),
     SEP,
     `Pagamento: ${pagamentoLine}`,
-    ...(pedido.observacoes ? [SEP, `Obs: ${pedido.observacoes}`] : []),
+    ...(pedido.observacoes ? [SEP, ...wrapText(`Obs: ${pedido.observacoes}`, LINHA_WIDTH)] : []),
     SEP_DOUBLE,
   ]
 
@@ -201,4 +201,22 @@ function formatBRL(value: number): string {
 function rightAlign(label: string, value: string, width: number = LINHA_WIDTH): string {
   const padding = Math.max(0, width - label.length - value.length)
   return `${label}${" ".repeat(padding)}${value}`
+}
+
+function wrapText(text: string, width: number): string[] {
+  const words = text.split(" ")
+  const lines: string[] = []
+  let current = ""
+  for (const word of words) {
+    if (current.length === 0) {
+      current = word
+    } else if (current.length + 1 + word.length <= width) {
+      current += " " + word
+    } else {
+      lines.push(current)
+      current = word
+    }
+  }
+  if (current.length > 0) lines.push(current)
+  return lines
 }
