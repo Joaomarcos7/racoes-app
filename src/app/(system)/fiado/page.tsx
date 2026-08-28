@@ -17,12 +17,13 @@ interface ClienteSelected {
 }
 
 export default function FiadoPage() {
-  const { data, isLoading } = useFiado()
+  const { data, isLoading, isError } = useFiado()
   const qc = useQueryClient()
   const [selected, setSelected] = useState<ClienteSelected | null>(null)
   const baixaMutation = useDarBaixaFiado(selected?.id ?? "")
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
+  if (isError) return <p className="text-sm text-red-500">Erro ao carregar fiados.</p>
 
   const clientes = data?.clientes ?? []
   const totalGeral = data?.totalGeral ?? 0
