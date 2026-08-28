@@ -6,13 +6,14 @@ import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Package, Users, ShoppingCart,
-  Truck, ClipboardList, LogOut, Menu, X, TrendingDown
+  Truck, ClipboardList, LogOut, Menu, X, TrendingDown, Wallet
 } from "lucide-react"
 import { NotificacaoBell } from "@/components/layout/NotificacaoBell"
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pedidos", label: "Pedidos", icon: ShoppingCart },
+  { href: "/fiado", label: "Fiado", icon: Wallet },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/produtos", label: "Produtos", icon: Package },
   { href: "/veiculos", label: "Veículos", icon: Truck },

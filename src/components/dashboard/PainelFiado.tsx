@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import Link from "next/link"
 import { AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
@@ -15,13 +16,13 @@ export function PainelFiado({ clientes, totalFiado }: { clientes: ClienteFiado[]
   return (
     <div className="bg-white rounded-lg border p-4">
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
+        <Link href="/fiado" className="flex items-center gap-2 hover:opacity-75 transition-opacity">
           <AlertTriangle size={16} className="text-orange-500 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-semibold text-sm text-gray-700">Fiado em Aberto</h3>
+            <h3 className="font-semibold text-sm text-gray-700 hover:underline">Fiado em Aberto</h3>
             <p className="text-xs text-gray-400">{clientes.length} clientes</p>
           </div>
-        </div>
+        </Link>
         <span className="text-sm font-bold text-orange-600">{formatCurrency(totalFiado)}</span>
       </div>
       {clientes.length === 0 ? (
