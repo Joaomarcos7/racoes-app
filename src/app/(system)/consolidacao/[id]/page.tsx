@@ -29,6 +29,9 @@ export default function ConsolidacaoDetailPage() {
   if (!data) return <p className="text-sm text-red-500">Rota não encontrada.</p>
 
   const isFechada = data.status === "FECHADA"
+  const totalPedidos = data.itens.length
+  const totalEntregue = data.itens.filter((ci) => ci.pedido.statusEntrega === "ENTREGUE").length
+  const todosEntregues = totalEntregue === totalPedidos
 
   async function handleAlocar(pedidoId: string, alocacoes: AlocacaoItem[], permitirAumentoQuantidade = false, force = false) {
     setLoadingPedidoId(pedidoId)
@@ -79,10 +82,15 @@ export default function ConsolidacaoDetailPage() {
                   <Printer size={14} className="mr-1.5" />
                   Imprimir Cupom
                 </Button>
+                <span className="text-sm text-gray-500">
+                  <span className={`font-semibold ${todosEntregues ? "text-green-600" : "text-gray-700"}`}>{totalEntregue}</span>
+                  <span className="text-gray-400">/{totalPedidos}</span>
+                  {" "}entregue{totalEntregue !== 1 ? "s" : ""}
+                </span>
                 <Button
                   size="sm"
-                  className="bg-green-700 hover:bg-green-600"
-                  disabled={entregarTodosMutation.isPending}
+                  className="bg-green-700 hover:bg-green-600 disabled:bg-green-300"
+                  disabled={entregarTodosMutation.isPending || todosEntregues}
                   onClick={() => entregarTodosMutation.mutate()}
                 >
                   {entregarTodosMutation.isPending ? "Atualizando..." : "Marcar todos como Entregue"}
