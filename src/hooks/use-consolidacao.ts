@@ -73,11 +73,11 @@ export interface AlocacaoItem { itemPedidoId: string; quantidadeAlocada: number 
 export function useAlocarPedido(rotaId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ pedidoId, alocacoes, force }: { pedidoId: string; alocacoes: AlocacaoItem[]; force?: boolean }) => {
+    mutationFn: async ({ pedidoId, alocacoes, force, permitirAumentoQuantidade }: { pedidoId: string; alocacoes: AlocacaoItem[]; force?: boolean; permitirAumentoQuantidade?: boolean }) => {
       const res = await fetch(`/api/consolidacao/${rotaId}/alocar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pedidoId, alocacoes, force }),
+        body: JSON.stringify({ pedidoId, alocacoes, force, permitirAumentoQuantidade }),
       })
       if (!res.ok) {
         const e = await res.json().catch(() => ({}))

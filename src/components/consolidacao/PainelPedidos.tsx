@@ -16,7 +16,7 @@ function groupByCidade(pedidos: PedidoDTO[]): Record<string, PedidoDTO[]> {
 
 interface PainelPedidosProps {
   pedidos: PedidoDTO[]
-  onAlocar: (pedidoId: string, alocacoes: AlocacaoItem[]) => void
+  onAlocar: (pedidoId: string, alocacoes: AlocacaoItem[], permitirAumentoQuantidade?: boolean) => void
   loadingId?: string
 }
 
@@ -25,9 +25,9 @@ export function PainelPedidos({ pedidos, onAlocar, loadingId }: PainelPedidosPro
   const grouped = groupByCidade(pedidos)
   const cidades = Object.keys(grouped).sort()
 
-  function handleConfirmar(alocacoes: AlocacaoItem[]) {
+  function handleConfirmar(alocacoes: AlocacaoItem[], permitirAumentoQuantidade: boolean) {
     if (!dialogPedido) return
-    onAlocar(dialogPedido.id, alocacoes)
+    onAlocar(dialogPedido.id, alocacoes, permitirAumentoQuantidade)
     setDialogPedido(null)
   }
 

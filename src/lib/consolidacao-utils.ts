@@ -114,6 +114,23 @@ export function validateFaltaAlocada(quantidadeAlocada: number, quantidadeFalta:
   return null
 }
 
+export function calcularAumentosQuantidade(
+  statusPedido: string | null,
+  itens: { id: string; produto: { nome: string }; quantidade: number; quantidadeRestante: number }[],
+  alocacoes: { itemPedidoId: string; quantidadeAlocada: number }[]
+): { itemPedidoId: string; nome: string; disponivel: number; quantidadeAlocada: number; delta: number }[] {
+  const result = []
+  for (const aloc of alocacoes) {
+    const item = itens.find((i) => i.id === aloc.itemPedidoId)
+    if (!item) continue
+    const disponivel = calcularDisponivelParaAlocacao(statusPedido, item.quantidade, item.quantidadeRestante)
+    if (aloc.quantidadeAlocada > disponivel) {
+      result.push({ itemPedidoId: item.id, nome: item.produto.nome, disponivel, quantidadeAlocada: aloc.quantidadeAlocada, delta: aloc.quantidadeAlocada - disponivel })
+    }
+  }
+  return result
+}
+
 export function calcularStatusDesalocacao(
   statusAtual: string | null,
   temDetalhes: boolean

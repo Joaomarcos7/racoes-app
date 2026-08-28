@@ -22,20 +22,20 @@ export default function ConsolidacaoDetailPage() {
   const reabrirMutation = useReabrirRota(id)
   const faltaMutation = useRegistrarFalta(id)
   const [loadingPedidoId, setLoadingPedidoId] = useState<string | undefined>()
-  const [pesoExcedidoState, setPesoExcedidoState] = useState<{ pedidoId: string; alocacoes: AlocacaoItem[]; excesso: number } | null>(null)
+  const [pesoExcedidoState, setPesoExcedidoState] = useState<{ pedidoId: string; alocacoes: AlocacaoItem[]; excesso: number; permitirAumentoQuantidade?: boolean } | null>(null)
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (!data) return <p className="text-sm text-red-500">Rota não encontrada.</p>
 
   const isFechada = data.status === "FECHADA"
 
-  async function handleAlocar(pedidoId: string, alocacoes: AlocacaoItem[], force = false) {
+  async function handleAlocar(pedidoId: string, alocacoes: AlocacaoItem[], permitirAumentoQuantidade = false, force = false) {
     setLoadingPedidoId(pedidoId)
     try {
-      await alocarMutation.mutateAsync({ pedidoId, alocacoes, force })
+      await alocarMutation.mutateAsync({ pedidoId, alocacoes, force, permitirAumentoQuantidade })
     } catch (err) {
       if (err instanceof PesoExcedidoError) {
-        setPesoExcedidoState({ pedidoId, alocacoes, excesso: err.excesso })
+        setPesoExcedidoState({ pedidoId, alocacoes, excesso: err.excesso, permitirAumentoQuantidade })
       } else {
         toast.error(err instanceof Error ? err.message : "Erro ao alocar pedido")
       }
@@ -60,9 +60,9 @@ export default function ConsolidacaoDetailPage() {
       confirmClassName="bg-amber-600 hover:bg-amber-700"
       onConfirm={() => {
         if (pesoExcedidoState) {
-          const { pedidoId, alocacoes } = pesoExcedidoState
+          const { pedidoId, alocacoes, permitirAumentoQuantidade } = pesoExcedidoState
           setPesoExcedidoState(null)
-          handleAlocar(pedidoId, alocacoes, true)
+          handleAlocar(pedidoId, alocacoes, permitirAumentoQuantidade, true)
         }
       }}
     />
@@ -101,7 +101,7 @@ export default function ConsolidacaoDetailPage() {
         <div className="grid grid-cols-2 gap-4" style={{ height: "calc(100vh - 200px)" }}>
           <PainelPedidos
             pedidos={(data.pedidosDisponiveis ?? []) as PedidoDTO[]}
-            onAlocar={(pedidoId, alocacoes) => handleAlocar(pedidoId, alocacoes)}
+            onAlocar={(pedidoId, alocacoes, permitirAumentoQuantidade) => handleAlocar(pedidoId, alocacoes, permitirAumentoQuantidade)}
             loadingId={loadingPedidoId}
           />
           <PainelVeiculos

@@ -7,6 +7,7 @@ import {
   calcularDisponivelParaAlocacao,
   filtrarItensAlocadosNaRota,
   calcularStatusDesalocacao,
+  calcularAumentosQuantidade,
 } from "@/lib/consolidacao-utils"
 
 describe("calcularStatusAlocacao", () => {
@@ -164,5 +165,51 @@ describe("calcularStatusDesalocacao", () => {
 
   it("status null → sem mudanca", () => {
     expect(calcularStatusDesalocacao(null, true)).toBeNull()
+  })
+})
+
+describe("calcularAumentosQuantidade", () => {
+  const makeItem = (id: string, nome: string, quantidade: number, quantidadeRestante = 0) => ({
+    id, produto: { nome }, quantidade, quantidadeRestante,
+  })
+
+  it("AGUARDANDO: retorna vazio quando todas alocacoes dentro do disponivel", () => {
+    const itens = [makeItem("i1", "Milho", 3)]
+    const alocacoes = [{ itemPedidoId: "i1", quantidadeAlocada: 3 }]
+    expect(calcularAumentosQuantidade("AGUARDANDO", itens, alocacoes)).toHaveLength(0)
+  })
+
+  it("AGUARDANDO: detecta quando alocacao excede quantidade original", () => {
+    const itens = [makeItem("i1", "Milho", 3)]
+    const alocacoes = [{ itemPedidoId: "i1", quantidadeAlocada: 4 }]
+    const result = calcularAumentosQuantidade("AGUARDANDO", itens, alocacoes)
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ itemPedidoId: "i1", nome: "Milho", disponivel: 3, quantidadeAlocada: 4, delta: 1 })
+  })
+
+  it("AGUARDANDO: retorna apenas os itens com aumento, nao os normais", () => {
+    const itens = [makeItem("i1", "Milho", 3), makeItem("i2", "Soja", 5)]
+    const alocacoes = [
+      { itemPedidoId: "i1", quantidadeAlocada: 4 },
+      { itemPedidoId: "i2", quantidadeAlocada: 5 },
+    ]
+    const result = calcularAumentosQuantidade("AGUARDANDO", itens, alocacoes)
+    expect(result).toHaveLength(1)
+    expect(result[0].itemPedidoId).toBe("i1")
+  })
+
+  it("ENTREGA_PARCIAL: usa quantidadeRestante como base para detectar aumento", () => {
+    const itens = [makeItem("i1", "Milho", 5, 2)] // restante=2
+    const alocacoes = [{ itemPedidoId: "i1", quantidadeAlocada: 3 }]
+    const result = calcularAumentosQuantidade("ENTREGA_PARCIAL", itens, alocacoes)
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ disponivel: 2, quantidadeAlocada: 3, delta: 1 })
+  })
+
+  it("delta correto quando multiplos sacos a mais", () => {
+    const itens = [makeItem("i1", "Milho", 3)]
+    const alocacoes = [{ itemPedidoId: "i1", quantidadeAlocada: 7 }]
+    const result = calcularAumentosQuantidade("AGUARDANDO", itens, alocacoes)
+    expect(result[0].delta).toBe(4)
   })
 })
