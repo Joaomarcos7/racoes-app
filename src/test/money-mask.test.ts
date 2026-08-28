@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { formatMoneyInput, parseMaskedMoney, formatDecimalInput, parseMaskedDecimal } from "@/lib/money-mask"
+import { formatMoneyInput, parseMaskedMoney, formatDecimalInput, parseMaskedDecimal, numberToMaskedMoney } from "@/lib/money-mask"
 
 describe("formatMoneyInput", () => {
   it("retorna 0,00 para string vazia", () => {
@@ -90,5 +90,31 @@ describe("parseMaskedMoney", () => {
 
   it("converte '1.234.567,89' para 1234567.89", () => {
     expect(parseMaskedMoney("1.234.567,89")).toBe(1234567.89)
+  })
+})
+
+describe("numberToMaskedMoney", () => {
+  it("converte 15000 para '15.000,00'", () => {
+    expect(numberToMaskedMoney(15000)).toBe("15.000,00")
+  })
+
+  it("converte 3600 para '3.600,00'", () => {
+    expect(numberToMaskedMoney(3600)).toBe("3.600,00")
+  })
+
+  it("converte 400 para '400,00'", () => {
+    expect(numberToMaskedMoney(400)).toBe("400,00")
+  })
+
+  it("converte 0 para '0,00'", () => {
+    expect(numberToMaskedMoney(0)).toBe("0,00")
+  })
+
+  it("converte 33600 para '33.600,00'", () => {
+    expect(numberToMaskedMoney(33600)).toBe("33.600,00")
+  })
+
+  it("converte valor com centavos 150.75 para '150,75'", () => {
+    expect(numberToMaskedMoney(150.75)).toBe("150,75")
   })
 })

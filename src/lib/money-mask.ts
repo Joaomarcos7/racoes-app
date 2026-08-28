@@ -17,6 +17,11 @@ export function formatMoneyInput(raw: string): string {
   return formatDecimalInput(raw, 2)
 }
 
+export function numberToMaskedMoney(n: number): string {
+  const cents = Math.round(n * 100)
+  return formatDecimalInput(String(cents), 2)
+}
+
 export function parseMaskedMoney(masked: string): number {
   return parseMaskedDecimal(masked)
 }

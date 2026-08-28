@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { formatCurrency } from "@/lib/utils"
-import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
+import { formatMoneyInput, parseMaskedMoney, numberToMaskedMoney } from "@/lib/money-mask"
 import { validarBaixaFiado, validarDistribuicaoLote, normalizarMetodosPagamento } from "@/lib/pedido-utils"
 import type { ClienteFiadoHub } from "@/hooks/use-fiado"
 
@@ -51,7 +51,7 @@ export function BaixaLoteDialog({ open, onOpenChange, clientes, loading, onSubmi
   function togglePedido(pedidoId: string, valorEmAberto: number, checked: boolean) {
     setSelecionados((prev) => ({ ...prev, [pedidoId]: checked }))
     if (checked && !valores[pedidoId]) {
-      setValores((prev) => ({ ...prev, [pedidoId]: formatMoneyInput(String(valorEmAberto)) }))
+      setValores((prev) => ({ ...prev, [pedidoId]: numberToMaskedMoney(valorEmAberto) }))
     }
   }
 
