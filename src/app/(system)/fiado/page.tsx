@@ -3,7 +3,8 @@ import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { BaixaFiadoDialog } from "@/components/clientes/BaixaFiadoDialog"
-import { useFiado } from "@/hooks/use-fiado"
+import { BaixaLoteDialog } from "@/components/fiado/BaixaLoteDialog"
+import { useFiado, useBaixaLote } from "@/hooks/use-fiado"
 import { useDarBaixaFiado } from "@/hooks/use-clientes"
 import { formatCurrency } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -20,7 +21,9 @@ export default function FiadoPage() {
   const { data, isLoading, isError } = useFiado()
   const qc = useQueryClient()
   const [selected, setSelected] = useState<ClienteSelected | null>(null)
+  const [loteOpen, setLoteOpen] = useState(false)
   const baixaMutation = useDarBaixaFiado(selected?.id ?? "")
+  const baixaLoteMutation = useBaixaLote()
 
   if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>
   if (isError) return <p className="text-sm text-red-500">Erro ao carregar fiados.</p>
@@ -34,9 +37,21 @@ export default function FiadoPage() {
         title="Fiado em Aberto"
         description={`${clientes.length} cliente${clientes.length !== 1 ? "s" : ""}`}
         action={
-          <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm px-3 py-1">
-            {formatCurrency(totalGeral)}
-          </Badge>
+          <div className="flex items-center gap-3">
+            {clientes.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-orange-400 text-orange-700 hover:bg-orange-50"
+                onClick={() => setLoteOpen(true)}
+              >
+                Dar Baixa em Lote
+              </Button>
+            )}
+            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm px-3 py-1">
+              {formatCurrency(totalGeral)}
+            </Badge>
+          </div>
         }
       />
 
@@ -99,6 +114,18 @@ export default function FiadoPage() {
               qc.invalidateQueries({ queryKey: ["fiado"] })
               setSelected(null)
             },
+          })
+        }
+      />
+
+      <BaixaLoteDialog
+        open={loteOpen}
+        onOpenChange={setLoteOpen}
+        clientes={clientes}
+        loading={baixaLoteMutation.isPending}
+        onSubmit={(pagamentos) =>
+          baixaLoteMutation.mutate(pagamentos, {
+            onSuccess: () => setLoteOpen(false),
           })
         }
       />

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos, validarFiadoStatusUpdate, normalizarMetodosPagamento } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos, validarFiadoStatusUpdate, normalizarMetodosPagamento, validarDistribuicaoLote } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -353,5 +353,31 @@ describe("normalizarMetodosPagamento", () => {
   it("modo global com lista vazia retorna array vazio", () => {
     const result = normalizarMetodosPagamento([], "global", "DINHEIRO", {})
     expect(result).toEqual([])
+  })
+})
+
+describe("validarDistribuicaoLote", () => {
+  it("retorna null quando soma das alocações é menor que totalRecebido", () => {
+    expect(validarDistribuicaoLote(500, [{ valor: 200 }, { valor: 100 }])).toBeNull()
+  })
+
+  it("retorna null quando soma das alocações é exatamente igual ao totalRecebido", () => {
+    expect(validarDistribuicaoLote(300, [{ valor: 200 }, { valor: 100 }])).toBeNull()
+  })
+
+  it("retorna erro quando soma das alocações excede totalRecebido", () => {
+    expect(validarDistribuicaoLote(250, [{ valor: 200 }, { valor: 100 }])).not.toBeNull()
+  })
+
+  it("retorna erro quando nenhuma alocação selecionada", () => {
+    expect(validarDistribuicaoLote(500, [])).not.toBeNull()
+  })
+
+  it("retorna erro quando totalRecebido é zero", () => {
+    expect(validarDistribuicaoLote(0, [{ valor: 100 }])).not.toBeNull()
+  })
+
+  it("retorna erro quando alguma alocação tem valor zero", () => {
+    expect(validarDistribuicaoLote(500, [{ valor: 100 }, { valor: 0 }])).not.toBeNull()
   })
 })

@@ -123,6 +123,18 @@ export function validarFiadoStatusUpdate({ tipoFiado, dataVencimentoFiado, valor
   return null
 }
 
+export function validarDistribuicaoLote(
+  totalRecebido: number,
+  alocacoes: { valor: number }[]
+): string | null {
+  if (totalRecebido <= 0) return "Valor recebido deve ser maior que zero"
+  if (alocacoes.length === 0) return "Selecione ao menos um pedido"
+  if (alocacoes.some((a) => a.valor <= 0)) return "Todos os valores alocados devem ser maiores que zero"
+  const soma = alocacoes.reduce((acc, a) => acc + a.valor, 0)
+  if (soma > totalRecebido) return "Soma dos valores alocados excede o valor recebido"
+  return null
+}
+
 export function normalizarMetodosPagamento(
   pagamentos: { pedidoId: string; valor: number }[],
   modo: "global" | "individual",
