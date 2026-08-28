@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { PainelPedidos } from "@/components/consolidacao/PainelPedidos"
 import { PainelVeiculos } from "@/components/consolidacao/PainelVeiculos"
-import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta, PesoExcedidoError, AlocacaoItem } from "@/hooks/use-consolidacao"
+import { useConsolidacao, useAlocarPedido, useDesalocarPedido, useFecharRota, useReabrirRota, useRegistrarFalta, useEntregarTodosPedidos, PesoExcedidoError, AlocacaoItem } from "@/hooks/use-consolidacao"
 import { ConfirmActionDialog } from "@/components/ui/ConfirmActionDialog"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,7 @@ export default function ConsolidacaoDetailPage() {
   const fecharMutation = useFecharRota(id)
   const reabrirMutation = useReabrirRota(id)
   const faltaMutation = useRegistrarFalta(id)
+  const entregarTodosMutation = useEntregarTodosPedidos(id)
   const [loadingPedidoId, setLoadingPedidoId] = useState<string | undefined>()
   const [pesoExcedidoState, setPesoExcedidoState] = useState<{ pedidoId: string; alocacoes: AlocacaoItem[]; excesso: number; permitirAumentoQuantidade?: boolean } | null>(null)
 
@@ -73,10 +74,20 @@ export default function ConsolidacaoDetailPage() {
         action={
           <div className="flex items-center gap-3">
             {isFechada && (
-              <Button variant="outline" size="sm" onClick={() => window.open(`/consolidacao/${id}/print`, "_blank")}>
-                <Printer size={14} className="mr-1.5" />
-                Imprimir Cupom
-              </Button>
+              <>
+                <Button variant="outline" size="sm" onClick={() => window.open(`/consolidacao/${id}/print`, "_blank")}>
+                  <Printer size={14} className="mr-1.5" />
+                  Imprimir Cupom
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-green-700 hover:bg-green-600"
+                  disabled={entregarTodosMutation.isPending}
+                  onClick={() => entregarTodosMutation.mutate()}
+                >
+                  {entregarTodosMutation.isPending ? "Atualizando..." : "Marcar todos como Entregue"}
+                </Button>
+              </>
             )}
             <Badge className={isFechada ? "bg-blue-100 text-blue-700" : "bg-blue-100 text-blue-700"}>
               {isFechada ? "Fechada" : "Aberta"}

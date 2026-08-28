@@ -158,3 +158,7 @@ export function validateFecharRota(rota: { status: string; numItens: number }): 
   if (rota.numItens === 0) return "Rota sem pedidos alocados"
   return null
 }
+
+export function filtrarPedidosParaEntregar<T extends { id: string; statusEntrega: string | null }>(pedidos: T[]): T[] {
+  return pedidos.filter((p) => p.statusEntrega !== "ENTREGUE")
+}

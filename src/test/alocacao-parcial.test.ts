@@ -8,6 +8,7 @@ import {
   filtrarItensAlocadosNaRota,
   calcularStatusDesalocacao,
   calcularAumentosQuantidade,
+  filtrarPedidosParaEntregar,
 } from "@/lib/consolidacao-utils"
 
 describe("calcularStatusAlocacao", () => {
@@ -211,5 +212,33 @@ describe("calcularAumentosQuantidade", () => {
     const alocacoes = [{ itemPedidoId: "i1", quantidadeAlocada: 7 }]
     const result = calcularAumentosQuantidade("AGUARDANDO", itens, alocacoes)
     expect(result[0].delta).toBe(4)
+  })
+})
+
+describe("filtrarPedidosParaEntregar", () => {
+  it("retorna apenas pedidos que nao sao ENTREGUE", () => {
+    const pedidos = [
+      { id: "p1", statusEntrega: "EM_ROTA" },
+      { id: "p2", statusEntrega: "ENTREGUE" },
+      { id: "p3", statusEntrega: "ENTREGA_PARCIAL" },
+    ]
+    const result = filtrarPedidosParaEntregar(pedidos)
+    expect(result.map((p) => p.id)).toEqual(["p1", "p3"])
+  })
+
+  it("retorna vazio quando todos ja sao ENTREGUE", () => {
+    const pedidos = [
+      { id: "p1", statusEntrega: "ENTREGUE" },
+      { id: "p2", statusEntrega: "ENTREGUE" },
+    ]
+    expect(filtrarPedidosParaEntregar(pedidos)).toHaveLength(0)
+  })
+
+  it("retorna todos quando nenhum e ENTREGUE", () => {
+    const pedidos = [
+      { id: "p1", statusEntrega: "EM_ROTA" },
+      { id: "p2", statusEntrega: "EM_ROTA" },
+    ]
+    expect(filtrarPedidosParaEntregar(pedidos)).toHaveLength(2)
   })
 })

@@ -141,6 +141,23 @@ export function useRegistrarFalta(rotaId: string) {
   })
 }
 
+export function useEntregarTodosPedidos(rotaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/consolidacao/${rotaId}/entregar-todos`, { method: "POST" })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Erro ao atualizar pedidos") }
+      return res.json() as Promise<{ ok: boolean; atualizados: number }>
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["consolidacoes", rotaId] })
+      qc.invalidateQueries({ queryKey: ["pedidos"] })
+      toast.success(`${data.atualizados} pedido(s) marcado(s) como Entregue.`)
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
 export function useFecharRota(rotaId: string) {
   const qc = useQueryClient()
   return useMutation({
