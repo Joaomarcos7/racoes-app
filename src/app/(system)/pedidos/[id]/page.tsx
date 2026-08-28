@@ -177,7 +177,7 @@ export default function PedidoDetailPage() {
             ))}
           </div>
         )}
-        {pedido.observacoes && <p className="text-sm text-gray-500 mt-3">Obs: {pedido.observacoes}</p>}
+        {pedido.observacoes && <p className="text-sm text-gray-500 mt-3 break-words">Obs: {pedido.observacoes}</p>}
       </div>
       {pedido.statusPagamento === "FIADO" && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 space-y-3">

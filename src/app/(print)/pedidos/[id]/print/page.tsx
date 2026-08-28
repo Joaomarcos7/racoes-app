@@ -40,8 +40,9 @@ const printStyles = `
     background: white;
   }
   pre {
-    white-space: pre;
-    overflow-x: hidden;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
     margin: 0;
     font-family: inherit;
     font-size: inherit;
@@ -74,7 +75,7 @@ const printStyles = `
   th:first-child, td:first-child { text-align: left; }
   th:nth-child(2), td:nth-child(2) { text-align: left; padding-right: 4px; white-space: normal; overflow: visible; word-break: break-word; }
   th:nth-child(3), td:nth-child(3) { text-align: right; padding-right: 4px; }
-  th:last-child, td:last-child { text-align: right; }
+  th:last-child, td:last-child { text-align: right; padding-right: 3px; }
   thead { border-bottom: 1px solid #000; }
   .peso-total {
     font-family: 'Courier New', Courier, monospace;
