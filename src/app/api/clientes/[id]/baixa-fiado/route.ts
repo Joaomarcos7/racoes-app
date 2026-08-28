@@ -10,16 +10,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { id: clienteId } = await params
   const body = await req.json()
-  const { pagamentos, metodoPagamento } = body as {
-    pagamentos: { pedidoId: string; valor: number }[]
-    metodoPagamento: string
+  const { pagamentos } = body as {
+    pagamentos: { pedidoId: string; valor: number; metodoPagamento: string }[]
   }
 
   if (!pagamentos || pagamentos.length === 0) {
     return NextResponse.json({ error: "Ao menos um pagamento é obrigatório" }, { status: 400 })
   }
-  if (!metodoPagamento) {
-    return NextResponse.json({ error: "Método de pagamento obrigatório" }, { status: 400 })
+  if (pagamentos.some((p) => !p.metodoPagamento)) {
+    return NextResponse.json({ error: "Método de pagamento obrigatório em todos os pagamentos" }, { status: 400 })
   }
 
   const pedidoIds = pagamentos.map((p) => p.pedidoId)
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           data: {
             pedidoId: pag.pedidoId,
             valor: pag.valor,
-            metodoPagamento: metodoPagamento as MetodoPagamento,
+            metodoPagamento: pag.metodoPagamento as MetodoPagamento,
           },
         }),
         prisma.pedido.update({
@@ -58,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           data: {
             valorEmAbertoFiado: novoValor,
             statusPagamento: novoStatus,
-            ...(novoStatus === "PAGO" ? { metodoPagamento: metodoPagamento as MetodoPagamento } : {}),
+            ...(novoStatus === "PAGO" ? { metodoPagamento: pag.metodoPagamento as MetodoPagamento } : {}),
           },
         }),
       ]

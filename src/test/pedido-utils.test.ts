@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos, validarFiadoStatusUpdate } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos, validarFiadoStatusUpdate, normalizarMetodosPagamento } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -320,5 +320,38 @@ describe("validarBulkUpdatePedidos", () => {
     for (const v of ["PENDENTE", "PAGO", "FIADO"]) {
       expect(validarBulkUpdatePedidos({ ids: ["id1"], action: "statusPagamento", value: v })).toBeNull()
     }
+  })
+})
+
+describe("normalizarMetodosPagamento", () => {
+  const pagamentos = [
+    { pedidoId: "p1", valor: 100 },
+    { pedidoId: "p2", valor: 200 },
+  ]
+
+  it("modo global aplica mesmo método para todos os pagamentos", () => {
+    const result = normalizarMetodosPagamento(pagamentos, "global", "PIX", {})
+    expect(result).toEqual([
+      { pedidoId: "p1", valor: 100, metodoPagamento: "PIX" },
+      { pedidoId: "p2", valor: 200, metodoPagamento: "PIX" },
+    ])
+  })
+
+  it("modo individual aplica método por pedido", () => {
+    const result = normalizarMetodosPagamento(pagamentos, "individual", "", { p1: "DINHEIRO", p2: "PIX" })
+    expect(result).toEqual([
+      { pedidoId: "p1", valor: 100, metodoPagamento: "DINHEIRO" },
+      { pedidoId: "p2", valor: 200, metodoPagamento: "PIX" },
+    ])
+  })
+
+  it("modo individual com pedido sem método retorna string vazia para esse pedido", () => {
+    const result = normalizarMetodosPagamento(pagamentos, "individual", "", { p1: "DINHEIRO" })
+    expect(result[1].metodoPagamento).toBe("")
+  })
+
+  it("modo global com lista vazia retorna array vazio", () => {
+    const result = normalizarMetodosPagamento([], "global", "DINHEIRO", {})
+    expect(result).toEqual([])
   })
 })

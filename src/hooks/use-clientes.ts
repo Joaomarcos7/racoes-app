@@ -89,7 +89,7 @@ export function useUpdateCliente() {
 export function useDarBaixaFiado(clienteId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { pagamentos: { pedidoId: string; valor: number }[]; metodoPagamento: string }) => {
+    mutationFn: async (data: { pagamentos: { pedidoId: string; valor: number; metodoPagamento: string }[] }) => {
       const res = await fetch(`/api/clientes/${clienteId}/baixa-fiado`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -123,6 +123,18 @@ export function validarFiadoStatusUpdate({ tipoFiado, dataVencimentoFiado, valor
   return null
 }
 
+export function normalizarMetodosPagamento(
+  pagamentos: { pedidoId: string; valor: number }[],
+  modo: "global" | "individual",
+  metodoGlobal: string,
+  metodoPorPedido: Record<string, string>
+): { pedidoId: string; valor: number; metodoPagamento: string }[] {
+  return pagamentos.map((p) => ({
+    ...p,
+    metodoPagamento: modo === "global" ? metodoGlobal : (metodoPorPedido[p.pedidoId] ?? ""),
+  }))
+}
+
 export function validarEdicaoPedido({ clienteId, itens, requireCliente }: EdicaoPedidoInput): string | null {
   if (requireCliente && !clienteId) return "Cliente obrigatório"
   if (itens.length === 0) return "Pedido deve ter ao menos um item"
