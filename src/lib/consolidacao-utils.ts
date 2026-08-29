@@ -162,3 +162,16 @@ export function validateFecharRota(rota: { status: string; numItens: number }): 
 export function filtrarPedidosParaEntregar<T extends { id: string; statusEntrega: string | null }>(pedidos: T[]): T[] {
   return pedidos.filter((p) => p.statusEntrega !== "ENTREGUE")
 }
+
+export function filtrarPedidosPorCidade<T extends { cliente?: { cidade: string } | null }>(
+  pedidos: T[],
+  search: string
+): T[] {
+  if (!search.trim()) return pedidos
+  const normalizar = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  const termo = normalizar(search)
+  return pedidos.filter((p) => {
+    const cidade = p.cliente?.cidade
+    return cidade ? normalizar(cidade).includes(termo) : false
+  })
+}
