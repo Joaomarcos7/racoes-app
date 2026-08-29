@@ -9,6 +9,7 @@ import {
   calcularStatusDesalocacao,
   calcularAumentosQuantidade,
   filtrarPedidosParaEntregar,
+  filtrarPedidosPorCidade,
 } from "@/lib/consolidacao-utils"
 
 describe("calcularStatusAlocacao", () => {
@@ -240,5 +241,48 @@ describe("filtrarPedidosParaEntregar", () => {
       { id: "p2", statusEntrega: "EM_ROTA" },
     ]
     expect(filtrarPedidosParaEntregar(pedidos)).toHaveLength(2)
+  })
+})
+
+describe("filtrarPedidosPorCidade", () => {
+  const pedidos = [
+    { id: "p1", cliente: { cidade: "São Paulo" } },
+    { id: "p2", cliente: { cidade: "Belo Horizonte" } },
+    { id: "p3", cliente: { cidade: "são paulo" } },
+    { id: "p4", cliente: null },
+  ] as { id: string; cliente: { cidade: string } | null }[]
+
+  it("retorna todos quando search vazio", () => {
+    expect(filtrarPedidosPorCidade(pedidos, "")).toHaveLength(4)
+  })
+
+  it("filtra por cidade case insensitive", () => {
+    const result = filtrarPedidosPorCidade(pedidos, "belo")
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe("p2")
+  })
+
+  it("normaliza acentos — 'sao paulo' encontra 'São Paulo'", () => {
+    const result = filtrarPedidosPorCidade(pedidos, "sao paulo")
+    expect(result.map((p) => p.id).sort()).toEqual(["p1", "p3"])
+  })
+
+  it("match parcial — 'paulo' encontra 'São Paulo'", () => {
+    const result = filtrarPedidosPorCidade(pedidos, "paulo")
+    expect(result).toHaveLength(2)
+  })
+
+  it("pedido sem cliente não aparece quando há filtro", () => {
+    const result = filtrarPedidosPorCidade(pedidos, "paulo")
+    expect(result.find((p) => p.id === "p4")).toBeUndefined()
+  })
+
+  it("pedido sem cliente aparece quando search vazio", () => {
+    const result = filtrarPedidosPorCidade(pedidos, "")
+    expect(result.find((p) => p.id === "p4")).toBeDefined()
+  })
+
+  it("retorna vazio quando nenhuma cidade corresponde", () => {
+    expect(filtrarPedidosPorCidade(pedidos, "manaus")).toHaveLength(0)
   })
 })
