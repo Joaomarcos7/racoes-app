@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates, calcularVendasPagas } from "@/lib/dashboard-utils"
+import { groupByMetodoPagamento, getTopClientes, calcularPesoVendido, getPeriodoDates, calcularVendasPagas, getDiaDates } from "@/lib/dashboard-utils"
 
 const makePedido = (overrides: Record<string, unknown>) => ({
   id: "p1",
@@ -228,5 +228,50 @@ describe("getPeriodoDates", () => {
     const { start, end } = getPeriodoDates("anual")
     const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
     expect(diffDays).toBe(364)
+  })
+})
+
+describe("getDiaDates", () => {
+  it("start é meia-noite local do dia informado", () => {
+    const { start } = getDiaDates("2026-01-15")
+    expect(start.getFullYear()).toBe(2026)
+    expect(start.getMonth()).toBe(0)
+    expect(start.getDate()).toBe(15)
+    expect(start.getHours()).toBe(0)
+    expect(start.getMinutes()).toBe(0)
+    expect(start.getSeconds()).toBe(0)
+    expect(start.getMilliseconds()).toBe(0)
+  })
+
+  it("end é 23:59:59.999 local do dia informado", () => {
+    const { end } = getDiaDates("2026-01-15")
+    expect(end.getFullYear()).toBe(2026)
+    expect(end.getMonth()).toBe(0)
+    expect(end.getDate()).toBe(15)
+    expect(end.getHours()).toBe(23)
+    expect(end.getMinutes()).toBe(59)
+    expect(end.getSeconds()).toBe(59)
+    expect(end.getMilliseconds()).toBe(999)
+  })
+
+  it("start e end no mesmo dia", () => {
+    const { start, end } = getDiaDates("2026-08-28")
+    expect(start.getDate()).toBe(end.getDate())
+    expect(start.getMonth()).toBe(end.getMonth())
+    expect(start.getFullYear()).toBe(end.getFullYear())
+  })
+
+  it("funciona em fim de mês — 31 de março", () => {
+    const { start, end } = getDiaDates("2026-03-31")
+    expect(start.getDate()).toBe(31)
+    expect(start.getMonth()).toBe(2)
+    expect(end.getDate()).toBe(31)
+  })
+
+  it("funciona em ano bissexto — 29 de fevereiro", () => {
+    const { start } = getDiaDates("2028-02-29")
+    expect(start.getDate()).toBe(29)
+    expect(start.getMonth()).toBe(1)
+    expect(start.getFullYear()).toBe(2028)
   })
 })

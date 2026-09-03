@@ -8,6 +8,13 @@ export function calcularVendasPagas(pedidos: PedidoVenda[]): number {
     .reduce((acc, p) => acc + p.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0), 0)
 }
 
+export function getDiaDates(dateStr: string): { start: Date; end: Date } {
+  const [year, month, day] = dateStr.split("-").map(Number)
+  const start = new Date(year, month - 1, day, 0, 0, 0, 0)
+  const end = new Date(year, month - 1, day, 23, 59, 59, 999)
+  return { start, end }
+}
+
 export function getPeriodoDates(periodo: string): { start: Date; end: Date } {
   const now = new Date()
   const end = new Date(now)

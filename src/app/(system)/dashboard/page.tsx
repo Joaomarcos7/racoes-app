@@ -7,7 +7,8 @@ import { PainelFiado } from "@/components/dashboard/PainelFiado"
 import { PainelMetodosPagamento } from "@/components/dashboard/PainelMetodosPagamento"
 import { PainelTopClientes } from "@/components/dashboard/PainelTopClientes"
 import { PainelTopSaidas } from "@/components/dashboard/PainelTopSaidas"
-import { useDashboard } from "@/hooks/use-dashboard"
+import { DashboardDatePicker } from "@/components/dashboard/DashboardDatePicker"
+import { useDashboard, useDashboardDia } from "@/hooks/use-dashboard"
 import { cn, formatCurrency } from "@/lib/utils"
 import { DollarSign, ShoppingBag, Users, Truck, CheckCircle2, Store, Weight, TrendingDown, Scale } from "lucide-react"
 
@@ -26,7 +27,15 @@ const PERIODO_LABELS: Record<Periodo, string> = {
 
 export default function DashboardPage() {
   const [periodo, setPeriodo] = useState<Periodo>("hoje")
-  const { data, isLoading } = useDashboard(periodo)
+  const [diaEspecifico, setDiaEspecifico] = useState<string | null>(null)
+
+  const periodoQuery = useDashboard(periodo)
+  const diaQuery = useDashboardDia(diaEspecifico)
+
+  const isLoading = diaEspecifico ? diaQuery.isLoading : periodoQuery.isLoading
+  const data = diaEspecifico ? diaQuery.data : periodoQuery.data
+
+  const periodoLabel = diaEspecifico ? null : PERIODO_LABELS[periodo]
 
   return (
     <div>
@@ -34,15 +43,18 @@ export default function DashboardPage() {
         title="Dashboard"
         action={
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex border rounded-md overflow-hidden">
-              {(["hoje","semana","mes","trimestre","anual"] as Periodo[]).map((p) => (
-                <button key={p} onClick={() => setPeriodo(p)}
-                  className={cn("px-2.5 py-1.5 text-xs sm:text-sm transition-colors", periodo === p ? "bg-blue-700 text-white" : "bg-white text-gray-600 hover:bg-gray-50")}>
-                  {PERIODO_LABELS[p]}
-                </button>
-              ))}
-            </div>
-            {data && <ExportButton data={data} periodo={periodo} />}
+            {!diaEspecifico && (
+              <div className="flex border rounded-md overflow-hidden">
+                {(["hoje","semana","mes","trimestre","anual"] as Periodo[]).map((p) => (
+                  <button key={p} onClick={() => setPeriodo(p)}
+                    className={cn("px-2.5 py-1.5 text-xs sm:text-sm transition-colors", periodo === p ? "bg-blue-700 text-white" : "bg-white text-gray-600 hover:bg-gray-50")}>
+                    {PERIODO_LABELS[p]}
+                  </button>
+                ))}
+              </div>
+            )}
+            <DashboardDatePicker value={diaEspecifico} onChange={setDiaEspecifico} />
+            {data && !diaEspecifico && <ExportButton data={data} periodo={periodo} />}
           </div>
         }
       />
@@ -61,7 +73,7 @@ export default function DashboardPage() {
             <KpiCard label="Balcão" value={data.pedidosBalcao} subtext={`${formatCurrency(data.vendasBalcao)} em vendas`} accentColor="#1D4ED8" icon={Store} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-            <KpiCard label="Peso Vendido" value={`${data.pesoVendido.toFixed(1)} kg`} subtext={`${PERIODO_LABELS[periodo].toLowerCase()}`} accentColor="#92400E" icon={Weight} />
+            <KpiCard label="Peso Vendido" value={`${data.pesoVendido.toFixed(1)} kg`} subtext={periodoLabel ? periodoLabel.toLowerCase() : (diaEspecifico ?? "")} accentColor="#92400E" icon={Weight} />
             <KpiCard label="Total Saídas" value={data.totalSaidas} isCurrency subtext="custos do período" accentColor="#DC2626" icon={TrendingDown} />
             <KpiCard label="Saldo Líquido" value={data.saldoLiquido} isCurrency subtext="entradas − saídas" accentColor={data.saldoLiquido >= 0 ? "#15803D" : "#DC2626"} icon={Scale} />
           </div>
