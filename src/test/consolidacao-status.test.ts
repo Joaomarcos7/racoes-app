@@ -79,6 +79,18 @@ describe("aggregateProdutosAlocados", () => {
     expect(aggregateProdutosAlocados([])).toEqual([])
   })
 
+  it("retorna produtos em ordem alfabética A→Z pelo nome", () => {
+    const pedidos = [{ itens: [makeItem("Soja 30kg", 1), makeItem("Arroz 5kg", 2), makeItem("Milho 20kg", 3)] }]
+    const result = aggregateProdutosAlocados(pedidos)
+    expect(result.map((p) => p.nome)).toEqual(["Arroz 5kg", "Milho 20kg", "Soja 30kg"])
+  })
+
+  it("ordenação ignora capitalização", () => {
+    const pedidos = [{ itens: [makeItem("ração gato", 1), makeItem("Alimento cão", 1), makeItem("BIFINHO", 1)] }]
+    const result = aggregateProdutosAlocados(pedidos)
+    expect(result.map((p) => p.nome)).toEqual(["Alimento cão", "BIFINHO", "ração gato"])
+  })
+
   it("pedido parcial mostra apenas quantidadeFalta (itens ainda a entregar)", () => {
     // ordenou 5, 2 em falta → mostra 2 (os que ainda faltam entregar)
     const pedidos = [{ itens: [makeItem("Ração 5kg", 5, 2)] }]

@@ -64,7 +64,9 @@ export function aggregateProdutosAlocados(pedidos: PedidoSimples[]): { nome: str
       })
     }
   }
-  return Array.from(map.entries()).map(([nome, v]) => ({ nome, ...v }))
+  return Array.from(map.entries())
+    .map(([nome, v]) => ({ nome, ...v }))
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }))
 }
 
 export function validarPesoAlocacao(
