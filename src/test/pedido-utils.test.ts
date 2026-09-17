@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos, validarFiadoStatusUpdate, normalizarMetodosPagamento, validarDistribuicaoLote } from "@/lib/pedido-utils"
+import { validateItensPedido, calcTotalComDesconto, calcularValorPesoVariavel, shouldRegistrarHistoricoCusto, calcularValorEmAberto, validarAdiantadoFiado, resolverValorUnitItem, validarValorUnitOverride, calcularNovoValorEmAberto, resolverStatusPosBaixa, validarBaixaFiado, validarEdicaoPedido, validarBulkUpdatePedidos, validarFiadoStatusUpdate, normalizarMetodosPagamento, validarDistribuicaoLote, filtrarPedidosPorDisponibilidade } from "@/lib/pedido-utils"
 
 describe("validateItensPedido", () => {
   const produtoMap = new Map([
@@ -379,5 +379,39 @@ describe("validarDistribuicaoLote", () => {
 
   it("retorna erro quando alguma alocação tem valor zero", () => {
     expect(validarDistribuicaoLote(500, [{ valor: 100 }, { valor: 0 }])).not.toBeNull()
+  })
+})
+
+describe("filtrarPedidosPorDisponibilidade", () => {
+  const pedidos = [
+    { id: "p1", disponivel: true },
+    { id: "p2", disponivel: false },
+    { id: "p3", disponivel: true },
+    { id: "p4", disponivel: false },
+  ]
+
+  it("filtro 'todos' retorna todos os pedidos", () => {
+    expect(filtrarPedidosPorDisponibilidade(pedidos, "todos")).toHaveLength(4)
+  })
+
+  it("filtro 'disponivel' retorna apenas disponíveis", () => {
+    const result = filtrarPedidosPorDisponibilidade(pedidos, "disponivel")
+    expect(result).toHaveLength(2)
+    expect(result.every((p) => p.disponivel)).toBe(true)
+  })
+
+  it("filtro 'indisponivel' retorna apenas indisponíveis", () => {
+    const result = filtrarPedidosPorDisponibilidade(pedidos, "indisponivel")
+    expect(result).toHaveLength(2)
+    expect(result.every((p) => !p.disponivel)).toBe(true)
+  })
+
+  it("filtro 'disponivel' com lista vazia retorna vazio", () => {
+    expect(filtrarPedidosPorDisponibilidade([], "disponivel")).toHaveLength(0)
+  })
+
+  it("filtro 'indisponivel' quando todos disponíveis retorna vazio", () => {
+    const todos = [{ id: "a", disponivel: true }, { id: "b", disponivel: true }]
+    expect(filtrarPedidosPorDisponibilidade(todos, "indisponivel")).toHaveLength(0)
   })
 })

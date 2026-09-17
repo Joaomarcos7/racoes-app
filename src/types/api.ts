@@ -146,6 +146,7 @@ export interface PedidoDTO {
   baixas?: BaixaFiadoDTO[]
   observacoes: string | null
   desconto: number
+  disponivel: boolean
   dataVencimentoFiado: string | null
   tipoFiado: TipoFiado | null
   valorAdiantadoFiado: number | null

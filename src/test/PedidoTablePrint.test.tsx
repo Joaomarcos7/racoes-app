@@ -13,6 +13,7 @@ const makePedido = (id: string) => ({
   metodoPagamento: "PIX" as const,
   observacoes: null,
   desconto: 0,
+  disponivel: true,
   dataVencimentoFiado: null,
   tipoFiado: null,
   valorAdiantadoFiado: null,

@@ -41,6 +41,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const pedidosDisponiveis = await prisma.pedido.findMany({
     where: {
       ativo: true,
+      disponivel: true,
       OR: [
         { statusEntrega: "AGUARDANDO" },
         { statusEntrega: "ENTREGA_PARCIAL", itens: { some: { quantidadeRestante: { gt: 0 } } } },

@@ -2,18 +2,19 @@
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { usePedido, useUpdatePedido } from "@/hooks/use-pedidos"
+import { usePedido, useUpdatePedido, useToggleDisponibilidade } from "@/hooks/use-pedidos"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ConfirmActionDialog } from "@/components/ui/ConfirmActionDialog"
 import { formatMoneyInput, parseMaskedMoney } from "@/lib/money-mask"
 import { EditarPedidoForm } from "@/components/pedidos/EditarPedidoForm"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { TIPO_BADGE } from "@/lib/produto-utils"
-import { Pencil, Printer, Truck } from "lucide-react"
+import { Pencil, Printer, Truck, BanIcon, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 
 const entregaConfig: Record<string, { label: string; className: string }> = {
@@ -43,6 +44,8 @@ export default function PedidoDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: pedido, isLoading } = usePedido(id)
   const updateMutation = useUpdatePedido()
+  const toggleDispMutation = useToggleDisponibilidade()
+  const [confirmDisp, setConfirmDisp] = useState<boolean | null>(null)
   const [statusEntrega, setStatusEntrega] = useState("")
   const [statusPagamento, setStatusPagamento] = useState("")
   const [metodoPagamento, setMetodoPagamento] = useState("")
@@ -95,14 +98,62 @@ export default function PedidoDetailPage() {
               <Printer size={14} className="mr-1.5" />
               Imprimir Cupom
             </Button>
+            {pedido.tipoPedido === "ENTREGA" && (
+              pedido.disponivel ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-300 text-red-600 hover:bg-red-50"
+                  onClick={() => setConfirmDisp(false)}
+                  disabled={toggleDispMutation.isPending}
+                >
+                  <BanIcon size={14} className="mr-1.5" />
+                  Tornar Indisponível
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-green-300 text-green-600 hover:bg-green-50"
+                  onClick={() => setConfirmDisp(true)}
+                  disabled={toggleDispMutation.isPending}
+                >
+                  <CheckCircle2 size={14} className="mr-1.5" />
+                  Tornar Disponível
+                </Button>
+              )
+            )}
           </div>
         }
+      />
+      <ConfirmActionDialog
+        open={confirmDisp !== null}
+        onOpenChange={(open) => { if (!open) setConfirmDisp(null) }}
+        title={confirmDisp === false ? "Tornar pedido indisponível?" : "Tornar pedido disponível?"}
+        description={
+          confirmDisp === false
+            ? "O pedido não aparecerá mais na lista de alocação de rotas. Você poderá revertê-lo depois."
+            : "O pedido voltará a aparecer na lista de pedidos disponíveis para alocação."
+        }
+        confirmLabel={confirmDisp === false ? "Tornar indisponível" : "Tornar disponível"}
+        confirmClassName={confirmDisp === false ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
+        onConfirm={() => {
+          if (confirmDisp !== null) {
+            toggleDispMutation.mutate({ id, disponivel: confirmDisp })
+            setConfirmDisp(null)
+          }
+        }}
       />
       <div className="bg-white rounded-lg border p-6">
         <div className="flex gap-3 mb-4 flex-wrap">
           <Badge className={pedido.tipoPedido === "ENTREGA" ? "bg-blue-100 text-blue-700" : "bg-blue-100 text-blue-700"}>
             {pedido.tipoPedido === "ENTREGA" ? "Entrega" : "Balcão"}
           </Badge>
+          {!pedido.disponivel && (
+            <Badge className="bg-red-100 text-red-700 border-red-200">
+              <BanIcon size={10} className="mr-1" /> Indisponível para rotas
+            </Badge>
+          )}
           {pedido.statusEntrega && (
             <Badge className={entregaConfig[pedido.statusEntrega].className}>{entregaConfig[pedido.statusEntrega].label}</Badge>
           )}

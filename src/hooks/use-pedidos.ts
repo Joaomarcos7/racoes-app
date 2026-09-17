@@ -8,6 +8,7 @@ interface PedidoFilters {
   statusPagamento?: string
   tipoPedido?: string
   cidade?: string
+  disponivel?: boolean
   sortOrder?: "asc" | "desc"
   page?: number
   limit?: number
@@ -22,6 +23,7 @@ async function fetchPedidos(filters: PedidoFilters = {}): Promise<PagedResult<Pe
   if (filters.statusPagamento) params.set("statusPagamento", filters.statusPagamento)
   if (filters.tipoPedido) params.set("tipoPedido", filters.tipoPedido)
   if (filters.cidade) params.set("cidade", filters.cidade)
+  if (filters.disponivel !== undefined) params.set("disponivel", String(filters.disponivel))
   if (filters.sortOrder) params.set("sortOrder", filters.sortOrder)
   params.set("page", String(filters.page ?? 1))
   params.set("limit", String(filters.limit ?? 15))
@@ -168,6 +170,30 @@ export function useDeletePedido() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pedidos"] })
       toast.success("Pedido removido")
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useToggleDisponibilidade() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, disponivel }: { id: string; disponivel: boolean }) => {
+      const res = await fetch(`/api/pedidos/${id}/disponibilidade`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ disponivel }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? "Erro ao atualizar disponibilidade")
+      }
+      return res.json()
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["pedidos"] })
+      qc.invalidateQueries({ queryKey: ["consolidacao"] })
+      toast.success(vars.disponivel ? "Pedido marcado como disponível" : "Pedido marcado como indisponível")
     },
     onError: (e: Error) => toast.error(e.message),
   })

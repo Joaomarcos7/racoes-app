@@ -16,6 +16,7 @@ export default function PedidosPage() {
   const [statusPagamento, setStatusPagamento] = useState("all")
   const [cidade, setCidade] = useState("")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const [disponivel, setDisponivel] = useState<"all" | "true" | "false">("all")
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(15)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -28,6 +29,7 @@ export default function PedidosPage() {
     statusEntrega: statusEntrega === "all" ? "" : statusEntrega,
     statusPagamento: statusPagamento === "all" ? "" : statusPagamento,
     cidade,
+    disponivel: disponivel === "all" ? undefined : disponivel === "true",
     sortOrder,
     page,
     limit,
@@ -93,6 +95,14 @@ export default function PedidosPage() {
           onChange={(e) => { setCidade(e.target.value); resetPage() }}
           className="w-full sm:w-auto sm:max-w-xs"
         />
+        <Select value={disponivel} onValueChange={(v) => { setDisponivel(v as "all" | "true" | "false"); resetPage() }}>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Disponibilidade" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="true">Disponíveis</SelectItem>
+            <SelectItem value="false">Indisponíveis</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {hasSelection && (

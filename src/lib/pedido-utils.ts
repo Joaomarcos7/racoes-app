@@ -156,3 +156,12 @@ export function validarEdicaoPedido({ clienteId, itens, requireCliente }: Edicao
   }
   return null
 }
+
+export function filtrarPedidosPorDisponibilidade<T extends { disponivel: boolean }>(
+  pedidos: T[],
+  filtro: "todos" | "disponivel" | "indisponivel"
+): T[] {
+  if (filtro === "disponivel") return pedidos.filter((p) => p.disponivel)
+  if (filtro === "indisponivel") return pedidos.filter((p) => !p.disponivel)
+  return pedidos
+}

@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
   const statusPagamento = req.nextUrl.searchParams.get("statusPagamento")
   const tipoPedido = req.nextUrl.searchParams.get("tipoPedido")
   const cidade = req.nextUrl.searchParams.get("cidade") ?? ""
+  const disponivelParam = req.nextUrl.searchParams.get("disponivel")
   const sortOrder = parseSortOrder(req.nextUrl.searchParams.get("sortOrder"))
   const { page, limit } = parsePaginationParams(req.nextUrl.searchParams)
 
@@ -28,8 +29,12 @@ export async function GET(req: NextRequest) {
     ...(cidade && { cidade: { contains: cidade } }),
   }
 
+  const disponivelFilter =
+    disponivelParam === "true" ? true : disponivelParam === "false" ? false : undefined
+
   const where = {
     ativo: true,
+    ...(disponivelFilter !== undefined && { disponivel: disponivelFilter }),
     ...(Object.keys(clienteFilter).length > 0 && { cliente: clienteFilter }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(statusEntrega && { statusEntrega: statusEntrega as any }),

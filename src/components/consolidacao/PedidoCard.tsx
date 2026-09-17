@@ -3,10 +3,11 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmActionDialog } from "@/components/ui/ConfirmActionDialog"
 import { formatCurrency } from "@/lib/utils"
 import { calcularPesoFaltante } from "@/lib/consolidacao-utils"
 import type { PedidoDTO, ItemPedidoDTO, ConsolidacaoItemDetalheDTO } from "@/types/api"
-import { ArrowRight, X, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react"
+import { ArrowRight, X, AlertTriangle, ChevronUp, BanIcon, CheckCircle2 } from "lucide-react"
 import { TIPO_BADGE } from "@/lib/produto-utils"
 
 interface PedidoCardProps {
@@ -16,6 +17,7 @@ interface PedidoCardProps {
   onAlocar?: () => void
   onDesalocar?: () => void
   onRegistrarFalta?: (faltas: { itemPedidoId: string; quantidadeFalta: number }[]) => void
+  onToggleDisponivel?: (disponivel: boolean) => void
   loading?: boolean
 }
 
@@ -52,8 +54,9 @@ function ItemFaltaRow({ item, maxFalta, value, onChange }: ItemFaltaRowProps) {
   )
 }
 
-export function PedidoCard({ pedido, variant, detalhes, onAlocar, onDesalocar, onRegistrarFalta, loading }: PedidoCardProps) {
+export function PedidoCard({ pedido, variant, detalhes, onAlocar, onDesalocar, onRegistrarFalta, onToggleDisponivel, loading }: PedidoCardProps) {
   const [showFalta, setShowFalta] = useState(false)
+  const [confirmDisponivel, setConfirmDisponivel] = useState<boolean | null>(null)
   const [faltaMap, setFaltaMap] = useState<Record<string, number>>(() =>
     Object.fromEntries(pedido.itens.map((i) => [i.id, i.quantidadeFalta ?? 0]))
   )
@@ -78,10 +81,34 @@ export function PedidoCard({ pedido, variant, detalhes, onAlocar, onDesalocar, o
   }
 
   return (
-    <div className="border rounded-md p-3 bg-white text-sm space-y-1">
+    <>
+      <ConfirmActionDialog
+        open={confirmDisponivel !== null}
+        onOpenChange={(open) => { if (!open) setConfirmDisponivel(null) }}
+        title={confirmDisponivel === false ? "Tornar pedido indisponível?" : "Tornar pedido disponível?"}
+        description={
+          confirmDisponivel === false
+            ? "O pedido não aparecerá mais na lista de alocação de rotas. Você poderá revertê-lo depois."
+            : "O pedido voltará a aparecer na lista de pedidos disponíveis para alocação."
+        }
+        confirmLabel={confirmDisponivel === false ? "Tornar indisponível" : "Tornar disponível"}
+        confirmClassName={confirmDisponivel === false ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
+        onConfirm={() => {
+          if (confirmDisponivel !== null) {
+            onToggleDisponivel?.(confirmDisponivel)
+            setConfirmDisponivel(null)
+          }
+        }}
+      />
+    <div className={`border rounded-md p-3 bg-white text-sm space-y-1 ${!pedido.disponivel ? "opacity-60 border-dashed border-red-200" : ""}`}>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-1.5">
           <span className="font-medium">{pedido.cliente?.nome ?? "—"}</span>
+          {!pedido.disponivel && (
+            <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0 h-4">
+              <BanIcon size={9} className="mr-0.5" /> Indisponível
+            </Badge>
+          )}
           {(temFaltaRegistrada || temRestante) && (
             <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0 h-4">
               <AlertTriangle size={9} className="mr-0.5" /> Parcial
@@ -100,10 +127,38 @@ export function PedidoCard({ pedido, variant, detalhes, onAlocar, onDesalocar, o
         </div>
       )}
       <div className="pt-1 space-y-1">
-        {variant === "disponivel" && onAlocar && (
-          <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={onAlocar} disabled={loading}>
-            <ArrowRight size={12} className="mr-1" /> Alocar nesta rota
-          </Button>
+        {variant === "disponivel" && (
+          <div className="flex gap-1.5">
+            {onAlocar && pedido.disponivel && (
+              <Button size="sm" variant="outline" className="flex-1 text-xs h-7" onClick={onAlocar} disabled={loading}>
+                <ArrowRight size={12} className="mr-1" /> Alocar nesta rota
+              </Button>
+            )}
+            {onToggleDisponivel && (
+              pedido.disponivel ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs h-7 text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+                  onClick={() => setConfirmDisponivel(false)}
+                  disabled={loading}
+                  title="Tornar indisponível"
+                >
+                  <BanIcon size={12} />
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="flex-1 text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                  onClick={() => setConfirmDisponivel(true)}
+                  disabled={loading}
+                >
+                  <CheckCircle2 size={12} className="mr-1" /> Tornar disponível
+                </Button>
+              )
+            )}
+          </div>
         )}
         {variant === "alocado" && (
           <>
@@ -147,5 +202,6 @@ export function PedidoCard({ pedido, variant, detalhes, onAlocar, onDesalocar, o
         )}
       </div>
     </div>
+    </>
   )
 }
